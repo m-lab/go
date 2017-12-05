@@ -38,4 +38,4 @@ general use.
 Utilities for testing google cloud service abstractions.
 
 ### bqutil
-
+Utilities for interacting with BigQuery
