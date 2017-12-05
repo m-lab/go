@@ -12,8 +12,8 @@ import (
 
 	"cloud.google.com/go/bigquery"
 	"github.com/go-test/deep"
-	"github.com/m-lab/etl/bq"
 	"github.com/m-lab/etl/testutil"
+	"github.com/m-lab/go/bqutil"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2/google"
 )
@@ -56,7 +56,7 @@ func LoggingCloudClient() (*http.Client, error) {
 func TestGetTableStatsMock(t *testing.T) {
 	// client, _ := LoggingCloudClient() // Use this for creating the ResponseBody.
 	client := getTableStatsClient()
-	util, err := bq.NewTableUtil("mlab-sandbox", "validation", client)
+	util, err := bqutil.NewTableUtil("mlab-sandbox", "validation", client)
 	if err != nil {
 		t.Fatal(err)
 	}
