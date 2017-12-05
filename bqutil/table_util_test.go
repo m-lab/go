@@ -12,8 +12,8 @@ import (
 
 	"cloud.google.com/go/bigquery"
 	"github.com/go-test/deep"
-	"github.com/m-lab/etl/bq"
-	"github.com/m-lab/etl/testutil"
+	"github.com/m-lab/go/bqutil"
+	"github.com/m-lab/go/cloudtest"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2/google"
 )
@@ -33,7 +33,7 @@ var wantString = `{"Name":"","Description":"","Schema":[{"Name":"day","Descripti
 // Client that returns canned response from metadata request.
 func getTableStatsClient() *http.Client {
 	c := make(chan *http.Response, 10)
-	client := testutil.NewChannelClient(c)
+	client := cloudtest.NewChannelClient(c)
 
 	resp := &http.Response{}
 	resp.StatusCode = http.StatusOK
@@ -50,13 +50,13 @@ func LoggingCloudClient() (*http.Client, error) {
 	if err != nil {
 		return nil, err
 	}
-	return testutil.LoggingClient(client)
+	return cloudtest.LoggingClient(client)
 }
 
 func TestGetTableStatsMock(t *testing.T) {
 	// client, _ := LoggingCloudClient() // Use this for creating the ResponseBody.
 	client := getTableStatsClient()
-	util, err := bq.NewTableUtil("mlab-sandbox", "validation", client)
+	util, err := bqutil.NewTableUtil("mlab-sandbox", "validation", client)
 	if err != nil {
 		t.Fatal(err)
 	}
