@@ -15,6 +15,8 @@ Packages in this repo should be:
 Small simple things should likely just be defined where they are used.
 + Fairly carefully designed.  Probably should review design with other
 engineers before putting in too much effort.
++ Well tested and well documented.  Test and documentation standards
+should be even higher than for most code repositories.
 
 Note that packages here are intended to be used in *other* repositories.
 This means that it will be somewhat disruptive to change APIs in these
