@@ -36,8 +36,10 @@ cache:
     - "$HOME/google-cloud-sdk/"
 
 script:
+
 - go test -covermode=count -coverprofile=cloudtest.cov -v github.com/m-lab/go/cloudtest
+- go test -covermode=count -coverprofile=bqutil.cov -v github.com/m-lab/go/bqutil
 
 # Coveralls
-- $HOME/gopath/bin/gocovmerge cloudtest.cov > merge.cov
+- $HOME/gopath/bin/gocovmerge cloudtest.cov bqutil.cov > merge.cov
 - $HOME/gopath/bin/goveralls -coverprofile=merge.cov -service=travis-ci
