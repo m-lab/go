@@ -12,8 +12,8 @@ import (
 
 	"cloud.google.com/go/bigquery"
 	"github.com/go-test/deep"
-	"github.com/m-lab/etl/testutil"
 	"github.com/m-lab/go/bqutil"
+	"github.com/m-lab/go/testutil"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2/google"
 )
