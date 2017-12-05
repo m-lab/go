@@ -1,6 +1,6 @@
-// Package testutil provides utilities for testing, e.g. cloud
+// Package cloudtest provides utilities for testing, e.g. cloud
 // service tests using mock http Transport.
-package testutil
+package cloudtest
 
 import (
 	"bytes"

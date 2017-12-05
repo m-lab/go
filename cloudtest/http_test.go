@@ -1,4 +1,4 @@
-package testutil_test
+package cloudtest_test
 
 import (
 	"bytes"
@@ -11,7 +11,7 @@ import (
 
 	"net/http/httptest"
 
-	"github.com/m-lab/go/testutil"
+	"github.com/m-lab/go/cloudtest"
 )
 
 func init() {
@@ -32,7 +32,7 @@ func TestNewLoggingClientBasic(t *testing.T) {
 	defer ts.Close()
 
 	// Use a logging client.
-	client := testutil.NewLoggingClient()
+	client := cloudtest.NewLoggingClient()
 
 	// Send request through the client to the test URL.
 	_, err := client.Get(ts.URL)
@@ -65,7 +65,7 @@ func TestLoggingClientBasic(t *testing.T) {
 	defer ts.Close()
 
 	// Use a logging client.
-	client, err := testutil.LoggingClient(&http.Client{})
+	client, err := cloudtest.LoggingClient(&http.Client{})
 	if err != nil {
 		t.Error(err)
 	}
@@ -92,7 +92,7 @@ func TestLoggingClientBasic(t *testing.T) {
 // channel.
 func TestChannelClientBasic(t *testing.T) {
 	c := make(chan *http.Response, 10)
-	client := testutil.NewChannelClient(c)
+	client := cloudtest.NewChannelClient(c)
 
 	resp := &http.Response{}
 	resp.StatusCode = http.StatusOK
