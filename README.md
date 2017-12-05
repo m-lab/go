@@ -1,4 +1,11 @@
 # go
+| branch | travis-ci | coveralls |
+|--------|-----------|-----------|
+| master | [![Travis Build Status](https://travis-ci.org/m-lab/go.svg?branch=master)](https://travis-ci.org/m-lab/go) | [![Coverage Status](https://coveralls.io/repos/m-lab/go/badge.svg?branch=master)](https://coveralls.io/github/m-lab/go?branch=master) |
+
+[![Waffle.io](https://badge.waffle.io/m-lab/go.svg?title=Ready)](http://waffle.io/m-lab/go)
+
+
 General purpose libraries / APIs for use in mlab code.
 
 ## General guidance
