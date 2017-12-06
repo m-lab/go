@@ -23,8 +23,9 @@ type TableUtil struct {
 
 // NewTableUtil creates a TableUtil for a project.
 // httpClient is used to inject mocks for the bigquery client.
-// if nil, a suitable default client is used.
-// TODO - if travis, need to use a service account, from the
+// if httpClient is nil, a suitable default client is used.
+// Additional bigquery ClientOptions may be optionally passed as final
+//   clientOpts argument.  This is useful for testing credentials.
 func NewTableUtil(project, dataset string, httpClient *http.Client, clientOpts ...option.ClientOption) (TableUtil, error) {
 	ctx := context.Background()
 	var bqClient *bigquery.Client
@@ -45,7 +46,7 @@ func NewTableUtil(project, dataset string, httpClient *http.Client, clientOpts .
 }
 
 // GetTableStats fetches the Metadata for a table.
-// TODO(gfr) Is this worth having, or is it non-idiomatic?
+// TODO(gfr) Is this worth having, or is it too small and non-idiomatic?
 func (util *TableUtil) GetTableStats(table string) bigquery.TableMetadata {
 	t := util.Dataset.Table(table)
 
@@ -83,18 +84,17 @@ func ParseModel(row map[string]bigquery.Value, model interface{}) (interface{}, 
 	typeOfModel := reflect.ValueOf(model).Type()
 
 	ptr := reflect.New(typeOfModel).Interface()
-	s := reflect.ValueOf(ptr).Elem()
+	elem := reflect.ValueOf(ptr).Elem()
 
 	for i := 0; i < typeOfModel.NumField(); i++ {
-		field := s.Field(i)
+		field := elem.Field(i)
 		tag := typeOfModel.Field(i).Tag.Get("qfield")
 		v, ok := row[tag]
 		if ok {
 			field.Set(reflect.ValueOf(v)) // Will break if types don't match.
 		}
 	}
-	// This is the result we want!!!
-	return s.Interface(), nil
+	return elem.Interface(), nil
 }
 
 // QueryAndParse executes a query that should return a single row, with
@@ -112,7 +112,7 @@ func (util *TableUtil) QueryAndParse(q string, model interface{}) (interface{}, 
 	if err != nil {
 		return model, err
 	}
-	x, err := ParseModel(row, model)
+	result, err := ParseModel(row, model)
 	if err != nil {
 		return model, err
 	}
@@ -121,5 +121,5 @@ func (util *TableUtil) QueryAndParse(q string, model interface{}) (interface{}, 
 	if err != iterator.Done {
 		return model, errors.New("multiple row data")
 	}
-	return x, nil
+	return result, nil
 }
