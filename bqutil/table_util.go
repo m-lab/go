@@ -14,10 +14,10 @@ import (
 )
 
 // TableUtil provides utility functions on tables in a dataset.
-// It encapsulates the client and Dataset to simplify methoDataset.
+// It encapsulates the Client and Dataset to simplify methods.
 // TODO(gfr) Should this be called DatasetUtil ?
 type TableUtil struct {
-	bqClient *bigquery.Client
+	BqClient *bigquery.Client
 	Dataset  *bigquery.Dataset
 }
 
@@ -63,7 +63,7 @@ func (util *TableUtil) GetTableStats(table string) bigquery.TableMetadata {
 // writing results to a table.
 // Generally, may need to change WriteDisposition.
 func (util *TableUtil) ResultQuery(query string, dryRun bool) *bigquery.Query {
-	q := util.bqClient.Query(query)
+	q := util.BqClient.Query(query)
 	q.QueryConfig.DryRun = dryRun
 	if strings.HasPrefix(query, "#legacySQL") {
 		q.QueryConfig.UseLegacySQL = true
