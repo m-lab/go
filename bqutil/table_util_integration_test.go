@@ -11,12 +11,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"os"
 	"testing"
 	"time"
 
 	"cloud.google.com/go/bigquery"
 	"github.com/go-test/deep"
 	"github.com/m-lab/go/bqutil"
+	"google.golang.org/api/option"
 )
 
 func init() {
@@ -29,8 +31,13 @@ var wantStringTest1 = `{"Name":"","Description":"","Schema":[{"Name":"test_id","
 // TestGetTableStats does a live test against a sandbox test table.
 func TestGetTableStats(t *testing.T) {
 	client, _ := LoggingCloudClient() // Use this for creating the ResponseBody.
-	//client := getTableStatsClient()
-	util, err := bqutil.NewTableUtil("mlab-testing", "go", client)
+
+	opts := []option.ClientOption{}
+	if os.Getenv("TRAVIS") != "" {
+		authOpt := option.WithCredentialsFile("../travis-testing.key")
+		opts = append(opts, authOpt)
+	}
+	util, err := bqutil.NewTableUtil("mlab-testing", "go", client, opts...)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -64,7 +71,12 @@ func TestQueryAndParse(t *testing.T) {
 	// This logs all the requests and responses, for debugging purposes.
 	// Turns out this test causes three http requests to the backend.
 	client, _ := LoggingCloudClient() // Use this for creating the ResponseBody.
-	util, err := bqutil.NewTableUtil("mlab-testing", "go", client)
+	opts := []option.ClientOption{}
+	if os.Getenv("TRAVIS") != "" {
+		authOpt := option.WithCredentialsFile("../travis-testing.key")
+		opts = append(opts, authOpt)
+	}
+	util, err := bqutil.NewTableUtil("mlab-testing", "go", client, opts...)
 	if err != nil {
 		log.Fatal(err)
 	}

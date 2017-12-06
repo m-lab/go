@@ -24,16 +24,17 @@ type TableUtil struct {
 // NewTableUtil creates a TableUtil for a project.
 // httpClient is used to inject mocks for the bigquery client.
 // if nil, a suitable default client is used.
-func NewTableUtil(project, dataset string, httpClient *http.Client) (TableUtil, error) {
+// TODO - if travis, need to use a service account, from the
+func NewTableUtil(project, dataset string, httpClient *http.Client, clientOpts ...option.ClientOption) (TableUtil, error) {
 	ctx := context.Background()
 	var bqClient *bigquery.Client
 	var err error
 	if httpClient != nil {
 		opt := option.WithHTTPClient(httpClient)
-		bqClient, err = bigquery.NewClient(ctx, project, opt)
+		bqClient, err = bigquery.NewClient(ctx, project, append(clientOpts, opt)...)
 	} else {
 		// Creates a client.
-		bqClient, err = bigquery.NewClient(ctx, project)
+		bqClient, err = bigquery.NewClient(ctx, project, clientOpts...)
 	}
 
 	if err != nil {

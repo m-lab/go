@@ -23,8 +23,10 @@ before_install:
 - source "${HOME}/google-cloud-sdk/path.bash.inc"
 
 # Install test credentials.
-- echo $TEST_CREDENTIALS_mlab_testing | base64 -d > testing.keyfile
-- gcloud auth activate-service-account --key-file=testing.keyfile
+# NOTE: This is a potential security exposure if third parties can trigger
+# travis with arbitrary changes to this .travis.yml file.
+- echo $TEST_CREDENTIALS_mlab_testing | base64 -d > travis-testing.key
+- gcloud auth activate-service-account --key-file=travis-testing.key
 
 - echo Branch is ${TRAVIS_BRANCH} and Tag is $TRAVIS_TAG
 
