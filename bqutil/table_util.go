@@ -103,7 +103,6 @@ func (util *TableUtil) QueryAndParse(q string, model interface{}) (interface{}, 
 	query := util.ResultQuery(q, false)
 	it, err := query.Read(context.Background())
 	if err != nil {
-		log.Print(err)
 		return model, err
 	}
 
@@ -111,12 +110,10 @@ func (util *TableUtil) QueryAndParse(q string, model interface{}) (interface{}, 
 	var row map[string]bigquery.Value
 	err = it.Next(&row)
 	if err != nil {
-		log.Println(err)
 		return model, err
 	}
 	x, err := ParseModel(row, model)
 	if err != nil {
-		log.Println(err)
 		return model, err
 	}
 	// If there are more rows, then something is wrong.
