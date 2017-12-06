@@ -19,22 +19,36 @@ import (
 	"github.com/m-lab/go/bqutil"
 )
 
+func init() {
+	// Always prepend the filename and line number.
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
+}
+
+var wantStringTest1 = `{"Name":"","Description":"","Schema":[{"Name":"test_id","Description":"","Repeated":false,"Required":false,"Type":"STRING","Schema":null}],"ViewQuery":"","UseLegacySQL":false,"UseStandardSQL":false,"TimePartitioning":{"Expiration":0},"ExpirationTime":"0001-01-01T00:00:00Z","Labels":null,"ExternalDataConfig":null,"FullID":"mlab-testing:go.TestGetTableStats","Type":"TABLE","CreationTime":"2017-12-06T12:19:16.218-05:00","LastModifiedTime":"2017-12-06T12:19:16.218-05:00","NumBytes":7,"NumRows":1,"StreamingBuffer":null,"ETag":"\"cX5UmbB_R-S07ii743IKGH9YCYM/MTUxMjU4MDc1NjIxOA\""}`
+
 // TestGetTableStats does a live test against a sandbox test table.
 func TestGetTableStats(t *testing.T) {
 	client, _ := LoggingCloudClient() // Use this for creating the ResponseBody.
 	//client := getTableStatsClient()
-	util, err := bqutil.NewTableUtil("mlab-sandbox", "validation", client)
+	util, err := bqutil.NewTableUtil("mlab-testing", "go", client)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	stats := util.GetTableStats("dedup")
+	stats := util.GetTableStats("TestGetTableStats")
 
 	// This creates the metadata response we expect.
 	var want bigquery.TableMetadata
-	json.Unmarshal([]byte(wantString), &want)
+	err = json.Unmarshal([]byte(wantStringTest1), &want)
+	if err != nil {
+		actual, _ := json.Marshal(stats)
+		log.Printf("Actual json:\n%s\n", string(actual))
+		t.Fatal(err)
+	}
 
 	if diff := deep.Equal(stats, want); diff != nil {
+		actual, _ := json.Marshal(stats)
+		log.Printf("Actual json:\n%%s\n", string(actual))
 		t.Error(diff)
 	}
 }
@@ -50,7 +64,7 @@ func TestQueryAndParse(t *testing.T) {
 	// This logs all the requests and responses, for debugging purposes.
 	// Turns out this test causes three http requests to the backend.
 	client, _ := LoggingCloudClient() // Use this for creating the ResponseBody.
-	util, err := bqutil.NewTableUtil("mlab-sandbox", "validation", client)
+	util, err := bqutil.NewTableUtil("mlab-testing", "go", client)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -64,13 +78,13 @@ func TestQueryAndParse(t *testing.T) {
 		  msec_to_timestamp(last_modified_time) AS last_modified
 		FROM
 		  [%s$__PARTITIONS_SUMMARY__]
-		where partition_id = "%s" `, "tableutil_tests", "20171016")
+		where partition_id = "%s" `, "TestQueryAndParse", "20170101")
 	x, err := util.QueryAndParse(queryString, PartitionInfo{})
 	info := x.(PartitionInfo)
 	if err != nil {
 		t.Error()
 	}
-	if info.PartitionID != "20171016" {
+	if info.PartitionID != "20170101" {
 		t.Error("Incorrect PartitionID")
 	}
 	log.Printf("%+v\n", info)
