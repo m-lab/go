@@ -19,6 +19,7 @@ import (
 	"github.com/m-lab/go/bqutil"
 )
 
+// TestGetTableStats does a live test against a sandbox test table.
 func TestGetTableStats(t *testing.T) {
 	client, _ := LoggingCloudClient() // Use this for creating the ResponseBody.
 	//client := getTableStatsClient()
