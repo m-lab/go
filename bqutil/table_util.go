@@ -1,9 +1,11 @@
+// Package bqutil includes generally useful abstractions for simplifying
+// interactions with bigquery.
+// Production utilities should go here, but test facilities should go
+// in a separate bqtest package.
 package bqutil
 
 import (
 	"errors"
-	"log"
-	"net/http"
 	"reflect"
 	"strings"
 
@@ -13,7 +15,8 @@ import (
 	"google.golang.org/api/option"
 )
 
-// TableUtil provides utility functions on tables in a dataset.
+// TableUtil provides extensions to the bigquery Dataset and Table
+// objects to streamline common actions.
 // It encapsulates the Client and Dataset to simplify methods.
 // TODO(gfr) Should this be called DatasetUtil ?
 type TableUtil struct {
@@ -26,17 +29,11 @@ type TableUtil struct {
 // if httpClient is nil, a suitable default client is used.
 // Additional bigquery ClientOptions may be optionally passed as final
 //   clientOpts argument.  This is useful for testing credentials.
-func NewTableUtil(project, dataset string, httpClient *http.Client, clientOpts ...option.ClientOption) (TableUtil, error) {
+func NewTableUtil(project, dataset string, clientOpts ...option.ClientOption) (TableUtil, error) {
 	ctx := context.Background()
 	var bqClient *bigquery.Client
 	var err error
-	if httpClient != nil {
-		opt := option.WithHTTPClient(httpClient)
-		bqClient, err = bigquery.NewClient(ctx, project, append(clientOpts, opt)...)
-	} else {
-		// Creates a client.
-		bqClient, err = bigquery.NewClient(ctx, project, clientOpts...)
-	}
+	bqClient, err = bigquery.NewClient(ctx, project, clientOpts...)
 
 	if err != nil {
 		return TableUtil{}, err
@@ -45,21 +42,7 @@ func NewTableUtil(project, dataset string, httpClient *http.Client, clientOpts .
 	return TableUtil{bqClient, bqClient.Dataset(dataset)}, nil
 }
 
-// GetTableStats fetches the Metadata for a table.
-// TODO(gfr) Is this worth having, or is it too small and non-idiomatic?
-func (util *TableUtil) GetTableStats(table string) bigquery.TableMetadata {
-	t := util.Dataset.Table(table)
-
-	ctx := context.Background()
-	meta, err := t.Metadata(ctx)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return *meta
-}
-
-// ResultQuery constructs a query with common Config settings for
+// ResultQuery constructs a query with common QueryConfig settings for
 // writing results to a table.
 // Generally, may need to change WriteDisposition.
 func (util *TableUtil) ResultQuery(query string, dryRun bool) *bigquery.Query {
@@ -80,6 +63,10 @@ func (util *TableUtil) ResultQuery(query string, dryRun bool) *bigquery.Query {
 
 // ParseModel will parse a bigquery row map into a new item matching
 // model.  Type of model must be struct annotated with qfield tags.
+// TODO(gfr) - RowIterator.Next() can take a struct instead of a map.
+// This didn't immediately work after passing through as an interface{}
+// argument in QueryAndParse, but it would eliminate this code if
+// it can be made to work.
 func ParseModel(row map[string]bigquery.Value, model interface{}) (interface{}, error) {
 	typeOfModel := reflect.ValueOf(model).Type()
 

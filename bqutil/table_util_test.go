@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
+	"log"
 	"net/http"
 	"testing"
 
@@ -13,6 +14,7 @@ import (
 	"github.com/m-lab/go/cloudtest"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2/google"
+	"google.golang.org/api/option"
 )
 
 type nopCloser struct {
@@ -31,11 +33,50 @@ func LoggingCloudClient() (*http.Client, error) {
 	return cloudtest.LoggingClient(client)
 }
 
-// This is captured using LoggingClient.
-var ResponseBody = "{\n \"kind\": \"bigquery#table\",\n \"etag\": \"\\\"cX5UmbB_R-S07ii743IKGH9YCYM/MTQ5OTQ0MTc2NTEwOA\\\"\",\n \"id\": \"mlab-sandbox:validation.dedup\",\n \"selfLink\": \"https://www.googleapis.com/bigquery/v2/projects/mlab-sandbox/datasets/validation/tables/dedup\",\n \"tableReference\": {\n  \"projectId\": \"mlab-sandbox\",\n  \"datasetId\": \"validation\",\n  \"tableId\": \"dedup\"\n },\n \"schema\": {\n  \"fields\": [\n   {\n    \"name\": \"day\",\n    \"type\": \"TIMESTAMP\",\n    \"mode\": \"NULLABLE\"\n   },\n   {\n    \"name\": \"total\",\n    \"type\": \"INTEGER\",\n    \"mode\": \"NULLABLE\"\n   },\n   {\n    \"name\": \"dist\",\n    \"type\": \"INTEGER\",\n    \"mode\": \"NULLABLE\"\n   }\n  ]\n },\n \"numBytes\": \"888\",\n \"numLongTermBytes\": \"888\",\n \"numRows\": \"37\",\n \"creationTime\": \"1499291057539\",\n \"lastModifiedTime\": \"1499441765108\",\n \"type\": \"TABLE\",\n \"location\": \"US\"\n}\n"
+// This was captured using LoggingClient.
+//var ResponseBody = "{\n \"kind\": \"bigquery#table\",\n \"etag\": \"\\\"cX5UmbB_R-S07ii743IKGH9YCYM/MTQ5OTQ0MTc2NTEwOA\\\"\",\n \"id\": \"mlab-sandbox:validation.dedup\",\n \"selfLink\": \"https://www.googleapis.com/bigquery/v2/projects/mlab-sandbox/datasets/validation/tables/dedup\",\n \"tableReference\": {\n  \"projectId\": \"mlab-sandbox\",\n  \"datasetId\": \"validation\",\n  \"tableId\": \"dedup\"\n },\n \"schema\": {\n  \"fields\": [\n   {\n    \"name\": \"day\",\n    \"type\": \"TIMESTAMP\",\n    \"mode\": \"NULLABLE\"\n   },\n   {\n    \"name\": \"total\",\n    \"type\": \"INTEGER\",\n    \"mode\": \"NULLABLE\"\n   },\n   {\n    \"name\": \"dist\",\n    \"type\": \"INTEGER\",\n    \"mode\": \"NULLABLE\"\n   }\n  ]\n },\n \"numBytes\": \"888\",\n \"numLongTermBytes\": \"888\",\n \"numRows\": \"37\",\n \"creationTime\": \"1499291057539\",\n \"lastModifiedTime\": \"1499441765108\",\n \"type\": \"TABLE\",\n \"location\": \"US\"\n}\n"
+var injectedResponseBody = `
+{
+	"kind": "bigquery#table",
+	"etag": "\"cX5UmbB_R-S07ii743IKGH9YCYM/MTQ5OTQ0MTc2NTEwOA\"",
+	"id": "mlab-sandbox:validation.dedup",
+	"selfLink": "https://www.googleapis.com/bigquery/v2/projects/mlab-sandbox/datasets/validation/tables/dedup",
+	"tableReference": {
+	 "projectId": "mlab-sandbox",
+	 "datasetId": "validation",
+	 "tableId": "dedup"
+	},
+	"schema": {
+	 "fields": [
+	  {
+	   "name": "day",
+	   "type": "TIMESTAMP",
+	   "mode": "NULLABLE"
+	  },
+	  {
+	   "name": "total",
+	   "type": "INTEGER",
+	   "mode": "NULLABLE"
+	  },
+	  {
+	   "name": "dist",
+	   "type": "INTEGER",
+	   "mode": "NULLABLE"
+	  }
+	 ]
+	},
+	"numBytes": "888",
+	"numLongTermBytes": "888",
+	"numRows": "37",
+	"creationTime": "1499291057539",
+	"lastModifiedTime": "1499441765108",
+	"type": "TABLE",
+	"location": "US"
+   }
+   `
 
-// This is the expected TableMetadata, json encoded.
-var wantString = `{"Name":"","Description":"","Schema":[{"Name":"day","Description":"","Repeated":false,"Required":false,"Type":"TIMESTAMP","Schema":null},{"Name":"total","Description":"","Repeated":false,"Required":false,"Type":"INTEGER","Schema":null},{"Name":"dist","Description":"","Repeated":false,"Required":false,"Type":"INTEGER","Schema":null}],"ViewQuery":"","UseLegacySQL":false,"UseStandardSQL":false,"TimePartitioning":null,"ExpirationTime":"0001-01-01T00:00:00Z","Labels":null,"ExternalDataConfig":null,"FullID":"mlab-sandbox:validation.dedup","Type":"TABLE","CreationTime":"2017-07-05T17:44:17.539-04:00","LastModifiedTime":"2017-07-07T11:36:05.108-04:00","NumBytes":888,"NumRows":37,"StreamingBuffer":null,"ETag":"\"cX5UmbB_R-S07ii743IKGH9YCYM/MTQ5OTQ0MTc2NTEwOA\""}`
+// This is the expected TableMetadata, json encoded
+var wantTableStats = `{"Name":"","Description":"","Schema":[{"Name":"day","Description":"","Repeated":false,"Required":false,"Type":"TIMESTAMP","Schema":null},{"Name":"total","Description":"","Repeated":false,"Required":false,"Type":"INTEGER","Schema":null},{"Name":"dist","Description":"","Repeated":false,"Required":false,"Type":"INTEGER","Schema":null}],"ViewQuery":"","UseLegacySQL":false,"UseStandardSQL":false,"TimePartitioning":null,"ExpirationTime":"0001-01-01T00:00:00Z","Labels":null,"ExternalDataConfig":null,"FullID":"mlab-sandbox:validation.dedup","Type":"TABLE","CreationTime":"2017-07-05T17:44:17.539-04:00","LastModifiedTime":"2017-07-07T11:36:05.108-04:00","NumBytes":888,"NumRows":37,"StreamingBuffer":null,"ETag":"\"cX5UmbB_R-S07ii743IKGH9YCYM/MTQ5OTQ0MTc2NTEwOA\""}`
 
 // Client that returns canned response from metadata request.
 // Pretty ugly implementation.  Will need to improve this before using
@@ -47,27 +88,32 @@ func getTableStatsClient() *http.Client {
 	resp := &http.Response{}
 	resp.StatusCode = http.StatusOK
 	resp.Status = "OK"
-	resp.Body = nopCloser{bytes.NewReader([]byte(ResponseBody))}
+	resp.Body = nopCloser{bytes.NewReader([]byte(injectedResponseBody))}
 	c <- resp
 
 	return client
 }
 
 func TestGetTableStatsMock(t *testing.T) {
-	// client, _ := LoggingCloudClient() // Use this for creating the ResponseBody.
+	//client, _ := LoggingCloudClient() // Use this for creating the ResponseBody.
 	client := getTableStatsClient()
-	util, err := bqutil.NewTableUtil("mlab-sandbox", "validation", client)
+	util, err := bqutil.NewTableUtil("mlab-sandbox", "validation", option.WithHTTPClient(client))
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	stats := util.GetTableStats("dedup")
+	table := util.Dataset.Table("dedup")
+	ctx := context.Background()
+	stats, err := table.Metadata(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	// This creates the metadata response we expect.
 	var want bigquery.TableMetadata
-	json.Unmarshal([]byte(wantString), &want)
+	json.Unmarshal([]byte(wantTableStats), &want)
 
-	if diff := deep.Equal(stats, want); diff != nil {
+	if diff := deep.Equal(*stats, want); diff != nil {
 		t.Error(diff)
 	}
 }

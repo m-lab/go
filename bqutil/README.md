@@ -1,6 +1,6 @@
 # The bqutil package
 
-This package contains utilities that facilitate various bigquery 
+This package contains utilities that facilitate various bigquery
 operations, notably query processing.
 
 

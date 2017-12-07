@@ -18,6 +18,7 @@ import (
 	"cloud.google.com/go/bigquery"
 	"github.com/go-test/deep"
 	"github.com/m-lab/go/bqutil"
+	"golang.org/x/net/context"
 	"google.golang.org/api/option"
 )
 
@@ -26,27 +27,34 @@ func init() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 }
 
-var wantStringTest1 = `{"Name":"","Description":"","Schema":[{"Name":"test_id","Description":"","Repeated":false,"Required":false,"Type":"STRING","Schema":null}],"ViewQuery":"","UseLegacySQL":false,"UseStandardSQL":false,"TimePartitioning":{"Expiration":0},"ExpirationTime":"0001-01-01T00:00:00Z","Labels":null,"ExternalDataConfig":null,"FullID":"mlab-testing:go.TestGetTableStats","Type":"TABLE","CreationTime":"2017-12-06T12:19:16.218-05:00","LastModifiedTime":"2017-12-06T12:19:16.218-05:00","NumBytes":7,"NumRows":1,"StreamingBuffer":null,"ETag":"\"cX5UmbB_R-S07ii743IKGH9YCYM/MTUxMjU4MDc1NjIxOA\""}`
+//var wantStringTest1 = `{"Name":"","Description":"","Schema":[{"Name":"test_id","Description":"","Repeated":false,"Required":false,"Type":"STRING","Schema":null}],"ViewQuery":"","UseLegacySQL":false,"UseStandardSQL":false,"TimePartitioning":{"Expiration":0},"ExpirationTime":"0001-01-01T00:00:00Z","Labels":null,"ExternalDataConfig":null,"FullID":"mlab-testing:go.TestGetTableStats","Type":"TABLE","CreationTime":"2017-12-06T12:19:16.218-05:00","LastModifiedTime":"2017-12-06T12:19:16.218-05:00","NumBytes":7,"NumRows":1,"StreamingBuffer":null,"ETag":"\"cX5UmbB_R-S07ii743IKGH9YCYM/MTUxMjU4MDc1NjIxOA\""}`
+
+var wantTableMetadata = `{"Name":"","Description":"","Schema":[{"Name":"test_id","Description":"","Repeated":false,"Required":false,"Type":"STRING","Schema":null}],"ViewQuery":"","UseLegacySQL":false,"UseStandardSQL":false,"TimePartitioning":{"Expiration":0},"ExpirationTime":"0001-01-01T00:00:00Z","Labels":null,"ExternalDataConfig":null,"FullID":"mlab-testing:go.TestGetTableStats","Type":"TABLE","CreationTime":"2017-12-06T12:19:16.218-05:00","LastModifiedTime":"2017-12-06T12:19:16.218-05:00","NumBytes":7,"NumRows":1,"StreamingBuffer":null,"ETag":"\"cX5UmbB_R-S07ii743IKGH9YCYM/MTUxMjU4MDc1NjIxOA\""}`
 
 // TestGetTableStats does a live test against a sandbox test table.
 func TestGetTableStats(t *testing.T) {
 	client, _ := LoggingCloudClient() // Use this for creating the ResponseBody.
 
-	opts := []option.ClientOption{}
+	opts := []option.ClientOption{option.WithHTTPClient(client)}
 	if os.Getenv("TRAVIS") != "" {
 		authOpt := option.WithCredentialsFile("../travis-testing.key")
 		opts = append(opts, authOpt)
 	}
-	util, err := bqutil.NewTableUtil("mlab-testing", "go", client, opts...)
+	util, err := bqutil.NewTableUtil("mlab-testing", "go", opts...)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	stats := util.GetTableStats("TestGetTableStats")
+	table := util.Dataset.Table("TestGetTableStats")
+	ctx := context.Background()
+	stats, err := table.Metadata(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	// This creates the metadata response we expect.
 	var want bigquery.TableMetadata
-	err = json.Unmarshal([]byte(wantStringTest1), &want)
+	err = json.Unmarshal([]byte(wantTableMetadata), &want)
 	if err != nil {
 		actual, _ := json.Marshal(stats)
 		log.Printf("Actual json:\n%s\n", string(actual))
@@ -71,12 +79,12 @@ func TestQueryAndParse(t *testing.T) {
 	// This logs all the requests and responses, for debugging purposes.
 	// Turns out this test causes three http requests to the backend.
 	client, _ := LoggingCloudClient() // Use this for creating the ResponseBody.
-	opts := []option.ClientOption{}
+	opts := []option.ClientOption{option.WithHTTPClient(client)}
 	if os.Getenv("TRAVIS") != "" {
 		authOpt := option.WithCredentialsFile("../travis-testing.key")
 		opts = append(opts, authOpt)
 	}
-	util, err := bqutil.NewTableUtil("mlab-testing", "go", client, opts...)
+	util, err := bqutil.NewTableUtil("mlab-testing", "go", opts...)
 	if err != nil {
 		log.Fatal(err)
 	}
