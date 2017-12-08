@@ -5,7 +5,7 @@
 # This repository does NOT do any deployments or installs.  However,
 # it includes a lot of integration tests, which often require
 # credentials.
-#Z
+#
 #  * decrypt service account credentials
 #  * install the Google Cloud SDK command line tools (gcloud)
 #  * cache the gcloud installation and setup
@@ -25,6 +25,8 @@ before_install:
 # Install test credentials.
 # Note that anyone with github ACLs to push to a branch can hack .travis.yml
 # and discover these credentials in the travis logs.
+# TODO - change this to TEST_SERVICE_ACCOUNT_mlab_testing and outline
+# guidelines for new SA names.
 - echo $TEST_CREDENTIALS_mlab_testing | base64 -d > travis-testing.key
 - gcloud auth activate-service-account --key-file=travis-testing.key
 
