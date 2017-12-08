@@ -8,13 +8,14 @@ import (
 	"net/http"
 	"testing"
 
+	"google.golang.org/api/option"
+
 	"cloud.google.com/go/bigquery"
 	"github.com/go-test/deep"
 	"github.com/m-lab/go/bqutil"
 	"github.com/m-lab/go/cloudtest"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2/google"
-	"google.golang.org/api/option"
 )
 
 type nopCloser struct {
@@ -34,49 +35,18 @@ func LoggingCloudClient() (*http.Client, error) {
 }
 
 // This was captured using LoggingClient.
-//var ResponseBody = "{\n \"kind\": \"bigquery#table\",\n \"etag\": \"\\\"cX5UmbB_R-S07ii743IKGH9YCYM/MTQ5OTQ0MTc2NTEwOA\\\"\",\n \"id\": \"mlab-sandbox:validation.dedup\",\n \"selfLink\": \"https://www.googleapis.com/bigquery/v2/projects/mlab-sandbox/datasets/validation/tables/dedup\",\n \"tableReference\": {\n  \"projectId\": \"mlab-sandbox\",\n  \"datasetId\": \"validation\",\n  \"tableId\": \"dedup\"\n },\n \"schema\": {\n  \"fields\": [\n   {\n    \"name\": \"day\",\n    \"type\": \"TIMESTAMP\",\n    \"mode\": \"NULLABLE\"\n   },\n   {\n    \"name\": \"total\",\n    \"type\": \"INTEGER\",\n    \"mode\": \"NULLABLE\"\n   },\n   {\n    \"name\": \"dist\",\n    \"type\": \"INTEGER\",\n    \"mode\": \"NULLABLE\"\n   }\n  ]\n },\n \"numBytes\": \"888\",\n \"numLongTermBytes\": \"888\",\n \"numRows\": \"37\",\n \"creationTime\": \"1499291057539\",\n \"lastModifiedTime\": \"1499441765108\",\n \"type\": \"TABLE\",\n \"location\": \"US\"\n}\n"
 var injectedResponseBody = `
-{
-	"kind": "bigquery#table",
-	"etag": "\"cX5UmbB_R-S07ii743IKGH9YCYM/MTQ5OTQ0MTc2NTEwOA\"",
-	"id": "mlab-sandbox:validation.dedup",
-	"selfLink": "https://www.googleapis.com/bigquery/v2/projects/mlab-sandbox/datasets/validation/tables/dedup",
-	"tableReference": {
-	 "projectId": "mlab-sandbox",
-	 "datasetId": "validation",
-	 "tableId": "dedup"
-	},
-	"schema": {
-	 "fields": [
-	  {
-	   "name": "day",
-	   "type": "TIMESTAMP",
-	   "mode": "NULLABLE"
-	  },
-	  {
-	   "name": "total",
-	   "type": "INTEGER",
-	   "mode": "NULLABLE"
-	  },
-	  {
-	   "name": "dist",
-	   "type": "INTEGER",
-	   "mode": "NULLABLE"
-	  }
-	 ]
-	},
-	"numBytes": "888",
-	"numLongTermBytes": "888",
-	"numRows": "37",
-	"creationTime": "1499291057539",
-	"lastModifiedTime": "1499441765108",
-	"type": "TABLE",
-	"location": "US"
-   }
-   `
+{ "kind": "bigquery#table", "etag": "\"cX5UmbB_R-S07ii743IKGH9YCYM/MTUxMjU4MDc1NjIxOA\"",
+	"id": "mlab-testing:go.TestGetTableStats",
+	"selfLink": "https://www.googleapis.com/bigquery/v2/projects/mlab-testing/datasets/go/tables/TestGetTableStats",
+	"tableReference": { "projectId": "mlab-testing", "datasetId": "go", "tableId": "TestGetTableStats" },
+	"schema": { "fields": [
+	  { "name": "test_id", "type": "STRING", "mode": "NULLABLE" } ] },
+	"timePartitioning": { "type": "DAY" }, "numBytes": "7", "numLongTermBytes": "0", "numRows": "1",
+	"creationTime": "1512580756218", "lastModifiedTime": "1512580756218", "type": "TABLE", "location": "US" }`
 
 // This is the expected TableMetadata, json encoded
-var wantTableStats = `{"Name":"","Description":"","Schema":[{"Name":"day","Description":"","Repeated":false,"Required":false,"Type":"TIMESTAMP","Schema":null},{"Name":"total","Description":"","Repeated":false,"Required":false,"Type":"INTEGER","Schema":null},{"Name":"dist","Description":"","Repeated":false,"Required":false,"Type":"INTEGER","Schema":null}],"ViewQuery":"","UseLegacySQL":false,"UseStandardSQL":false,"TimePartitioning":null,"ExpirationTime":"0001-01-01T00:00:00Z","Labels":null,"ExternalDataConfig":null,"FullID":"mlab-sandbox:validation.dedup","Type":"TABLE","CreationTime":"2017-07-05T17:44:17.539-04:00","LastModifiedTime":"2017-07-07T11:36:05.108-04:00","NumBytes":888,"NumRows":37,"StreamingBuffer":null,"ETag":"\"cX5UmbB_R-S07ii743IKGH9YCYM/MTQ5OTQ0MTc2NTEwOA\""}`
+var wantTableMetadata2 = `{"Name":"","Description":"","Schema":[{"Name":"test_id","Description":"","Repeated":false,"Required":false,"Type":"STRING","Schema":null}],"ViewQuery":"","UseLegacySQL":false,"UseStandardSQL":false,"TimePartitioning":{"Expiration":0},"ExpirationTime":"0001-01-01T00:00:00Z","Labels":null,"ExternalDataConfig":null,"FullID":"mlab-testing:go.TestGetTableStats","Type":"TABLE","CreationTime":"2017-12-06T12:19:16.218-05:00","LastModifiedTime":"2017-12-06T12:19:16.218-05:00","NumBytes":7,"NumRows":1,"StreamingBuffer":null,"ETag":"\"cX5UmbB_R-S07ii743IKGH9YCYM/MTUxMjU4MDc1NjIxOA\""}`
 
 // Client that returns canned response from metadata request.
 // Pretty ugly implementation.  Will need to improve this before using
@@ -96,13 +66,14 @@ func getTableStatsClient() *http.Client {
 
 func TestGetTableStatsMock(t *testing.T) {
 	//client, _ := LoggingCloudClient() // Use this for creating the ResponseBody.
-	client := getTableStatsClient()
-	util, err := bqutil.NewTableUtil("mlab-sandbox", "validation", option.WithHTTPClient(client))
+	//opts := []option.ClientOption{option.WithHTTPClient(client)}
+	opts := []option.ClientOption{option.WithHTTPClient(getTableStatsClient())}
+	util, err := bqutil.NewTableUtil("mlab-testing", "go", opts...)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	table := util.Dataset.Table("dedup")
+	table := util.Dataset.Table("TestGetTableStats")
 	ctx := context.Background()
 	stats, err := table.Metadata(ctx)
 	if err != nil {
@@ -111,7 +82,7 @@ func TestGetTableStatsMock(t *testing.T) {
 
 	// This creates the metadata response we expect.
 	var want bigquery.TableMetadata
-	json.Unmarshal([]byte(wantTableStats), &want)
+	json.Unmarshal([]byte(wantTableMetadata2), &want)
 
 	if diff := deep.Equal(*stats, want); diff != nil {
 		t.Error(diff)
