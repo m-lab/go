@@ -16,6 +16,7 @@
 // interactions with bigquery.
 // Production utilities should go here, but test facilities should go
 // in a separate bqtest package.
+// TODO - rename bqext
 package bqutil
 
 import (
@@ -32,8 +33,7 @@ import (
 // TableExt provides extensions to the bigquery Dataset and Table
 // objects to streamline common actions.
 // It encapsulates the Client and Dataset to simplify methods.
-// TODO(gfr) Should this be called DatasetUtil ?
-// TODO(gfr) Rename this to TableExt (extensions)
+// TODO(gfr) Should this be called DatasetExt ?
 type TableExt struct {
 	BqClient *bigquery.Client
 	Dataset  *bigquery.Dataset
@@ -82,7 +82,6 @@ func (util *TableExt) ResultQuery(query string, dryRun bool) *bigquery.Query {
 // TODO - extend this to also handle multirow results, by passing
 // slice of structs.
 func (util *TableExt) QueryAndParse(q string, structPtr interface{}) error {
-	// TODO verify that structPtr is a ptr to struct.
 	typeInfo := reflect.ValueOf(structPtr)
 
 	if typeInfo.Type().Kind() != reflect.Ptr {

@@ -78,7 +78,7 @@ func getTableStatsClient() *http.Client {
 	return client
 }
 
-// This tests the table_util code, using a captured response body
+// This tests GetTableStats, by using a captured response body
 // and comparing against actual stats from a table in mlab-testing.
 // That test runs as an integration test, and the logged response body
 // can be found it that test's output.
