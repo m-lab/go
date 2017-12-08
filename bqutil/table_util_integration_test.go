@@ -49,12 +49,12 @@ func TestGetTableStats(t *testing.T) {
 		authOpt := option.WithCredentialsFile("../travis-testing.key")
 		opts = append(opts, authOpt)
 	}
-	util, err := bqutil.NewTableUtil("mlab-testing", "go", opts...)
+	tExt, err := bqutil.NewTableExt("mlab-testing", "go", opts...)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	table := util.Dataset.Table("TestGetTableStats")
+	table := tExt.Dataset.Table("TestGetTableStats")
 	ctx := context.Background()
 	stats, err := table.Metadata(ctx)
 	if err != nil {
@@ -94,7 +94,7 @@ func TestQueryAndParse(t *testing.T) {
 		authOpt := option.WithCredentialsFile("../travis-testing.key")
 		opts = append(opts, authOpt)
 	}
-	util, err := bqutil.NewTableUtil("mlab-testing", "go", opts...)
+	tExt, err := bqutil.NewTableExt("mlab-testing", "go", opts...)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -112,18 +112,18 @@ func TestQueryAndParse(t *testing.T) {
 	pi := PartitionInfo{}
 
 	// Should be simple struct...
-	err = util.QueryAndParse(queryString, []PartitionInfo{})
+	err = tExt.QueryAndParse(queryString, []PartitionInfo{})
 	if err == nil {
 		t.Error("Should produce error on slice input")
 	}
 	// Non-pointer...
-	err = util.QueryAndParse(queryString, pi)
+	err = tExt.QueryAndParse(queryString, pi)
 	if err == nil {
 		t.Error("Should produce error on slice input")
 	}
 
 	// Correct behavior.
-	err = util.QueryAndParse(queryString, &pi)
+	err = tExt.QueryAndParse(queryString, &pi)
 	if err != nil {
 		t.Fatal(err)
 	}
