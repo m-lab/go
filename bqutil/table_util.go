@@ -20,8 +20,10 @@ package bqutil
 
 import (
 	"errors"
+	"log"
 	"reflect"
 	"strings"
+	"time"
 
 	"cloud.google.com/go/bigquery"
 	"golang.org/x/net/context"
@@ -78,10 +80,9 @@ func (util *TableUtil) ResultQuery(query string, dryRun bool) *bigquery.Query {
 // parseModel will parse a bigquery row map into a new item matching
 // model.  Type of model must be struct annotated with qfield tags.
 // TODO(gfr) - RowIterator.Next() can take a struct instead of a map.
-// Unfortunately, it seems that if you pass a struct as an interface{}
-// to RowIterator.Next(), it doesn't populate the struct as one would
-// hope.  So I've been unable to get this to work with the desired
-// QueryAndParse function signature below.
+// This didn't immediately work after passing through as an interface{}
+// argument in QueryAndParse, but it would eliminate this code if
+// it can be made to work.
 func parseModel(row map[string]bigquery.Value, model interface{}) (interface{}, error) {
 	typeOfModel := reflect.ValueOf(model).Type()
 
@@ -124,4 +125,43 @@ func (util *TableUtil) QueryAndParse(q string, model interface{}) (interface{}, 
 		return model, errors.New("multiple row data")
 	}
 	return result, nil
+}
+
+// AltPartitionInfo provides basic information about a partition.
+type AltPartitionInfo struct {
+	PartitionID  string
+	CreationTime time.Time
+	LastModified time.Time
+}
+
+// AltQueryAndParse executes a query that should return a single row, with
+// column labels matching the qfields tags in the provided model struct.
+func (util *TableUtil) AltQueryAndParse(q string, model interface{}) (interface{}, error) {
+	//	typeOfModel := reflect.ValueOf(model).Type()
+
+	//	ptr := reflect.New(typeOfModel).Interface()
+	//	result := reflect.ValueOf(ptr).Elem()
+
+	//	api := AltPartitionInfo{}
+
+	query := util.ResultQuery(q, false)
+	it, err := query.Read(context.Background())
+	if err != nil {
+		return model, err
+	}
+
+	// We expect a single result row, so proceed accordingly.
+	err = it.Next(model) //result.Interface().(AltPartitionInfo))
+	log.Println(model)
+	log.Println(reflect.ValueOf(model).Elem())
+	if err != nil {
+		return model, err
+	}
+	// If there are more rows, then something is wrong.
+	var row map[string]bigquery.Value
+	err = it.Next(&row)
+	if err != iterator.Done {
+		return model, errors.New("multiple row data")
+	}
+	return model, nil
 }
