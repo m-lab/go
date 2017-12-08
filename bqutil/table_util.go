@@ -77,54 +77,40 @@ func (util *TableUtil) ResultQuery(query string, dryRun bool) *bigquery.Query {
 // Code to execute a single query and parse single row result.
 ///////////////////////////////////////////////////////////////////
 
-// parseModel will parse a bigquery row map into a new item matching
-// model.  Type of model must be struct annotated with qfield tags.
-// TODO(gfr) - RowIterator.Next() can take a struct instead of a map.
-// This didn't immediately work after passing through as an interface{}
-// argument in QueryAndParse, but it would eliminate this code if
-// it can be made to work.
-func parseModel(row map[string]bigquery.Value, model interface{}) (interface{}, error) {
-	typeOfModel := reflect.ValueOf(model).Type()
-
-	ptr := reflect.New(typeOfModel).Interface()
-	elem := reflect.ValueOf(ptr).Elem()
-
-	for i := 0; i < typeOfModel.NumField(); i++ {
-		field := elem.Field(i)
-		tag := typeOfModel.Field(i).Tag.Get("qfield")
-		v, ok := row[tag]
-		if ok {
-			field.Set(reflect.ValueOf(v)) // Will break if types don't match.
-		}
-	}
-	return elem.Interface(), nil
-}
-
 // QueryAndParse executes a query that should return a single row, with
-// column labels matching the qfields tags in the provided model struct.
-func (util *TableUtil) QueryAndParse(q string, model interface{}) (interface{}, error) {
+// all struct fields that match query columns filled in.
+// The caller must pass in the *address* of an appropriate struct.
+// TODO - extend this to also handle multirow results, by passing
+// slice of structs.
+func (util *TableUtil) QueryAndParse(q string, structPtr interface{}) error {
+	// TODO verify that structPtr is a ptr to struct.
+	typeInfo := reflect.ValueOf(structPtr)
+
+	if typeInfo.Type().Kind() != reflect.Ptr {
+		return errors.New("Argument should be ptr to struct")
+	}
+	if reflect.Indirect(typeInfo).Kind() != reflect.Struct {
+		return errors.New("Argument should be ptr to struct")
+	}
+
 	query := util.ResultQuery(q, false)
 	it, err := query.Read(context.Background())
 	if err != nil {
-		return model, err
+		return err
 	}
 
 	// We expect a single result row, so proceed accordingly.
+	err = it.Next(structPtr)
+	if err != nil {
+		return err
+	}
 	var row map[string]bigquery.Value
-	err = it.Next(&row)
-	if err != nil {
-		return model, err
-	}
-	result, err := parseModel(row, model)
-	if err != nil {
-		return model, err
-	}
 	// If there are more rows, then something is wrong.
 	err = it.Next(&row)
 	if err != iterator.Done {
-		return model, errors.New("multiple row data")
+		return errors.New("multiple row data")
 	}
-	return result, nil
+	return nil
 }
 
 // AltPartitionInfo provides basic information about a partition.

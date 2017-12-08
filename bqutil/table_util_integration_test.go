@@ -27,7 +27,6 @@ import (
 	"log"
 	"os"
 	"testing"
-	"time"
 
 	"cloud.google.com/go/bigquery"
 	"github.com/go-test/deep"
@@ -81,9 +80,9 @@ func TestGetTableStats(t *testing.T) {
 
 // PartitionInfo provides basic information about a partition.
 type PartitionInfo struct {
-	PartitionID  string    `qfield:"partition_id"`
-	CreationTime time.Time `qfield:"created"`
-	LastModified time.Time `qfield:"last_modified"`
+	PartitionID string `qfield:"partition_id"`
+	//	CreationTime time.Time `qfield:"created"`
+	//	LastModified time.Time `qfield:"last_modified"`
 }
 
 func TestQueryAndParse(t *testing.T) {
@@ -97,42 +96,7 @@ func TestQueryAndParse(t *testing.T) {
 	}
 	util, err := bqutil.NewTableUtil("mlab-testing", "go", opts...)
 	if err != nil {
-		log.Fatal(err)
-	}
-
-	// This uses legacy, because PARTITION_SUMMARY is not supported in standard.
-	queryString := fmt.Sprintf(
-		`#legacySQL
-		SELECT
-		  partition_id,
-		  msec_to_timestamp(creation_time) AS created,
-		  msec_to_timestamp(last_modified_time) AS last_modified
-		FROM
-		  [%s$__PARTITIONS_SUMMARY__]
-		where partition_id = "%s" `, "TestQueryAndParse", "20170101")
-	x, err := util.QueryAndParse(queryString, PartitionInfo{})
-	info := x.(PartitionInfo)
-	if err != nil {
-		t.Error()
-	}
-	if info.PartitionID != "20170101" {
-		t.Error("Incorrect PartitionID")
-	}
-	log.Printf("%+v\n", info)
-}
-
-func TestAltQueryAndParse(t *testing.T) {
-	// This logs all the requests and responses, for debugging purposes.
-	// Turns out this test causes three http requests to the backend.
-	client, _ := LoggingCloudClient() // Use this for creating the ResponseBody.
-	opts := []option.ClientOption{option.WithHTTPClient(client)}
-	if os.Getenv("TRAVIS") != "" {
-		authOpt := option.WithCredentialsFile("../travis-testing.key")
-		opts = append(opts, authOpt)
-	}
-	util, err := bqutil.NewTableUtil("mlab-testing", "go", opts...)
-	if err != nil {
-		log.Fatal(err)
+		t.Fatal(err)
 	}
 
 	// This uses legacy, because PARTITION_SUMMARY is not supported in standard.
@@ -145,14 +109,25 @@ func TestAltQueryAndParse(t *testing.T) {
 		FROM
 		  [%s$__PARTITIONS_SUMMARY__]
 		where partition_id = "%s" `, "TestQueryAndParse", "20170101")
-	api := bqutil.AltPartitionInfo{}
-	x, err := util.AltQueryAndParse(queryString, &api)
-	info := x.(*bqutil.AltPartitionInfo)
+	pi := PartitionInfo{}
+
+	// Should be simple struct...
+	err = util.QueryAndParse(queryString, []PartitionInfo{})
+	if err == nil {
+		t.Error("Should produce error on slice input")
+	}
+	// Non-pointer...
+	err = util.QueryAndParse(queryString, pi)
+	if err == nil {
+		t.Error("Should produce error on slice input")
+	}
+
+	// Correct behavior.
+	err = util.QueryAndParse(queryString, &pi)
 	if err != nil {
-		t.Error()
+		t.Fatal(err)
 	}
-	if info.PartitionID != "20170101" {
-		t.Error("Incorrect PartitionID: ", info.PartitionID)
+	if pi.PartitionID != "20170101" {
+		t.Error("Incorrect PartitionID")
 	}
-	log.Printf("%+v\n", info)
 }
