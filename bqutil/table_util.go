@@ -75,13 +75,14 @@ func (util *TableUtil) ResultQuery(query string, dryRun bool) *bigquery.Query {
 // Code to execute a single query and parse single row result.
 ///////////////////////////////////////////////////////////////////
 
-// ParseModel will parse a bigquery row map into a new item matching
+// parseModel will parse a bigquery row map into a new item matching
 // model.  Type of model must be struct annotated with qfield tags.
 // TODO(gfr) - RowIterator.Next() can take a struct instead of a map.
-// This didn't immediately work after passing through as an interface{}
-// argument in QueryAndParse, but it would eliminate this code if
-// it can be made to work.
-func ParseModel(row map[string]bigquery.Value, model interface{}) (interface{}, error) {
+// Unfortunately, it seems that if you pass a struct as an interface{}
+// to RowIterator.Next(), it doesn't populate the struct as one would
+// hope.  So I've been unable to get this to work with the desired
+// QueryAndParse function signature below.
+func parseModel(row map[string]bigquery.Value, model interface{}) (interface{}, error) {
 	typeOfModel := reflect.ValueOf(model).Type()
 
 	ptr := reflect.New(typeOfModel).Interface()
@@ -113,7 +114,7 @@ func (util *TableUtil) QueryAndParse(q string, model interface{}) (interface{}, 
 	if err != nil {
 		return model, err
 	}
-	result, err := ParseModel(row, model)
+	result, err := parseModel(row, model)
 	if err != nil {
 		return model, err
 	}

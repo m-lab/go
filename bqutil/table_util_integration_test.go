@@ -1,3 +1,17 @@
+//  Copyright 2017 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 // +build integration
 
 package bqutil_test
@@ -26,8 +40,6 @@ func init() {
 	// Always prepend the filename and line number.
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 }
-
-var wantTableMetadata = `{"Name":"","Description":"","Schema":[{"Name":"test_id","Description":"","Repeated":false,"Required":false,"Type":"STRING","Schema":null}],"ViewQuery":"","UseLegacySQL":false,"UseStandardSQL":false,"TimePartitioning":{"Expiration":0},"ExpirationTime":"0001-01-01T00:00:00Z","Labels":null,"ExternalDataConfig":null,"FullID":"mlab-testing:go.TestGetTableStats","Type":"TABLE","CreationTime":"2017-12-06T12:19:16.218-05:00","LastModifiedTime":"2017-12-06T12:19:16.218-05:00","NumBytes":7,"NumRows":1,"StreamingBuffer":null,"ETag":"\"cX5UmbB_R-S07ii743IKGH9YCYM/MTUxMjU4MDc1NjIxOA\""}`
 
 // TestGetTableStats does a live test against a sandbox test table.
 func TestGetTableStats(t *testing.T) {
@@ -59,6 +71,7 @@ func TestGetTableStats(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	stats.ETag = "" // Ignore this field in comparison.
 	if diff := deep.Equal(*stats, want); diff != nil {
 		actual, _ := json.Marshal(stats)
 		log.Printf("Actual json:\n%%s\n", string(actual))
