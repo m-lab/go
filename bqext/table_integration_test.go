@@ -14,7 +14,7 @@
 
 // +build integration
 
-package bqutil_test
+package bqext_test
 
 // This file contains integration tests, which should be run
 // infrequently, with appropriate credentials.  These tests depend
@@ -30,7 +30,7 @@ import (
 
 	"cloud.google.com/go/bigquery"
 	"github.com/go-test/deep"
-	"github.com/m-lab/go/bqutil"
+	"github.com/m-lab/go/bqext"
 	"golang.org/x/net/context"
 	"google.golang.org/api/option"
 )
@@ -49,7 +49,7 @@ func TestGetTableStats(t *testing.T) {
 		authOpt := option.WithCredentialsFile("../travis-testing.key")
 		opts = append(opts, authOpt)
 	}
-	tExt, err := bqutil.NewTableExt("mlab-testing", "go", opts...)
+	tExt, err := bqext.NewTable("mlab-testing", "go", opts...)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -94,7 +94,7 @@ func TestQueryAndParse(t *testing.T) {
 		authOpt := option.WithCredentialsFile("../travis-testing.key")
 		opts = append(opts, authOpt)
 	}
-	tExt, err := bqutil.NewTableExt("mlab-testing", "go", opts...)
+	tExt, err := bqext.NewTable("mlab-testing", "go", opts...)
 	if err != nil {
 		t.Fatal(err)
 	}
