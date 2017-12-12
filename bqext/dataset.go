@@ -14,9 +14,8 @@
 
 // Package bqext includes generally useful abstractions for simplifying
 // interactions with bigquery.
-// Production utilities should go here, but test facilities should go
+// Production extensions should go here, but test facilities should go
 // in a separate bqtest package.
-// TODO - rename bqext
 package bqext
 
 import (
@@ -30,45 +29,44 @@ import (
 	"google.golang.org/api/option"
 )
 
-// Table provides extensions to the bigquery Dataset and Table
+// Dataset provides extensions to the bigquery Dataset and Dataset
 // objects to streamline common actions.
 // It encapsulates the Client and Dataset to simplify methods.
-// TODO(gfr) Should this be called DatasetExt ?
-type Table struct {
+type Dataset struct {
 	BqClient *bigquery.Client
 	Dataset  *bigquery.Dataset
 }
 
-// NewTable creates a Table for a project.
+// NewDataset creates a Dataset for a project.
 // httpClient is used to inject mocks for the bigquery client.
 // if httpClient is nil, a suitable default client is used.
 // Additional bigquery ClientOptions may be optionally passed as final
 //   clientOpts argument.  This is useful for testing credentials.
-func NewTable(project, dataset string, clientOpts ...option.ClientOption) (Table, error) {
+func NewDataset(project, dataset string, clientOpts ...option.ClientOption) (Dataset, error) {
 	ctx := context.Background()
 	var bqClient *bigquery.Client
 	var err error
 	bqClient, err = bigquery.NewClient(ctx, project, clientOpts...)
 
 	if err != nil {
-		return Table{}, err
+		return Dataset{}, err
 	}
 
-	return Table{bqClient, bqClient.Dataset(dataset)}, nil
+	return Dataset{bqClient, bqClient.Dataset(dataset)}, nil
 }
 
 // ResultQuery constructs a query with common QueryConfig settings for
 // writing results to a table.
 // Generally, may need to change WriteDisposition.
-func (util *Table) ResultQuery(query string, dryRun bool) *bigquery.Query {
-	q := util.BqClient.Query(query)
+func (dsExt *Dataset) ResultQuery(query string, dryRun bool) *bigquery.Query {
+	q := dsExt.BqClient.Query(query)
 	q.QueryConfig.DryRun = dryRun
 	if strings.HasPrefix(query, "#legacySQL") {
 		q.QueryConfig.UseLegacySQL = true
 	}
 	// Default for unqualified table names in the query.
-	q.QueryConfig.DefaultProjectID = util.Dataset.ProjectID
-	q.QueryConfig.DefaultDatasetID = util.Dataset.DatasetID
+	q.QueryConfig.DefaultProjectID = dsExt.Dataset.ProjectID
+	q.QueryConfig.DefaultDatasetID = dsExt.Dataset.DatasetID
 	return q
 }
 
@@ -81,7 +79,7 @@ func (util *Table) ResultQuery(query string, dryRun bool) *bigquery.Query {
 // The caller must pass in the *address* of an appropriate struct.
 // TODO - extend this to also handle multirow results, by passing
 // slice of structs.
-func (util *Table) QueryAndParse(q string, structPtr interface{}) error {
+func (dsExt *Dataset) QueryAndParse(q string, structPtr interface{}) error {
 	typeInfo := reflect.ValueOf(structPtr)
 
 	if typeInfo.Type().Kind() != reflect.Ptr {
@@ -91,7 +89,7 @@ func (util *Table) QueryAndParse(q string, structPtr interface{}) error {
 		return errors.New("Argument should be ptr to struct")
 	}
 
-	query := util.ResultQuery(q, false)
+	query := dsExt.ResultQuery(q, false)
 	it, err := query.Read(context.Background())
 	if err != nil {
 		return err

@@ -84,7 +84,7 @@ func getTableStatsClient() *http.Client {
 // can be found it that test's output.
 func TestGetTableStatsMock(t *testing.T) {
 	opts := []option.ClientOption{option.WithHTTPClient(getTableStatsClient())}
-	tExt, err := bqext.NewTable("mock", "mock", opts...)
+	tExt, err := bqext.NewDataset("mock", "mock", opts...)
 	if err != nil {
 		t.Fatal(err)
 	}
