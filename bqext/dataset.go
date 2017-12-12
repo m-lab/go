@@ -112,17 +112,6 @@ func (dsExt *Dataset) QueryAndParse(q string, structPtr interface{}) error {
 	return nil
 }
 
-// TableInfo contains the critical stats for a specific table
-// or partition.
-type TableInfo struct {
-	Name             string
-	IsPartitioned    bool
-	NumBytes         int64
-	NumRows          uint64
-	CreationTime     time.Time
-	LastModifiedTime time.Time
-}
-
 // PartitionInfo provides basic information about a partition.
 type PartitionInfo struct {
 	PartitionID  string
