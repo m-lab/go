@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package bqutil includes generally useful abstractions for simplifying
+// Package bqext includes generally useful abstractions for simplifying
 // interactions with bigquery.
 // Production utilities should go here, but test facilities should go
 // in a separate bqtest package.
 // TODO - rename bqext
-package bqutil
+package bqext
 
 import (
 	"errors"
@@ -30,37 +30,37 @@ import (
 	"google.golang.org/api/option"
 )
 
-// TableExt provides extensions to the bigquery Dataset and Table
+// Table provides extensions to the bigquery Dataset and Table
 // objects to streamline common actions.
 // It encapsulates the Client and Dataset to simplify methods.
 // TODO(gfr) Should this be called DatasetExt ?
-type TableExt struct {
+type Table struct {
 	BqClient *bigquery.Client
 	Dataset  *bigquery.Dataset
 }
 
-// NewTableExt creates a TableExt for a project.
+// NewTable creates a Table for a project.
 // httpClient is used to inject mocks for the bigquery client.
 // if httpClient is nil, a suitable default client is used.
 // Additional bigquery ClientOptions may be optionally passed as final
 //   clientOpts argument.  This is useful for testing credentials.
-func NewTableExt(project, dataset string, clientOpts ...option.ClientOption) (TableExt, error) {
+func NewTable(project, dataset string, clientOpts ...option.ClientOption) (Table, error) {
 	ctx := context.Background()
 	var bqClient *bigquery.Client
 	var err error
 	bqClient, err = bigquery.NewClient(ctx, project, clientOpts...)
 
 	if err != nil {
-		return TableExt{}, err
+		return Table{}, err
 	}
 
-	return TableExt{bqClient, bqClient.Dataset(dataset)}, nil
+	return Table{bqClient, bqClient.Dataset(dataset)}, nil
 }
 
 // ResultQuery constructs a query with common QueryConfig settings for
 // writing results to a table.
 // Generally, may need to change WriteDisposition.
-func (util *TableExt) ResultQuery(query string, dryRun bool) *bigquery.Query {
+func (util *Table) ResultQuery(query string, dryRun bool) *bigquery.Query {
 	q := util.BqClient.Query(query)
 	q.QueryConfig.DryRun = dryRun
 	if strings.HasPrefix(query, "#legacySQL") {
@@ -81,7 +81,7 @@ func (util *TableExt) ResultQuery(query string, dryRun bool) *bigquery.Query {
 // The caller must pass in the *address* of an appropriate struct.
 // TODO - extend this to also handle multirow results, by passing
 // slice of structs.
-func (util *TableExt) QueryAndParse(q string, structPtr interface{}) error {
+func (util *Table) QueryAndParse(q string, structPtr interface{}) error {
 	typeInfo := reflect.ValueOf(structPtr)
 
 	if typeInfo.Type().Kind() != reflect.Ptr {

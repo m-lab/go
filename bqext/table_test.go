@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package bqutil_test
+package bqext_test
 
 import (
 	"bytes"
@@ -26,7 +26,7 @@ import (
 
 	"cloud.google.com/go/bigquery"
 	"github.com/go-test/deep"
-	"github.com/m-lab/go/bqutil"
+	"github.com/m-lab/go/bqext"
 	"github.com/m-lab/go/cloudtest"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2/google"
@@ -84,7 +84,7 @@ func getTableStatsClient() *http.Client {
 // can be found it that test's output.
 func TestGetTableStatsMock(t *testing.T) {
 	opts := []option.ClientOption{option.WithHTTPClient(getTableStatsClient())}
-	tExt, err := bqutil.NewTableExt("mock", "mock", opts...)
+	tExt, err := bqext.NewTable("mock", "mock", opts...)
 	if err != nil {
 		t.Fatal(err)
 	}

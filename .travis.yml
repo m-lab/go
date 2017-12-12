@@ -38,8 +38,8 @@ cache:
 
 script:
 - go test -covermode=count -coverprofile=cloudtest.cov -v github.com/m-lab/go/cloudtest
-- go test -covermode=count -coverprofile=bqutil.cov -v github.com/m-lab/go/bqutil -tags=integration
+- go test -covermode=count -coverprofile=bqext.cov -v github.com/m-lab/go/bqext -tags=integration
 
 # Coveralls
-- $HOME/gopath/bin/gocovmerge cloudtest.cov bqutil.cov > merge.cov
+- $HOME/gopath/bin/gocovmerge cloudtest.cov bqext.cov > merge.cov
 - $HOME/gopath/bin/goveralls -coverprofile=merge.cov -service=travis-ci
