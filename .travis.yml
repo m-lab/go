@@ -30,6 +30,8 @@ before_install:
 
 - echo Branch is ${TRAVIS_BRANCH} and Tag is $TRAVIS_TAG
 
+- if ${TRAVIS_EVENT_TYPE} == cron; then TEST_TAGS=integration; fi;
+
 # These directories will be cached on successful "script" builds, and restored,
 # if available, to save time on future builds.
 cache:
@@ -38,7 +40,7 @@ cache:
 
 script:
 - go test -covermode=count -coverprofile=cloudtest.cov -v github.com/m-lab/go/cloudtest
-- go test -covermode=count -coverprofile=bqext.cov -v github.com/m-lab/go/bqext -tags=integration
+- go test -covermode=count -coverprofile=bqext.cov -v github.com/m-lab/go/bqext -tags=$TEST_TAGS
 
 # Coveralls
 - $HOME/gopath/bin/gocovmerge cloudtest.cov bqext.cov > merge.cov
