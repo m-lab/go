@@ -49,7 +49,7 @@ func TestGetTableStats(t *testing.T) {
 		authOpt := option.WithCredentialsFile("../travis-testing.key")
 		opts = append(opts, authOpt)
 	}
-	tExt, err := bqext.NewTable("mlab-testing", "go", opts...)
+	tExt, err := bqext.NewDataset("mlab-testing", "go", opts...)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -94,7 +94,7 @@ func TestQueryAndParse(t *testing.T) {
 		authOpt := option.WithCredentialsFile("../travis-testing.key")
 		opts = append(opts, authOpt)
 	}
-	tExt, err := bqext.NewTable("mlab-testing", "go", opts...)
+	tExt, err := bqext.NewDataset("mlab-testing", "go", opts...)
 	if err != nil {
 		t.Fatal(err)
 	}
