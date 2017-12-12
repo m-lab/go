@@ -32,7 +32,6 @@ import (
 // Dataset provides extensions to the bigquery Dataset and Dataset
 // objects to streamline common actions.
 // It encapsulates the Client and Dataset to simplify methods.
-// TODO(gfr) Should this be called DatasetExt ?
 type Dataset struct {
 	BqClient *bigquery.Client
 	Dataset  *bigquery.Dataset
