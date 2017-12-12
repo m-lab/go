@@ -21,6 +21,8 @@ package bqext_test
 // on the state of our bigquery tables, so they may start failing
 // if the tables are changed.
 
+// TODO (issue #8) tests that use bq tables should create them from scratch.
+
 import (
 	"encoding/json"
 	"fmt"
@@ -80,10 +82,12 @@ func TestGetTableStats(t *testing.T) {
 }
 
 // PartitionInfo provides basic information about a partition.
+// Note that a similar struct is defined in dataset.go, but this
+// one is used for testing the QueryAndParse method.
 type PartitionInfo struct {
-	PartitionID string `qfield:"partition_id"`
-	//	CreationTime time.Time `qfield:"created"`
-	//	LastModified time.Time `qfield:"last_modified"`
+	PartitionID  string
+	CreationTime time.Time
+	LastModified time.Time
 }
 
 func TestQueryAndParse(t *testing.T) {
