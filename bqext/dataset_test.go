@@ -22,14 +22,13 @@ import (
 	"net/http"
 	"testing"
 
-	"google.golang.org/api/option"
-
 	"cloud.google.com/go/bigquery"
 	"github.com/go-test/deep"
 	"github.com/m-lab/go/bqext"
 	"github.com/m-lab/go/cloudtest"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2/google"
+	"google.golang.org/api/option"
 )
 
 type nopCloser struct {
@@ -65,7 +64,7 @@ const wantTableMetadata = `{"Name":"","Description":"","Schema":[{"Name":"test_i
 // Client that returns canned response from metadata request.
 // Pretty ugly implementation.  Will need to improve this before using
 // the strategy more widely.  Possibly should use one of the go-vcr tools.
-func getTableStatsClient() *http.Client {
+func getOKClient() *http.Client {
 	c := make(chan *http.Response, 10)
 	client := cloudtest.NewChannelClient(c)
 
@@ -83,13 +82,13 @@ func getTableStatsClient() *http.Client {
 // That test runs as an integration test, and the logged response body
 // can be found it that test's output.
 func TestGetTableStatsMock(t *testing.T) {
-	opts := []option.ClientOption{option.WithHTTPClient(getTableStatsClient())}
-	tExt, err := bqext.NewDataset("mock", "mock", opts...)
+	opts := []option.ClientOption{option.WithHTTPClient(getOKClient())}
+	dsExt, err := bqext.NewDataset("mock", "mock", opts...)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	table := tExt.Dataset.Table("TestGetTableStats")
+	table := dsExt.Dataset.Table("TestGetTableStats")
 	ctx := context.Background()
 	stats, err := table.Metadata(ctx)
 	if err != nil {
@@ -104,4 +103,59 @@ func TestGetTableStatsMock(t *testing.T) {
 	if diff := deep.Equal(*stats, want); diff != nil {
 		t.Error(diff)
 	}
+}
+
+// This test only check very basic stuff.  Intended mostly just to
+// improve coverage metrics.
+func TestResultQuery(t *testing.T) {
+	// Create a dummy client.
+	opts := []option.ClientOption{option.WithHTTPClient(getOKClient())}
+	dsExt, err := bqext.NewDataset("mock", "mock", opts...)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	q := dsExt.ResultQuery("query string", true)
+	qc := q.QueryConfig
+	if !qc.DryRun {
+		t.Error("DryRun should be set.")
+	}
+
+	q = dsExt.ResultQuery("query string", false)
+	qc = q.QueryConfig
+	if qc.DryRun {
+		t.Error("DryRun should be false.")
+	}
+
+}
+
+// This test only check very basic stuff.  Intended mostly just to
+// improve coverage metrics.
+func TestDestinationQuery(t *testing.T) {
+	// Create a dummy client.
+	client := cloudtest.NewChannelClient(make(chan *http.Response, 10))
+	opts := []option.ClientOption{option.WithHTTPClient(client)}
+	dsExt, err := bqext.NewDataset("mock", "mock", opts...)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	q := dsExt.DestinationQuery("query string", nil)
+	qc := q.QueryConfig
+	if qc.Dst != nil {
+		t.Error("Destination should be nil.")
+	}
+	if !qc.DryRun {
+		t.Error("DryRun should be set.")
+	}
+
+	q = dsExt.DestinationQuery("query string", dsExt.Dataset.Table("foobar"))
+	qc = q.QueryConfig
+	if qc.Dst.TableID != "foobar" {
+		t.Error("Destination should be foobar.")
+	}
+	if qc.DryRun {
+		t.Error("DryRun should be false.")
+	}
+
 }
