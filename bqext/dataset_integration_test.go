@@ -81,10 +81,10 @@ func TestGetTableStats(t *testing.T) {
 	}
 }
 
-// PartitionInfo provides basic information about a partition.
+// partitionInfo provides basic information about a partition.
 // Note that a similar struct is defined in dataset.go, but this
 // one is used for testing the QueryAndParse method.
-type PartitionInfo struct {
+type partitionInfo struct {
 	PartitionID  string
 	CreationTime time.Time
 	LastModified time.Time
@@ -114,10 +114,10 @@ func TestQueryAndParse(t *testing.T) {
 		FROM
 		  [%s$__PARTITIONS_SUMMARY__]
 		where partition_id = "%s" `, "TestQueryAndParse", "20170101")
-	pi := PartitionInfo{}
+	pi := partitionInfo{}
 
 	// Should be simple struct...
-	err = tExt.QueryAndParse(queryString, []PartitionInfo{})
+	err = tExt.QueryAndParse(queryString, []partitionInfo{})
 	if err == nil {
 		t.Error("Should produce error on slice input")
 	}
@@ -137,7 +137,7 @@ func TestQueryAndParse(t *testing.T) {
 	}
 }
 
-func ClientOpts() []option.ClientOption {
+func clientOpts() []option.ClientOption {
 	opts := []option.ClientOption{}
 	if os.Getenv("TRAVIS") != "" {
 		authOpt := option.WithCredentialsFile("../travis-testing.key")
@@ -146,10 +146,12 @@ func ClientOpts() []option.ClientOption {
 	return opts
 }
 
+// TODO - should build the test tables from scratch.  See https://github.com/m-lab/go/issues/8
+
 func TestDedup(t *testing.T) {
 	start := time.Now() // Later, we will compare partition time to this.
 
-	tExt, err := bqext.NewDataset("mlab-testing", "etl", ClientOpts()...)
+	tExt, err := bqext.NewDataset("mlab-testing", "etl", clientOpts()...)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -188,7 +190,7 @@ func TestDedup(t *testing.T) {
 }
 
 func TestPartitionInfo(t *testing.T) {
-	util, err := bqext.NewDataset("mlab-testing", "etl", ClientOpts()...)
+	util, err := bqext.NewDataset("mlab-testing", "etl", clientOpts()...)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -126,15 +126,13 @@ func TestResultQuery(t *testing.T) {
 	if qc.DryRun {
 		t.Error("DryRun should be false.")
 	}
-
 }
 
 // This test only check very basic stuff.  Intended mostly just to
 // improve coverage metrics.
 func TestDestinationQuery(t *testing.T) {
 	// Create a dummy client.
-	client := cloudtest.NewChannelClient(make(chan *http.Response, 10))
-	opts := []option.ClientOption{option.WithHTTPClient(client)}
+	opts := []option.ClientOption{option.WithHTTPClient(getOKClient())}
 	dsExt, err := bqext.NewDataset("mock", "mock", opts...)
 	if err != nil {
 		t.Fatal(err)
@@ -157,5 +155,4 @@ func TestDestinationQuery(t *testing.T) {
 	if qc.DryRun {
 		t.Error("DryRun should be false.")
 	}
-
 }

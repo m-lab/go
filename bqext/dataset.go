@@ -135,7 +135,7 @@ func (dsExt Dataset) GetPartitionInfo(table string, partition string) (Partition
 
 	err := dsExt.QueryAndParse(queryString, &pi)
 	if err != nil {
-		log.Println(err)
+		log.Println(err, ":", queryString)
 		return PartitionInfo{}, err
 	}
 	return pi, nil
