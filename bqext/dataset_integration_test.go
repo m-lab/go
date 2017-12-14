@@ -148,7 +148,7 @@ func clientOpts() []option.ClientOption {
 
 // TODO - should build the test tables from scratch.  See https://github.com/m-lab/go/issues/8
 
-func TestDedup(t *testing.T) {
+func TestDedup_Alpha(t *testing.T) {
 	start := time.Now() // Later, we will compare partition time to this.
 
 	tExt, err := bqext.NewDataset("mlab-testing", "etl", clientOpts()...)
@@ -167,7 +167,8 @@ func TestDedup(t *testing.T) {
 		t.Fatal("Source table has wrong number rows: ", result.NumRows)
 	}
 
-	_, err = tExt.Dedup("TestDedupSrc_19990101", "test_id", true, "mlab-testing", "etl", "TestDedupDest$19990101")
+	destTable := tExt.BqClient.DatasetInProject("mlab-testing", "etl").Table("TestDedupDest$19990101")
+	_, err = tExt.Dedup_Alpha("TestDedupSrc_19990101", "test_id", destTable)
 	if err != nil {
 		t.Fatal(err)
 	}

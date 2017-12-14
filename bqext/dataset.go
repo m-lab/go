@@ -159,6 +159,22 @@ func (dsExt *Dataset) DestinationQuery(query string, dest *bigquery.Table) *bigq
 	return q
 }
 
+// ExecDestQuery constructs a destination query, executes it, and returns status or error.
+func (dsExt *Dataset) ExecDestQuery(query string, disposition bigquery.TableWriteDisposition, destTable *bigquery.Table) (*bigquery.JobStatus, error) {
+	q := dsExt.DestinationQuery(query, destTable)
+	q.QueryConfig.WriteDisposition = disposition
+	job, err := q.Run(context.Background())
+	if err != nil {
+		return nil, err
+	}
+	log.Println("JobID:", job.ID())
+	status, err := job.Wait(context.Background())
+	if err != nil {
+		return status, err
+	}
+	return status, nil
+}
+
 ///////////////////////////////////////////////////////////////////
 // Specific queries.
 ///////////////////////////////////////////////////////////////////
@@ -174,32 +190,23 @@ var dedupTemplate = `
 	  FROM ` + "`%s`" + `)
 	WHERE row_number = 1`
 
-// Dedup executes a query that dedups and writes to an appropriate
-// partition.
-// src is relative to the project:dataset of dsExt.
-// dedupOn names the field to be used for dedupping.
-// project, dataset, table specify the table to write into.
-// NOTE: destination table must include the partition suffix.  This
-// avoids accidentally overwriting TODAY's partition.
-func (dsExt *Dataset) Dedup(src string, dedupOn string, overwrite bool, project, dataset, table string) (*bigquery.JobStatus, error) {
-	if !strings.Contains(table, "$") {
+// Dedup_Alpha executes a query that dedups and writes to destination partition.
+// This function is alpha status.  The interface may change without notice
+// or major version number change.
+//
+// `src` is relative to the project:dataset of dsExt.
+// `dedupOn` names the field to be used for dedupping.
+// `destTable` specifies the table to write to, typically created with
+//   dsExt.BqClient.DatasetInProject(...).Table(...)
+//
+// NOTE: destination table MUST include the partition suffix.  This
+// avoids accidentally overwriting the entire table.
+// TODO(gfr) Support non-partitioned table destination.
+func (dsExt *Dataset) Dedup_Alpha(src string, dedupOn string, destTable *bigquery.Table) (*bigquery.JobStatus, error) {
+	if !strings.Contains(destTable.TableID, "$") {
 		return nil, errors.New("Destination table does not specify partition")
 	}
+	log.Printf("Removing dups (of %s) and writing to %s\n", dedupOn, destTable.TableID)
 	queryString := fmt.Sprintf(dedupTemplate, dedupOn, src)
-	dest := dsExt.BqClient.DatasetInProject(project, dataset)
-	q := dsExt.DestinationQuery(queryString, dest.Table(table))
-	if overwrite {
-		q.QueryConfig.WriteDisposition = bigquery.WriteTruncate
-	}
-	log.Printf("Removing dups (of %s) and writing to %s\n", dedupOn, table)
-	job, err := q.Run(context.Background())
-	if err != nil {
-		return nil, err
-	}
-	log.Println("JobID:", job.ID())
-	status, err := job.Wait(context.Background())
-	if err != nil {
-		return status, err
-	}
-	return status, nil
+	return dsExt.ExecDestQuery(queryString, bigquery.WriteTruncate, destTable)
 }
