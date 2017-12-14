@@ -20,8 +20,11 @@ package bqext
 
 import (
 	"errors"
+	"fmt"
+	"log"
 	"reflect"
 	"strings"
+	"time"
 
 	"cloud.google.com/go/bigquery"
 	"golang.org/x/net/context"
@@ -33,8 +36,8 @@ import (
 // objects to streamline common actions.
 // It encapsulates the Client and Dataset to simplify methods.
 type Dataset struct {
-	BqClient *bigquery.Client
-	Dataset  *bigquery.Dataset
+	*bigquery.Dataset // Exposes Dataset API directly.
+	BqClient          *bigquery.Client
 }
 
 // NewDataset creates a Dataset for a project.
@@ -52,7 +55,7 @@ func NewDataset(project, dataset string, clientOpts ...option.ClientOption) (Dat
 		return Dataset{}, err
 	}
 
-	return Dataset{bqClient, bqClient.Dataset(dataset)}, nil
+	return Dataset{bqClient.Dataset(dataset), bqClient}, nil
 }
 
 // ResultQuery constructs a query with common QueryConfig settings for
@@ -65,8 +68,8 @@ func (dsExt *Dataset) ResultQuery(query string, dryRun bool) *bigquery.Query {
 		q.QueryConfig.UseLegacySQL = true
 	}
 	// Default for unqualified table names in the query.
-	q.QueryConfig.DefaultProjectID = dsExt.Dataset.ProjectID
-	q.QueryConfig.DefaultDatasetID = dsExt.Dataset.DatasetID
+	q.QueryConfig.DefaultProjectID = dsExt.ProjectID
+	q.QueryConfig.DefaultDatasetID = dsExt.DatasetID
 	return q
 }
 
@@ -107,4 +110,110 @@ func (dsExt *Dataset) QueryAndParse(q string, structPtr interface{}) error {
 		return errors.New("multiple row data")
 	}
 	return nil
+}
+
+// PartitionInfo provides basic information about a partition.
+type PartitionInfo struct {
+	PartitionID  string
+	CreationTime time.Time
+	LastModified time.Time
+}
+
+// GetPartitionInfo provides basic information about a partition.
+func (dsExt Dataset) GetPartitionInfo(table string, partition string) (PartitionInfo, error) {
+	// This uses legacy, because PARTITION_SUMMARY is not supported in standard.
+	queryString := fmt.Sprintf(
+		`#legacySQL
+		SELECT
+		  partition_id as PartitionID,
+		  msec_to_timestamp(creation_time) AS CreationTime,
+		  msec_to_timestamp(last_modified_time) AS LastModified
+		FROM
+		  [%s$__PARTITIONS_SUMMARY__]
+		where partition_id = "%s" `, table, partition)
+	pi := PartitionInfo{}
+
+	err := dsExt.QueryAndParse(queryString, &pi)
+	if err != nil {
+		log.Println(err, ":", queryString)
+		return PartitionInfo{}, err
+	}
+	return pi, nil
+}
+
+// DestinationQuery constructs a query with common Config settings for
+// writing results to a table.
+// If dest is nil, then this will create a DryRun query.
+// TODO - should disposition be an opts... field instead?
+func (dsExt *Dataset) DestQuery(query string, dest *bigquery.Table, disposition bigquery.TableWriteDisposition) *bigquery.Query {
+	q := dsExt.BqClient.Query(query)
+	if dest != nil {
+		q.QueryConfig.Dst = dest
+	} else {
+		q.QueryConfig.DryRun = true
+	}
+	q.QueryConfig.WriteDisposition = disposition
+	q.QueryConfig.AllowLargeResults = true
+	// Default for unqualified table names in the query.
+	q.QueryConfig.DefaultProjectID = dsExt.ProjectID
+	q.QueryConfig.DefaultDatasetID = dsExt.DatasetID
+	q.QueryConfig.DisableFlattenedResults = true
+	return q
+}
+
+// ExecDestQuery executes a destination or dryrun query, and returns status or error.
+func (dsExt *Dataset) ExecDestQuery(q *bigquery.Query) (*bigquery.JobStatus, error) {
+	if q.QueryConfig.Dst == nil && q.QueryConfig.DryRun == false {
+		return nil, errors.New("query must be a destination or dry run")
+	}
+	job, err := q.Run(context.Background())
+	if err != nil {
+		return nil, err
+	}
+	log.Println("JobID:", job.ID())
+	status, err := job.Wait(context.Background())
+	if err != nil {
+		return status, err
+	}
+	return status, nil
+}
+
+///////////////////////////////////////////////////////////////////
+// Specific queries.
+///////////////////////////////////////////////////////////////////
+
+// TODO - really should take the one that was parsed last, instead
+// of random
+var dedupTemplate = `
+	#standardSQL
+	# Delete all duplicate rows based on test_id
+	SELECT * except (row_number)
+	FROM (
+	  SELECT *, ROW_NUMBER() OVER (PARTITION BY %s) row_number
+	  FROM ` + "`%s`" + `)
+	WHERE row_number = 1`
+
+// Dedup_Alpha executes a query that dedups and writes to destination partition.
+// This function is alpha status.  The interface may change without notice
+// or major version number change.
+//
+// `src` is relative to the project:dataset of dsExt.
+// `dedupOn` names the field to be used for dedupping.
+// `destTable` specifies the table to write to, typically created with
+//   dsExt.BqClient.DatasetInProject(...).Table(...)
+//
+// NOTE: If destination table is partitioned, destTable MUST include the partition
+// suffix to avoid accidentally overwriting the entire table.
+func (dsExt *Dataset) Dedup_Alpha(src string, dedupOn string, destTable *bigquery.Table) (*bigquery.JobStatus, error) {
+	if !strings.Contains(destTable.TableID, "$") {
+		meta, err := destTable.Metadata(context.Background())
+		if err == nil && meta.TimePartitioning != nil {
+			log.Println(err)
+			return nil, errors.New("Destination table must specify partition")
+		}
+	}
+	log.Printf("Removing dups (of %s) and writing to %s\n", dedupOn, destTable.TableID)
+	queryString := fmt.Sprintf(dedupTemplate, dedupOn, src)
+	query := dsExt.DestQuery(queryString, destTable, bigquery.WriteTruncate)
+	return dsExt.ExecDestQuery(query)
 }

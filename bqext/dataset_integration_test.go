@@ -21,12 +21,15 @@ package bqext_test
 // on the state of our bigquery tables, so they may start failing
 // if the tables are changed.
 
+// TODO (issue #8) tests that use bq tables should create them from scratch.
+
 import (
 	"encoding/json"
 	"fmt"
 	"log"
 	"os"
 	"testing"
+	"time"
 
 	"cloud.google.com/go/bigquery"
 	"github.com/go-test/deep"
@@ -54,7 +57,7 @@ func TestGetTableStats(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	table := tExt.Dataset.Table("TestGetTableStats")
+	table := tExt.Table("TestGetTableStats")
 	ctx := context.Background()
 	stats, err := table.Metadata(ctx)
 	if err != nil {
@@ -78,11 +81,13 @@ func TestGetTableStats(t *testing.T) {
 	}
 }
 
-// PartitionInfo provides basic information about a partition.
-type PartitionInfo struct {
-	PartitionID string `qfield:"partition_id"`
-	//	CreationTime time.Time `qfield:"created"`
-	//	LastModified time.Time `qfield:"last_modified"`
+// partitionInfo provides basic information about a partition.
+// Note that a similar struct is defined in dataset.go, but this
+// one is used for testing the QueryAndParse method.
+type partitionInfo struct {
+	PartitionID  string
+	CreationTime time.Time
+	LastModified time.Time
 }
 
 func TestQueryAndParse(t *testing.T) {
@@ -109,10 +114,10 @@ func TestQueryAndParse(t *testing.T) {
 		FROM
 		  [%s$__PARTITIONS_SUMMARY__]
 		where partition_id = "%s" `, "TestQueryAndParse", "20170101")
-	pi := PartitionInfo{}
+	pi := partitionInfo{}
 
 	// Should be simple struct...
-	err = tExt.QueryAndParse(queryString, []PartitionInfo{})
+	err = tExt.QueryAndParse(queryString, []partitionInfo{})
 	if err == nil {
 		t.Error("Should produce error on slice input")
 	}
@@ -129,5 +134,70 @@ func TestQueryAndParse(t *testing.T) {
 	}
 	if pi.PartitionID != "20170101" {
 		t.Error("Incorrect PartitionID")
+	}
+}
+
+func clientOpts() []option.ClientOption {
+	opts := []option.ClientOption{}
+	if os.Getenv("TRAVIS") != "" {
+		authOpt := option.WithCredentialsFile("../travis-testing.key")
+		opts = append(opts, authOpt)
+	}
+	return opts
+}
+
+// TODO - should build the test tables from scratch.  See https://github.com/m-lab/go/issues/8
+
+func TestDedup_Alpha(t *testing.T) {
+	start := time.Now() // Later, we will compare partition time to this.
+
+	tExt, err := bqext.NewDataset("mlab-testing", "etl", clientOpts()...)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// First check that source table has expected number of rows.
+	// TestDedupSrc should have 6 rows, of which 4 should be unique.
+	type QR struct {
+		NumRows int64
+	}
+	result := QR{}
+	err = tExt.QueryAndParse("select count(test_id) as NumRows from `TestDedupSrc_19990101`", &result)
+	if result.NumRows != 6 {
+		t.Fatal("Source table has wrong number rows: ", result.NumRows)
+	}
+
+	destTable := tExt.BqClient.DatasetInProject("mlab-testing", "etl").Table("TestDedupDest$19990101")
+	_, err = tExt.Dedup_Alpha("TestDedupSrc_19990101", "test_id", destTable)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	pi, err := tExt.GetPartitionInfo("TestDedupDest", "19990101")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if pi.CreationTime.Before(start) {
+		t.Error("Partition not overwritten??? ", pi.CreationTime)
+	}
+
+	err = tExt.QueryAndParse("select count(test_id) as NumRows from `TestDedupDest` where _PARTITIONTIME = timestamp("+`"1999-01-01 00:00:00"`+")", &result)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.NumRows != 4 {
+		t.Error("Destination has wrong number of rows: ", result.NumRows)
+	}
+}
+
+func TestPartitionInfo(t *testing.T) {
+	util, err := bqext.NewDataset("mlab-testing", "etl", clientOpts()...)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	info, err := util.GetPartitionInfo("TestDedupDest", "19990101")
+	if info.PartitionID != "19990101" {
+		t.Error("Incorrect PartitionID", info)
 	}
 }
