@@ -143,14 +143,16 @@ func (dsExt Dataset) GetPartitionInfo(table string, partition string) (Partition
 
 // DestinationQuery constructs a query with common Config settings for
 // writing results to a table.
-// Generally, may need to change WriteDisposition.
-func (dsExt *Dataset) DestinationQuery(query string, dest *bigquery.Table) *bigquery.Query {
+// If dest is nil, then this will create a DryRun query.
+// TODO - should disposition be an opts... field instead?
+func (dsExt *Dataset) DestinationQuery(query string, dest *bigquery.Table, disposition bigquery.TableWriteDisposition) *bigquery.Query {
 	q := dsExt.BqClient.Query(query)
 	if dest != nil {
 		q.QueryConfig.Dst = dest
 	} else {
 		q.QueryConfig.DryRun = true
 	}
+	q.QueryConfig.WriteDisposition = disposition
 	q.QueryConfig.AllowLargeResults = true
 	// Default for unqualified table names in the query.
 	q.QueryConfig.DefaultProjectID = dsExt.Dataset.ProjectID
@@ -161,8 +163,7 @@ func (dsExt *Dataset) DestinationQuery(query string, dest *bigquery.Table) *bigq
 
 // ExecDestQuery constructs a destination query, executes it, and returns status or error.
 func (dsExt *Dataset) ExecDestQuery(query string, disposition bigquery.TableWriteDisposition, destTable *bigquery.Table) (*bigquery.JobStatus, error) {
-	q := dsExt.DestinationQuery(query, destTable)
-	q.QueryConfig.WriteDisposition = disposition
+	q := dsExt.DestinationQuery(query, destTable, disposition)
 	job, err := q.Run(context.Background())
 	if err != nil {
 		return nil, err
