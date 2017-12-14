@@ -36,8 +36,8 @@ import (
 // objects to streamline common actions.
 // It encapsulates the Client and Dataset to simplify methods.
 type Dataset struct {
-	BqClient *bigquery.Client
-	Dataset  *bigquery.Dataset
+	*bigquery.Dataset // Exposes Dataset API directly.
+	BqClient          *bigquery.Client
 }
 
 // NewDataset creates a Dataset for a project.
@@ -55,7 +55,7 @@ func NewDataset(project, dataset string, clientOpts ...option.ClientOption) (Dat
 		return Dataset{}, err
 	}
 
-	return Dataset{bqClient, bqClient.Dataset(dataset)}, nil
+	return Dataset{bqClient.Dataset(dataset), bqClient}, nil
 }
 
 // ResultQuery constructs a query with common QueryConfig settings for
@@ -68,8 +68,8 @@ func (dsExt *Dataset) ResultQuery(query string, dryRun bool) *bigquery.Query {
 		q.QueryConfig.UseLegacySQL = true
 	}
 	// Default for unqualified table names in the query.
-	q.QueryConfig.DefaultProjectID = dsExt.Dataset.ProjectID
-	q.QueryConfig.DefaultDatasetID = dsExt.Dataset.DatasetID
+	q.QueryConfig.DefaultProjectID = dsExt.ProjectID
+	q.QueryConfig.DefaultDatasetID = dsExt.DatasetID
 	return q
 }
 
@@ -155,8 +155,8 @@ func (dsExt *Dataset) DestinationQuery(query string, dest *bigquery.Table, dispo
 	q.QueryConfig.WriteDisposition = disposition
 	q.QueryConfig.AllowLargeResults = true
 	// Default for unqualified table names in the query.
-	q.QueryConfig.DefaultProjectID = dsExt.Dataset.ProjectID
-	q.QueryConfig.DefaultDatasetID = dsExt.Dataset.DatasetID
+	q.QueryConfig.DefaultProjectID = dsExt.ProjectID
+	q.QueryConfig.DefaultDatasetID = dsExt.DatasetID
 	q.QueryConfig.DisableFlattenedResults = true
 	return q
 }

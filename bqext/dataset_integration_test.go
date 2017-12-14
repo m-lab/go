@@ -57,7 +57,7 @@ func TestGetTableStats(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	table := tExt.Dataset.Table("TestGetTableStats")
+	table := tExt.Table("TestGetTableStats")
 	ctx := context.Background()
 	stats, err := table.Metadata(ctx)
 	if err != nil {

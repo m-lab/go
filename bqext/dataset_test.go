@@ -88,7 +88,7 @@ func TestGetTableStatsMock(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	table := dsExt.Dataset.Table("TestGetTableStats")
+	table := dsExt.Table("TestGetTableStats")
 	ctx := context.Background()
 	stats, err := table.Metadata(ctx)
 	if err != nil {
@@ -147,7 +147,7 @@ func TestDestinationQuery(t *testing.T) {
 		t.Error("DryRun should be set.")
 	}
 
-	q = dsExt.DestinationQuery("query string", dsExt.Dataset.Table("foobar"), bigquery.WriteEmpty)
+	q = dsExt.DestinationQuery("query string", dsExt.Table("foobar"), bigquery.WriteEmpty)
 	qc = q.QueryConfig
 	if qc.Dst.TableID != "foobar" {
 		t.Error("Destination should be foobar.")
