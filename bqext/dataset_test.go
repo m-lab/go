@@ -130,7 +130,7 @@ func TestResultQuery(t *testing.T) {
 
 // This test only check very basic stuff.  Intended mostly just to
 // improve coverage metrics.
-func TestDestinationQuery(t *testing.T) {
+func TestDestQuery(t *testing.T) {
 	// Create a dummy client.
 	opts := []option.ClientOption{option.WithHTTPClient(getOKClient())}
 	dsExt, err := bqext.NewDataset("mock", "mock", opts...)
@@ -138,7 +138,7 @@ func TestDestinationQuery(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	q := dsExt.DestinationQuery("query string", nil, bigquery.WriteEmpty)
+	q := dsExt.DestQuery("query string", nil, bigquery.WriteEmpty)
 	qc := q.QueryConfig
 	if qc.Dst != nil {
 		t.Error("Destination should be nil.")
@@ -147,7 +147,7 @@ func TestDestinationQuery(t *testing.T) {
 		t.Error("DryRun should be set.")
 	}
 
-	q = dsExt.DestinationQuery("query string", dsExt.Table("foobar"), bigquery.WriteEmpty)
+	q = dsExt.DestQuery("query string", dsExt.Table("foobar"), bigquery.WriteEmpty)
 	qc = q.QueryConfig
 	if qc.Dst.TableID != "foobar" {
 		t.Error("Destination should be foobar.")

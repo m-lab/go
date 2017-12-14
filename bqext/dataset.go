@@ -145,7 +145,7 @@ func (dsExt Dataset) GetPartitionInfo(table string, partition string) (Partition
 // writing results to a table.
 // If dest is nil, then this will create a DryRun query.
 // TODO - should disposition be an opts... field instead?
-func (dsExt *Dataset) DestinationQuery(query string, dest *bigquery.Table, disposition bigquery.TableWriteDisposition) *bigquery.Query {
+func (dsExt *Dataset) DestQuery(query string, dest *bigquery.Table, disposition bigquery.TableWriteDisposition) *bigquery.Query {
 	q := dsExt.BqClient.Query(query)
 	if dest != nil {
 		q.QueryConfig.Dst = dest
@@ -161,9 +161,11 @@ func (dsExt *Dataset) DestinationQuery(query string, dest *bigquery.Table, dispo
 	return q
 }
 
-// ExecDestQuery constructs a destination query, executes it, and returns status or error.
-func (dsExt *Dataset) ExecDestQuery(query string, disposition bigquery.TableWriteDisposition, destTable *bigquery.Table) (*bigquery.JobStatus, error) {
-	q := dsExt.DestinationQuery(query, destTable, disposition)
+// ExecDestQuery executes a destination or dryrun query, and returns status or error.
+func (dsExt *Dataset) ExecDestQuery(q *bigquery.Query) (*bigquery.JobStatus, error) {
+	if q.QueryConfig.Dst == nil && q.QueryConfig.DryRun == false {
+		return nil, errors.New("query must be a destination or dry run")
+	}
 	job, err := q.Run(context.Background())
 	if err != nil {
 		return nil, err
@@ -200,14 +202,18 @@ var dedupTemplate = `
 // `destTable` specifies the table to write to, typically created with
 //   dsExt.BqClient.DatasetInProject(...).Table(...)
 //
-// NOTE: destination table MUST include the partition suffix.  This
-// avoids accidentally overwriting the entire table.
-// TODO(gfr) Support non-partitioned table destination.
+// NOTE: If destination table is partitioned, destTable MUST include the partition
+// suffix to avoid accidentally overwriting the entire table.
 func (dsExt *Dataset) Dedup_Alpha(src string, dedupOn string, destTable *bigquery.Table) (*bigquery.JobStatus, error) {
 	if !strings.Contains(destTable.TableID, "$") {
-		return nil, errors.New("Destination table does not specify partition")
+		meta, err := destTable.Metadata(context.Background())
+		if err == nil && meta.TimePartitioning != nil {
+			log.Println(err)
+			return nil, errors.New("Destination table must specify partition")
+		}
 	}
 	log.Printf("Removing dups (of %s) and writing to %s\n", dedupOn, destTable.TableID)
 	queryString := fmt.Sprintf(dedupTemplate, dedupOn, src)
-	return dsExt.ExecDestQuery(queryString, bigquery.WriteTruncate, destTable)
+	query := dsExt.DestQuery(queryString, destTable, bigquery.WriteTruncate)
+	return dsExt.ExecDestQuery(query)
 }
