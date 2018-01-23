@@ -195,8 +195,11 @@ var dedupTemplate = `
 // This template expects to be executed on a table containing a single day's data, such
 // as measurement-lab:batch.ndt_20170601.
 //
-// Some tar files were constructed such that unzipped test files were collected separately
-// from zipped files.  When they are in different tar files, they result in duplicate rows.
+// Some tests are collected as both uncompressed and compressed files. In some historical
+// archives (June 2017), files for a single test appear in different tar files, which
+// results in duplicate rows.
+// This query strips the gz, finds duplicates, and chooses the best row -  prefering gzipped
+// files, and prefering later parse_time.
 var dedupTemplate2 = `
 	#standardSQL
 	# Delete all duplicate rows based on test_id, preferring gz over non-gz, later parse_time
@@ -207,7 +210,7 @@ var dedupTemplate2 = `
 	        SELECT *, regexp_replace(test_id, ".gz$", "") as stripped_id, regexp_extract(test_id, ".*(.gz)$") as gz
 	        FROM ` + "`%s`" + `
         )
-    )  
+    )
 	WHERE row_number = 1`
 
 // Dedup_Alpha executes a query that dedups and writes to destination partition.
