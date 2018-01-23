@@ -182,15 +182,35 @@ func (dsExt *Dataset) ExecDestQuery(q *bigquery.Query) (*bigquery.JobStatus, err
 // Specific queries.
 ///////////////////////////////////////////////////////////////////
 
-// TODO - really should take the one that was parsed last, instead
-// of random
+// TODO Obsolete - delete.
 var dedupTemplate = `
 	#standardSQL
-	# Delete all duplicate rows based on test_id
+	# Delete all duplicate rows, partitioning by specified field
 	SELECT * except (row_number)
 	FROM (
 	  SELECT *, ROW_NUMBER() OVER (PARTITION BY %s) row_number
 	  FROM ` + "`%s`" + `)
+	WHERE row_number = 1`
+
+// This template expects to be executed on a table containing a single day's data, such
+// as measurement-lab:batch.ndt_20170601.
+//
+// Some tests are collected as both uncompressed and compressed files. In some historical
+// archives (June 2017), files for a single test appear in different tar files, which
+// results in duplicate rows.
+// This query strips the gz, finds duplicates, and chooses the best row -  prefering gzipped
+// files, and prefering later parse_time.
+var dedupTemplate2 = `
+	#standardSQL
+	# Delete all duplicate rows based on test_id, preferring gz over non-gz, later parse_time
+	SELECT * except (row_number, gz, stripped_id)
+    from (
+		select *, ROW_NUMBER() OVER (PARTITION BY stripped_id order by gz DESC, parse_time DESC) row_number
+        FROM (
+	        SELECT *, regexp_replace(test_id, ".gz$", "") as stripped_id, regexp_extract(test_id, ".*(.gz)$") as gz
+	        FROM ` + "`%s`" + `
+        )
+    )
 	WHERE row_number = 1`
 
 // Dedup_Alpha executes a query that dedups and writes to destination partition.
@@ -198,7 +218,7 @@ var dedupTemplate = `
 // or major version number change.
 //
 // `src` is relative to the project:dataset of dsExt.
-// `dedupOn` names the field to be used for dedupping.
+// `dedupOn` names the field to be used for dedupping.  (Currently ignored)
 // `destTable` specifies the table to write to, typically created with
 //   dsExt.BqClient.DatasetInProject(...).Table(...)
 //
@@ -212,8 +232,12 @@ func (dsExt *Dataset) Dedup_Alpha(src string, dedupOn string, destTable *bigquer
 			return nil, errors.New("Destination table must specify partition")
 		}
 	}
-	log.Printf("Removing dups (of %s) and writing to %s\n", dedupOn, destTable.TableID)
-	queryString := fmt.Sprintf(dedupTemplate, dedupOn, src)
+
+	//log.Printf("Removing dups (of %s) and writing to %s.%s\n", dedupOn, destTable.DatasetID, destTable.TableID)
+	// queryString := fmt.Sprintf(dedupTemplate, dedupOn, src)
+	log.Println("Warning - ignoring dedup field:", dedupOn)
+	log.Printf("Removing dups (of test_id) and writing to %s.%s\n", destTable.DatasetID, destTable.TableID)
+	queryString := fmt.Sprintf(dedupTemplate2, src)
 	query := dsExt.DestQuery(queryString, destTable, bigquery.WriteTruncate)
 	return dsExt.ExecDestQuery(query)
 }
