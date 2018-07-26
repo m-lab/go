@@ -1,7 +1,7 @@
 # go
-| branch | travis-ci | coveralls |
-|--------|-----------|-----------|
-| master | [![Travis Build Status](https://travis-ci.org/m-lab/go.svg?branch=master)](https://travis-ci.org/m-lab/go) | [![Coverage Status](https://coveralls.io/repos/m-lab/go/badge.svg?branch=master)](https://coveralls.io/github/m-lab/go?branch=master) |
+| branch | travis-ci | coveralls | docs | report card |
+|--------|-----------|-----------|------|-------------|
+| master | [![Travis Build Status](https://travis-ci.org/m-lab/go.svg?branch=master)](https://travis-ci.org/m-lab/go) | [![Coverage Status](https://coveralls.io/repos/m-lab/go/badge.svg?branch=master)](https://coveralls.io/github/m-lab/go?branch=master) | [![GoDoc](https://godoc.org/github.com/m-lab/go?status.svg)](https://godoc.org/github.com/m-lab/go) | [![Go Report Card](https://goreportcard.com/badge/github.com/m-lab/go)](https://goreportcard.com/report/github.com/m-lab/go)
 
 [![Waffle.io](https://badge.waffle.io/m-lab/go.svg?title=Ready)](http://waffle.io/m-lab/go)
 
@@ -34,8 +34,18 @@ as *alpha* or *beta* until they are regarded as stable and suitable for
 general use.
 
 ## packages
+### bqext
+Utilities for interacting with BigQuery
+
+### bytecount
+Allows commandline flags to express quantities of Bytes like `--size=20MB`
+
 ### cloudtest
 Utilities for testing google cloud service abstractions.
 
-### bqutil
-Utilities for interacting with BigQuery
+### flagext
+Extensions for the flag library
+
+### runtimeext
+Functions of general utility
+
