@@ -38,14 +38,15 @@ general use.
 Utilities for interacting with BigQuery
 
 ### bytecount
-Allows commandline flags to express quantities of Bytes like `--size=20MB`
+Allows commandline flags to express quantities of Bytes like `--size=20MB` by
+creating a new type `bytecount` that can be used as a `flag.Value`.
 
 ### cloudtest
 Utilities for testing google cloud service abstractions.
 
 ### flagext
-Extensions for the flag library
+Extensions for the flag package.
 
 ### runtimeext
-Functions of general utility
+Tools for runtime assertions.
 

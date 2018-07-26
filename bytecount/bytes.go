@@ -18,7 +18,7 @@ import (
 type ByteCount int64
 
 // Some constants to make working with ByteCounts easier.  If the difference
-// between Kilobytes and Kibibytes matters to you, then this library is likely
+// between Kilobytes and Kibibytes matters to you, then this package is likely
 // too unsophisticated for your needs.  Pull requests are welcome, however.
 const (
 	Byte     ByteCount = 1
@@ -27,12 +27,12 @@ const (
 	Gigabyte           = 1000 * Megabyte
 )
 
-// Get is used by the Flag library to get the value out of the ByteCount.
+// Get is used by the Flag package to get the value out of the ByteCount.
 func (b ByteCount) Get() interface{} {
 	return b
 }
 
-// String is used by the Flag library to turn the value into a string.  Because
+// String is used by the Flag package to turn the value into a string.  Because
 // we output bytecounts in our logs, it is worth it to convert them into
 // readable values.
 func (b ByteCount) String() string {
@@ -46,7 +46,7 @@ func (b ByteCount) String() string {
 	return fmt.Sprintf("%dB", b)
 }
 
-// Set is used by the Flag library to turn a string into a ByteCount.  This
+// Set is used by the Flag package to turn a string into a ByteCount.  This
 // implementation parses on the quick and dirty using regular expressions.
 func (b *ByteCount) Set(s string) error {
 	bytesRegexpStr := `^(?P<quantity>[0-9]+)(?P<units>[KMG]?B?)?$`

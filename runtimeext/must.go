@@ -23,7 +23,7 @@ var logFatal = log.Fatal
 //    Must(Func(), "Helpful message")
 //
 // This has the benefit of using fewer lines, a common error path that has test
-// coverage, and enabling code which switches to this library to have 100%
+// coverage, and enabling code which switches to this package to have 100%
 // coverage.
 func Must(err error, prefix string, args ...interface{}) {
 	if err != nil {
