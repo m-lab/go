@@ -53,6 +53,8 @@ func TestString(t *testing.T) {
 		{out: "6KB", in: ByteCount(6000)},
 		{out: "7MB", in: ByteCount(7000000)},
 		{out: "8GB", in: ByteCount(8000000000)},
+		{out: "9001MB", in: ByteCount(9001000000)},
+		{out: "1000000001B", in: ByteCount(1000000001)},
 	}
 	for _, test := range tests {
 		if test.in.String() != test.out {
