@@ -76,7 +76,7 @@ func TestGetTableStats(t *testing.T) {
 	stats.ETag = "" // Ignore this field in comparison.
 	if diff := deep.Equal(*stats, want); diff != nil {
 		actual, _ := json.Marshal(stats)
-		log.Printf("Actual json:\n%%s\n", string(actual))
+		log.Printf("Actual json:\n%s\n", string(actual))
 		t.Error(diff)
 	}
 }
