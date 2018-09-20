@@ -11,7 +11,7 @@ import (
 	"regexp"
 	"strconv"
 
-	r "github.com/m-lab/go/runtimeext"
+	"github.com/m-lab/go/rtx"
 )
 
 // ByteCount holds filesizes and the like.
@@ -60,7 +60,7 @@ func (b *ByteCount) Set(s string) error {
 		// If this check ever fails, it represents a bug in the code rather than a
 		// normal response to bad input. A richer compiler would be able to prove
 		// that this check always passes. Regrettably, that compiler does not exist.
-		r.Must(err, "The string %q passed the regexp %q but did not have an int we could parse. This is a bug.", s, bytesRegexpStr)
+		rtx.Must(err, "The string %q passed the regexp %q but did not have an int we could parse. This is a bug.", s, bytesRegexpStr)
 		quantity := ByteCount(quantityInt)
 		unitsBytes := bytesRegexp.ExpandString([]byte{}, "$units", s, submatches)
 		units := Byte
@@ -82,7 +82,7 @@ func (b *ByteCount) Set(s string) error {
 		// If this check ever fails, it represents a bug in the code rather than a
 		// normal response to bad input. A richer compiler would be able to prove
 		// that this check always passes. Regrettably, that compiler does not exist.
-		r.Must(err, "The string %q passed the regexp %q but did not have units we could parse. This is a bug.", s, bytesRegexpStr)
+		rtx.Must(err, "The string %q passed the regexp %q but did not have units we could parse. This is a bug.", s, bytesRegexpStr)
 		*b = quantity * units
 	}
 	return nil

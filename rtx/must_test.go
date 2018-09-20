@@ -1,4 +1,4 @@
-package runtimeext
+package rtx
 
 // The tests for this must be whitebox, because we have to override log.Fatal.
 

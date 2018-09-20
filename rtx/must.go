@@ -1,6 +1,6 @@
-// Package runtimeext provides free functions that would be handy to have as
-// part of the go standard runtime.
-package runtimeext
+// Package rtx provides free functions that would be handy to have as part of
+// the go standard runtime.
+package rtx
 
 import (
 	"fmt"

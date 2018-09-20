@@ -1,7 +1,7 @@
-// Package flagext extends to capabilities of flags to also be able to read
+// Package flagx extends to capabilities of flags to also be able to read
 // from environment variables.  This comes in handy when dockerizing
 // applications.
-package flagext
+package flagx
 
 import (
 	"flag"
