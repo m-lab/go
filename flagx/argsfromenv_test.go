@@ -1,4 +1,4 @@
-package flagext_test
+package flagx_test
 
 import (
 	"flag"
@@ -6,7 +6,7 @@ import (
 	"os"
 	"testing"
 
-	flagx "github.com/m-lab/go/flagext"
+	"github.com/m-lab/go/flagx"
 )
 
 func TestArgsFromEnvDefaults(t *testing.T) {
