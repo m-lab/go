@@ -45,8 +45,7 @@ type Dataset struct {
 // Additional bigquery ClientOptions may be optionally passed as final
 //   clientOpts argument.  This is useful for testing credentials.
 // NOTE: Caller should close the BqClient when finished.
-func NewDataset(project, dataset string, clientOpts ...option.ClientOption) (Dataset, error) {
-	ctx := context.Background()
+func NewDataset(ctx context.Context, project, dataset string, clientOpts ...option.ClientOption) (Dataset, error) {
 	c, err := bigquery.NewClient(ctx, project, clientOpts...)
 	if err != nil {
 		return Dataset{}, err
@@ -86,7 +85,7 @@ func (dsExt *Dataset) ResultQuery(query string, dryRun bool) bqiface.Query {
 // The caller must pass in the *address* of an appropriate struct.
 // TODO - extend this to also handle multirow results, by passing
 // slice of structs.
-func (dsExt *Dataset) QueryAndParse(q string, structPtr interface{}) error {
+func (dsExt *Dataset) QueryAndParse(ctx context.Context, q string, structPtr interface{}) error {
 	typeInfo := reflect.ValueOf(structPtr)
 
 	if typeInfo.Type().Kind() != reflect.Ptr {
@@ -97,7 +96,7 @@ func (dsExt *Dataset) QueryAndParse(q string, structPtr interface{}) error {
 	}
 
 	query := dsExt.ResultQuery(q, false)
-	it, err := query.Read(context.Background())
+	it, err := query.Read(ctx)
 	if err != nil {
 		return err
 	}
@@ -124,7 +123,7 @@ type PartitionInfo struct {
 }
 
 // GetPartitionInfo provides basic information about a partition.
-func (dsExt Dataset) GetPartitionInfo(table string, partition string) (PartitionInfo, error) {
+func (dsExt Dataset) GetPartitionInfo(ctx context.Context, table string, partition string) (PartitionInfo, error) {
 	// This uses legacy, because PARTITION_SUMMARY is not supported in standard.
 	queryString := fmt.Sprintf(
 		`#legacySQL
@@ -137,7 +136,7 @@ func (dsExt Dataset) GetPartitionInfo(table string, partition string) (Partition
 		where partition_id = "%s" `, table, partition)
 	pi := PartitionInfo{}
 
-	err := dsExt.QueryAndParse(queryString, &pi)
+	err := dsExt.QueryAndParse(ctx, queryString, &pi)
 	if err != nil {
 		log.Println(err, ":", queryString)
 		return PartitionInfo{}, err
