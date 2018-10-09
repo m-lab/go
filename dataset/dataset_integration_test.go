@@ -14,11 +14,11 @@
 
 // +build integration
 
-package bqext_test
+package dataset_test
 
 // This file contains integration tests, which should be run
 // infrequently, with appropriate credentials.  These tests depend
-// on the state of our bigquery tables, so they may start failing
+// on the state of mlab-testing bigquery tables, so they may start failing
 // if the tables are changed.
 
 // TODO (issue #8) tests that use bq tables should create them from scratch.
@@ -145,6 +145,8 @@ func clientOpts() []option.ClientOption {
 	}
 	return opts
 }
+
+// TODO - should build the test tables from scratch.  See https://github.com/m-lab/go/issues/8
 
 func TestPartitionInfo(t *testing.T) {
 	util, err := bqext.NewDataset("mlab-testing", "go", clientOpts()...)

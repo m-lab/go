@@ -12,11 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package bqext includes generally useful abstractions for simplifying
+// Package dataset extends bqiface.Dataset with useful abstractions for simplifying
 // interactions with bigquery.
-// Production extensions should go here, but test facilities should go
-// in a separate bqtest package.
-package bqext
+package dataset
 
 import (
 	"errors"
@@ -27,6 +25,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/bigquery"
+	"github.com/GoogleCloudPlatform/google-cloud-go-testing/bigquery/bqiface"
 	"golang.org/x/net/context"
 	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
@@ -35,10 +34,9 @@ import (
 // Dataset provides extensions to the bigquery Dataset and Dataset
 // objects to streamline common actions.
 // It encapsulates the Client and Dataset to simplify methods.
-// DEPRECATED - use bqiface version in go/dataset
 type Dataset struct {
-	*bigquery.Dataset // Exposes Dataset API directly.
-	BqClient          *bigquery.Client
+	bqiface.Dataset // Exposes Dataset API directly.
+	BqClient        bqiface.Client
 }
 
 // NewDataset creates a Dataset for a project.
@@ -46,33 +44,35 @@ type Dataset struct {
 // if httpClient is nil, a suitable default client is used.
 // Additional bigquery ClientOptions may be optionally passed as final
 //   clientOpts argument.  This is useful for testing credentials.
-// DEPRECATED - use bqiface version in go/dataset
-func NewDataset(project, dataset string, clientOpts ...option.ClientOption) (Dataset, error) {
-	ctx := context.Background()
-	var bqClient *bigquery.Client
-	var err error
-	bqClient, err = bigquery.NewClient(ctx, project, clientOpts...)
-
+// NOTE: Caller should close the BqClient when finished.
+func NewDataset(ctx context.Context, project, dataset string, clientOpts ...option.ClientOption) (Dataset, error) {
+	c, err := bigquery.NewClient(ctx, project, clientOpts...)
 	if err != nil {
 		return Dataset{}, err
 	}
+	bqClient := bqiface.AdaptClient(c)
 
 	return Dataset{bqClient.Dataset(dataset), bqClient}, nil
+}
+
+func (dsExt *Dataset) queryConfig(query string, dryRun bool) bqiface.QueryConfig {
+	qc := bqiface.QueryConfig{}
+	qc.DryRun = dryRun
+	if strings.HasPrefix(query, "#legacySQL") {
+		qc.UseLegacySQL = true
+	}
+	// Default for unqualified table names in the query.
+	qc.DefaultProjectID = dsExt.ProjectID()
+	qc.DefaultDatasetID = dsExt.DatasetID()
+	return qc
 }
 
 // ResultQuery constructs a query with common QueryConfig settings for
 // writing results to a table.
 // Generally, may need to change WriteDisposition.
-// DEPRECATED - use bqiface version in go/dataset
-func (dsExt *Dataset) ResultQuery(query string, dryRun bool) *bigquery.Query {
+func (dsExt *Dataset) ResultQuery(query string, dryRun bool) bqiface.Query {
 	q := dsExt.BqClient.Query(query)
-	q.QueryConfig.DryRun = dryRun
-	if strings.HasPrefix(query, "#legacySQL") {
-		q.QueryConfig.UseLegacySQL = true
-	}
-	// Default for unqualified table names in the query.
-	q.QueryConfig.DefaultProjectID = dsExt.ProjectID
-	q.QueryConfig.DefaultDatasetID = dsExt.DatasetID
+	q.SetQueryConfig(dsExt.queryConfig(query, dryRun))
 	return q
 }
 
@@ -85,8 +85,7 @@ func (dsExt *Dataset) ResultQuery(query string, dryRun bool) *bigquery.Query {
 // The caller must pass in the *address* of an appropriate struct.
 // TODO - extend this to also handle multirow results, by passing
 // slice of structs.
-// DEPRECATED - use bqiface version in go/dataset
-func (dsExt *Dataset) QueryAndParse(q string, structPtr interface{}) error {
+func (dsExt *Dataset) QueryAndParse(ctx context.Context, q string, structPtr interface{}) error {
 	typeInfo := reflect.ValueOf(structPtr)
 
 	if typeInfo.Type().Kind() != reflect.Ptr {
@@ -97,7 +96,7 @@ func (dsExt *Dataset) QueryAndParse(q string, structPtr interface{}) error {
 	}
 
 	query := dsExt.ResultQuery(q, false)
-	it, err := query.Read(context.Background())
+	it, err := query.Read(ctx)
 	if err != nil {
 		return err
 	}
@@ -117,7 +116,6 @@ func (dsExt *Dataset) QueryAndParse(q string, structPtr interface{}) error {
 }
 
 // PartitionInfo provides basic information about a partition.
-// DEPRECATED - use bqiface version in go/dataset
 type PartitionInfo struct {
 	PartitionID  string
 	CreationTime time.Time
@@ -125,8 +123,7 @@ type PartitionInfo struct {
 }
 
 // GetPartitionInfo provides basic information about a partition.
-// DEPRECATED - use bqiface version in go/dataset
-func (dsExt Dataset) GetPartitionInfo(table string, partition string) (PartitionInfo, error) {
+func (dsExt Dataset) GetPartitionInfo(ctx context.Context, table string, partition string) (PartitionInfo, error) {
 	// This uses legacy, because PARTITION_SUMMARY is not supported in standard.
 	queryString := fmt.Sprintf(
 		`#legacySQL
@@ -139,7 +136,7 @@ func (dsExt Dataset) GetPartitionInfo(table string, partition string) (Partition
 		where partition_id = "%s" `, table, partition)
 	pi := PartitionInfo{}
 
-	err := dsExt.QueryAndParse(queryString, &pi)
+	err := dsExt.QueryAndParse(ctx, queryString, &pi)
 	if err != nil {
 		log.Println(err, ":", queryString)
 		return PartitionInfo{}, err
@@ -147,40 +144,18 @@ func (dsExt Dataset) GetPartitionInfo(table string, partition string) (Partition
 	return pi, nil
 }
 
-// DestinationQuery constructs a query with common Config settings for
+// DestQuery constructs a query with common Config settings for
 // writing results to a table.
 // If dest is nil, then this will create a DryRun query.
 // TODO - should disposition be an opts... field instead?
-// DEPRECATED - use bqiface version in go/dataset
-func (dsExt *Dataset) DestQuery(query string, dest *bigquery.Table, disposition bigquery.TableWriteDisposition) *bigquery.Query {
-	q := dsExt.BqClient.Query(query)
-	if dest != nil {
-		q.QueryConfig.Dst = dest
-	} else {
-		q.QueryConfig.DryRun = true
-	}
-	q.QueryConfig.WriteDisposition = disposition
-	q.QueryConfig.AllowLargeResults = true
+func (dsExt *Dataset) DestQuery(query string, dest bqiface.Table, disposition bigquery.TableWriteDisposition) bqiface.Query {
+	qc := dsExt.queryConfig(query, dest == nil)
+	qc.Dst = dest
+	qc.WriteDisposition = disposition
+	qc.AllowLargeResults = true
 	// Default for unqualified table names in the query.
-	q.QueryConfig.DefaultProjectID = dsExt.ProjectID
-	q.QueryConfig.DefaultDatasetID = dsExt.DatasetID
-	q.QueryConfig.DisableFlattenedResults = true
+	qc.DisableFlattenedResults = true
+	q := dsExt.BqClient.Query(query)
+	q.SetQueryConfig(qc)
 	return q
-}
-
-// ExecDestQuery executes a destination or dryrun query, and returns status or error.
-func (dsExt *Dataset) ExecDestQuery(q *bigquery.Query) (*bigquery.JobStatus, error) {
-	if q.QueryConfig.Dst == nil && q.QueryConfig.DryRun == false {
-		return nil, errors.New("query must be a destination or dry run")
-	}
-	job, err := q.Run(context.Background())
-	if err != nil {
-		return nil, err
-	}
-	log.Println("JobID:", job.ID())
-	status, err := job.Wait(context.Background())
-	if err != nil {
-		return status, err
-	}
-	return status, nil
 }
