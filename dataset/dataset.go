@@ -39,6 +39,12 @@ type Dataset struct {
 	BqClient        bqiface.Client
 }
 
+// Errors returned by Dataset functions.
+var (
+	ErrNilBqClient = errors.New("nil BqClient")
+	ErrNilQuery    = errors.New("BqClient.Query failed")
+)
+
 // NewDataset creates a Dataset for a project.
 // httpClient is used to inject mocks for the bigquery client.
 // if httpClient is nil, a suitable default client is used.
@@ -57,6 +63,7 @@ func NewDataset(ctx context.Context, project, dataset string, clientOpts ...opti
 
 func (dsExt *Dataset) queryConfig(query string, dryRun bool) bqiface.QueryConfig {
 	qc := bqiface.QueryConfig{}
+	qc.Q = query
 	qc.DryRun = dryRun
 	if strings.HasPrefix(query, "#legacySQL") {
 		qc.UseLegacySQL = true
@@ -70,10 +77,17 @@ func (dsExt *Dataset) queryConfig(query string, dryRun bool) bqiface.QueryConfig
 // ResultQuery constructs a query with common QueryConfig settings for
 // writing results to a table.
 // Generally, may need to change WriteDisposition.
-func (dsExt *Dataset) ResultQuery(query string, dryRun bool) bqiface.Query {
+func (dsExt *Dataset) ResultQuery(query string, dryRun bool) (bqiface.Query, error) {
+	if dsExt.BqClient == nil {
+		return nil, ErrNilBqClient
+	}
 	q := dsExt.BqClient.Query(query)
-	q.SetQueryConfig(dsExt.queryConfig(query, dryRun))
-	return q
+	if q == nil {
+		return nil, ErrNilQuery
+	}
+	qc := dsExt.queryConfig(query, dryRun)
+	q.SetQueryConfig(qc)
+	return q, nil
 }
 
 ///////////////////////////////////////////////////////////////////
@@ -95,7 +109,11 @@ func (dsExt *Dataset) QueryAndParse(ctx context.Context, q string, structPtr int
 		return errors.New("Argument should be ptr to struct")
 	}
 
-	query := dsExt.ResultQuery(q, false)
+	query, err := dsExt.ResultQuery(q, false)
+	if err != nil {
+		return err
+	}
+
 	it, err := query.Read(ctx)
 	if err != nil {
 		return err
