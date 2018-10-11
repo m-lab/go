@@ -93,3 +93,12 @@ func NewClient(ctx context.Context, project string, opts ...option.ClientOption)
 	}
 	return &Client{bqiface.AdaptClient(c), ctx}, nil
 }
+
+// creates a Dataset with a dry run client.
+func (client Client) Dataset(ds string) bqiface.Dataset {
+	return Dataset{Dataset: client.Client.Dataset(ds), tables: make(map[string]*Table)}
+}
+
+func assertClient(c Client) {
+	func(cc bqiface.Client) {}(c)
+}
