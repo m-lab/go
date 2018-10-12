@@ -61,7 +61,7 @@ func (tbl Table) Metadata(ctx context.Context) (*bigquery.TableMetadata, error) 
 func (tbl Table) Create(ctx context.Context, meta *bigquery.TableMetadata) error {
 	log.Println("Create", meta)
 	if *tbl.metadata != nil {
-		return errors.New("wrong error")
+		return errors.New("TODO: should return a table exists error")
 	}
 	t := &bigquery.TableMetadata{}
 	*tbl.metadata = t
@@ -89,11 +89,6 @@ func (ds Dataset) Table(name string) bqiface.Table {
 		ds.tables[name] = t
 	}
 	return t
-}
-
-// This fails to compile if Dataset does not satisfy the interface.
-func assertDataset(ds Dataset) {
-	func(cc bqiface.Dataset) {}(ds)
 }
 
 type Query struct {

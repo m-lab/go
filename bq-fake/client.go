@@ -3,10 +3,8 @@ package bqfake
 // TODO: Implement context expiration checking.
 
 import (
-	"bytes"
 	"context"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"strings"
 	"sync/atomic"
@@ -67,18 +65,6 @@ func DryRunClient() (*http.Client, *CountingTransport) {
 	return client, tp
 }
 
-// This is used to intercept Get requests to the queue_pusher when invoked
-// with -dry_run.
-type dryRunHTTP struct{}
-
-func (dr *dryRunHTTP) Get(url string) (resp *http.Response, err error) {
-	resp = &http.Response{}
-	resp.Body = ioutil.NopCloser(bytes.NewReader([]byte{}))
-	resp.Status = "200 OK"
-	resp.StatusCode = 200
-	return
-}
-
 // Client wraps a fake client.
 type Client struct {
 	bqiface.Client
@@ -89,10 +75,8 @@ type Client struct {
 func NewClient(ctx context.Context, project string, opts ...option.ClientOption) (*Client, error) {
 	dryRun, _ := DryRunClient()
 	opts = append(opts, option.WithHTTPClient(dryRun))
-	c, err := bigquery.NewClient(ctx, project, opts...)
-	if err != nil {
-		return nil, err
-	}
+	// This seems to never return non-nil error, so we don't check it.
+	c, _ := bigquery.NewClient(ctx, project, opts...)
 	return &Client{bqiface.AdaptClient(c), ctx}, nil
 }
 
@@ -105,9 +89,4 @@ func (client Client) Dataset(ds string) bqiface.Dataset {
 
 func (client Client) Query(string) bqiface.Query {
 	return Query{}
-}
-
-// This fails to compile if Client does not satisfy the interface.
-func assertClient(c Client) {
-	func(cc bqiface.Client) {}(c)
 }
