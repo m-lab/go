@@ -79,11 +79,13 @@ func (dr *dryRunHTTP) Get(url string) (resp *http.Response, err error) {
 	return
 }
 
+// Client wraps a fake client.
 type Client struct {
 	bqiface.Client
 	ctx context.Context // Just for checking expiration/cancelation
 }
 
+// NewClient creates a new Client implementing bqiface.Client, with a dry run HTTPClient.
 func NewClient(ctx context.Context, project string, opts ...option.ClientOption) (*Client, error) {
 	dryRun, _ := DryRunClient()
 	opts = append(opts, option.WithHTTPClient(dryRun))
@@ -94,11 +96,14 @@ func NewClient(ctx context.Context, project string, opts ...option.ClientOption)
 	return &Client{bqiface.AdaptClient(c), ctx}, nil
 }
 
-// creates a Dataset with a dry run client.
+// Dataset creates a Dataset.
+// TODO - understand how bqiface adapters/structs work, and make this return a Dataset
+// that satisfies bqiface.Dataset interface?
 func (client Client) Dataset(ds string) bqiface.Dataset {
 	return Dataset{Dataset: client.Client.Dataset(ds), tables: make(map[string]*Table)}
 }
 
+// This fails to compile if Client does not satisfy the interface.
 func assertClient(c Client) {
 	func(cc bqiface.Client) {}(c)
 }

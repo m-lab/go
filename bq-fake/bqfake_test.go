@@ -2,6 +2,7 @@ package bqfake_test
 
 import (
 	"context"
+	"log"
 	"testing"
 	"time"
 
@@ -11,6 +12,11 @@ import (
 	"github.com/m-lab/go/dataset"
 )
 
+func init() {
+	// Always prepend the filename and line number.
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
+}
+
 func TestCachedMeta(t *testing.T) {
 	ctx := context.Background()
 	c, err := bqfake.NewClient(ctx, "mlab-testing")
@@ -19,13 +25,21 @@ func TestCachedMeta(t *testing.T) {
 	}
 	ds := c.Dataset("etl")
 
+	// TODO - also test table before it exists
+	// Test whether changes to table can be seen in existing table objects.
+
 	{
 		meta := bigquery.TableMetadata{CreationTime: time.Now(), LastModifiedTime: time.Now(), NumBytes: 168, NumRows: 8}
 		meta.TimePartitioning = &bigquery.TimePartitioning{Expiration: 0 * time.Second}
-		ds.(bqfake.Dataset).AddTable("DedupTest", &meta)
+		tbl := ds.Table("DedupTest")
+		err := tbl.Create(ctx, &meta)
+		if err != nil {
+			t.Fatal(err)
+		}
 	}
 
 	tbl := ds.Table("DedupTest")
+	log.Println(tbl)
 	meta, err := tbl.Metadata(ctx)
 	if err != nil {
 		t.Error(err)
@@ -33,7 +47,7 @@ func TestCachedMeta(t *testing.T) {
 		t.Error("Meta should not be nil")
 	}
 
-	dsExt := dataset.Dataset{ds, *c}
+	dsExt := dataset.Dataset{Dataset: ds, BqClient: *c}
 	at := bq.NewAnnotatedTable(tbl, &dsExt)
 	// Fetch cache detail - which hits backend
 	meta, err = at.CachedMeta(ctx)
