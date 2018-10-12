@@ -15,6 +15,7 @@ import (
 
 	"cloud.google.com/go/bigquery"
 	"github.com/GoogleCloudPlatform/google-cloud-go-testing/bigquery/bqiface"
+	"google.golang.org/api/iterator"
 )
 
 // Table implements part of the bqiface.Table interface.
@@ -33,6 +34,11 @@ func (tbl Table) ProjectID() string {
 // DatasetID implements the bqiface method.
 func (tbl Table) DatasetID() string {
 	return tbl.ds.DatasetID()
+}
+
+// TableID implements the bqiface method.
+func (tbl Table) TableID() string {
+	return tbl.name
 }
 
 // FullyQualifiedName implements the bqiface method.
@@ -88,4 +94,57 @@ func (ds Dataset) Table(name string) bqiface.Table {
 // This fails to compile if Dataset does not satisfy the interface.
 func assertDataset(ds Dataset) {
 	func(cc bqiface.Dataset) {}(ds)
+}
+
+type Query struct {
+	bqiface.Query
+	//JobIDConfig() *bigquery.JobIDConfig
+	//SetQueryConfig(QueryConfig)
+	//Run(context.Context) (Job, error)
+	//Read(context.Context) (RowIterator, error)
+}
+
+func (q Query) SetQueryConfig(bqiface.QueryConfig) {
+	log.Println("SetQueryConfig not implemented")
+}
+
+func (q Query) Run(context.Context) (bqiface.Job, error) {
+	log.Println("Run not implemented")
+	return Job{}, nil
+}
+
+func (q Query) Read(context.Context) (bqiface.RowIterator, error) {
+	log.Println("Read not implemented")
+	return RowIterator{}, nil
+}
+
+type Job struct {
+	bqiface.Job
+
+	//ID() string
+	//Location() string
+	//Config() (bigquery.JobConfig, error)
+	//Status(context.Context) (*bigquery.JobStatus, error)
+	//LastStatus() *bigquery.JobStatus
+	//Cancel(context.Context) error
+	//Read(context.Context) (RowIterator, error)
+}
+
+func (j Job) Wait(context.Context) (*bigquery.JobStatus, error) {
+	log.Println("Wait not implemented")
+	return nil, nil
+}
+
+type RowIterator struct {
+	bqiface.RowIterator
+	//SetStartIndex(uint64)
+	//Schema() bigquery.Schema
+	//TotalRows() uint64
+	//Next(interface{}) error
+	//PageInfo() *iterator.PageInfo
+}
+
+func (r RowIterator) Next(interface{}) error {
+	log.Println("Next not implemented")
+	return iterator.Done
 }

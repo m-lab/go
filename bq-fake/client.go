@@ -103,6 +103,10 @@ func (client Client) Dataset(ds string) bqiface.Dataset {
 	return Dataset{Dataset: client.Client.Dataset(ds), tables: make(map[string]*Table)}
 }
 
+func (client Client) Query(string) bqiface.Query {
+	return Query{}
+}
+
 // This fails to compile if Client does not satisfy the interface.
 func assertClient(c Client) {
 	func(cc bqiface.Client) {}(c)
