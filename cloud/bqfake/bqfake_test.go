@@ -9,7 +9,7 @@ import (
 
 	"cloud.google.com/go/bigquery"
 	"github.com/GoogleCloudPlatform/google-cloud-go-testing/bigquery/bqiface"
-	bqfake "github.com/m-lab/go/bq-fake"
+	"github.com/m-lab/go/cloud/bqfake"
 	"google.golang.org/api/iterator"
 )
 
