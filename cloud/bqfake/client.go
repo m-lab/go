@@ -65,7 +65,7 @@ func DryRunClient() (*http.Client, *CountingTransport) {
 	return client, tp
 }
 
-// Client wraps a fake client.
+// Client implements a fake client.
 type Client struct {
 	bqiface.Client
 	ctx context.Context // Just for checking expiration/cancelation
@@ -76,7 +76,10 @@ func NewClient(ctx context.Context, project string, opts ...option.ClientOption)
 	dryRun, _ := DryRunClient()
 	opts = append(opts, option.WithHTTPClient(dryRun))
 	// This seems to never return non-nil error, so we don't check it.
-	c, _ := bigquery.NewClient(ctx, project, opts...)
+	c, err := bigquery.NewClient(ctx, project, opts...)
+	if err != nil {
+		return nil, err
+	}
 	return &Client{bqiface.AdaptClient(c), ctx}, nil
 }
 

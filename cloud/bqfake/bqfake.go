@@ -87,9 +87,6 @@ type Dataset struct {
 
 // Table implements the bqiface method.
 func (ds Dataset) Table(name string) bqiface.Table {
-	if ds.tables == nil {
-		panic("FakeDataset.tables not initialized")
-	}
 	t, ok := ds.tables[name]
 	if !ok {
 		t = &Table{ds: ds, name: name, metadata: &bigquery.TableMetadata{}}
@@ -99,12 +96,11 @@ func (ds Dataset) Table(name string) bqiface.Table {
 	return t
 }
 
+// Query implements parts of bqiface.Query to allow some very basic
+// unit tests.
 type Query struct {
 	bqiface.Query
 	//JobIDConfig() *bigquery.JobIDConfig
-	//SetQueryConfig(QueryConfig)
-	//Run(context.Context) (Job, error)
-	//Read(context.Context) (RowIterator, error)
 }
 
 func (q Query) SetQueryConfig(bqiface.QueryConfig) {
@@ -121,6 +117,8 @@ func (q Query) Read(context.Context) (bqiface.RowIterator, error) {
 	return RowIterator{}, nil
 }
 
+// Job implements parts of bqiface.Job to allow some very basic
+// unit tests.
 type Job struct {
 	bqiface.Job
 

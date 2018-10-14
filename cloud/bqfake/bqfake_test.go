@@ -4,8 +4,11 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"strings"
 	"testing"
 	"time"
+
+	"google.golang.org/api/option"
 
 	"cloud.google.com/go/bigquery"
 	"github.com/GoogleCloudPlatform/google-cloud-go-testing/bigquery/bqiface"
@@ -47,7 +50,19 @@ func TestDryRunClient(t *testing.T) {
 	}
 }
 
-func TestDataset(t *testing.T) {
+func TestNewClientErr(t *testing.T) {
+	ctx := context.Background()
+	opts := []option.ClientOption{option.WithAPIKey("asdf"), option.WithoutAuthentication()}
+	c, err := bqfake.NewClient(ctx, "fakeProject", opts...)
+	if err == nil {
+		c.Close()
+		t.Fatal("Should return dial error")
+	} else if !strings.Contains(err.Error(), "dialing") {
+		t.Fatal("Should return dial error:", err.Error())
+	}
+}
+
+func TestBadDataset(t *testing.T) {
 	ds := bqfake.Dataset{}
 
 	defer func() {
@@ -72,18 +87,33 @@ func TestUninitializedTable(t *testing.T) {
 	if err == nil {
 		t.Error("should return an error")
 	} else if err.Error() != "Error 404: Not found: Table fakeProject:fakeDataset.DedupTest, notFound" {
-		t.Error("srong error", err)
+		t.Error("wrong error", err)
 	}
 	if meta != nil {
 		t.Error("meta should be nil")
 	}
 
-	log.Println(err)
+	// Improperly initialized Table
+	tbl = bqfake.Table{}
+	meta, err = tbl.Metadata(ctx)
+	if err == nil {
+		t.Error("Should return an initialization error")
+	} else if err.Error() != "Table object incorrectly initialized" {
+		t.Error("Incorrect error:", err)
+	}
+
+	meta = &bigquery.TableMetadata{CreationTime: time.Now(), LastModifiedTime: time.Now(), NumBytes: 168, NumRows: 8}
+	err = tbl.Create(ctx, meta)
+	if err == nil {
+		t.Error("Should return an initialization error")
+	} else if err.Error() != "Table object incorrectly initialized" {
+		t.Error("Incorrect error:", err)
+	}
 }
 
 func TestTable(t *testing.T) {
 	ctx := context.Background()
-	c, err := bqfake.NewClient(ctx, "mlab-testing")
+	c, err := bqfake.NewClient(ctx, "fakeProject")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -101,7 +131,7 @@ func TestTable(t *testing.T) {
 
 	tbl := ds.Table("DedupTest")
 	fqn := tbl.FullyQualifiedName()
-	if fqn != "mlab-testing:etl.DedupTest" {
+	if fqn != "fakeProject:etl.DedupTest" {
 		t.Error("Got", fqn)
 	}
 
@@ -110,25 +140,25 @@ func TestTable(t *testing.T) {
 	}
 }
 
+func createTable(ctx context.Context, ds bqiface.Dataset, name string) error {
+	meta := bigquery.TableMetadata{CreationTime: time.Now(), LastModifiedTime: time.Now(), NumBytes: 168, NumRows: 8}
+	meta.TimePartitioning = &bigquery.TimePartitioning{Expiration: 0 * time.Second}
+	tbl := ds.Table("DedupTest")
+	return tbl.Create(ctx, &meta)
+}
+
 func TestTableMetadata(t *testing.T) {
 	ctx := context.Background()
-	c, err := bqfake.NewClient(ctx, "mlab-testing")
+	c, err := bqfake.NewClient(ctx, "fakeProject")
 	if err != nil {
-		panic(err)
+		t.Fatal(err)
 	}
 	ds := c.Dataset("etl")
 
-	// TODO - also test table before it exists
-	// Test whether changes to table can be seen in existing table objects.
-
-	{
-		meta := bigquery.TableMetadata{CreationTime: time.Now(), LastModifiedTime: time.Now(), NumBytes: 168, NumRows: 8}
-		meta.TimePartitioning = &bigquery.TimePartitioning{Expiration: 0 * time.Second}
-		tbl := ds.Table("DedupTest")
-		err := tbl.Create(ctx, &meta)
-		if err != nil {
-			t.Fatal(err)
-		}
+	// TODO: Test whether changes to table can be seen in existing table objects.
+	err = createTable(ctx, ds, "DedupTest")
+	if err != nil {
+		t.Fatal(err)
 	}
 
 	tbl := ds.Table("DedupTest")
@@ -151,7 +181,7 @@ func TestTableMetadata(t *testing.T) {
 
 func TestQuery(t *testing.T) {
 	ctx := context.Background()
-	c, err := bqfake.NewClient(ctx, "mlab-testing")
+	c, err := bqfake.NewClient(ctx, "fakeProject")
 	if err != nil {
 		panic(err)
 	}
