@@ -18,12 +18,14 @@ import (
 	"google.golang.org/api/iterator"
 )
 
-// Table implements part of the bqiface.Table interface.
+// Table implements part of the bqiface.Table interface required for basic testing
+// Other parts of the interface should be implemented as needed.
 type Table struct {
 	bqiface.Table
-	ds       bqiface.Dataset
-	name     string
-	metadata **bigquery.TableMetadata
+	ds   Dataset
+	name string
+	// NOTE: TableType is used to indicate if this is initialized
+	metadata *bigquery.TableMetadata
 }
 
 // ProjectID implements the bqiface method.
@@ -48,25 +50,32 @@ func (tbl Table) FullyQualifiedName() string {
 
 // Metadata implements the bqiface method.
 func (tbl Table) Metadata(ctx context.Context) (*bigquery.TableMetadata, error) {
-	if *tbl.metadata == nil {
-		log.Printf("Metadata %p %p %v\n", tbl.metadata, *tbl.metadata, *tbl.metadata)
+	if tbl.metadata == nil {
+		return nil, errors.New("Table object incorrectly initialized")
+	}
+	if tbl.metadata.Type == "" {
+		log.Printf("Metadata %p %v\n", tbl.metadata, tbl.metadata)
 		msg := fmt.Sprintf("Error 404: Not found: Table %s, notFound", tbl.FullyQualifiedName())
 		return nil, errors.New(msg)
 	}
-	log.Printf("Metadata %p %p %v\n", tbl.metadata, *tbl.metadata, *tbl.metadata)
-	return *tbl.metadata, nil
+	log.Printf("Metadata %p %v\n", tbl.metadata, tbl.metadata)
+	return tbl.metadata, nil
 }
 
 // Create implements the bqiface method.
 func (tbl Table) Create(ctx context.Context, meta *bigquery.TableMetadata) error {
 	log.Println("Create", meta)
-	if *tbl.metadata != nil {
+	if tbl.metadata == nil {
+		return errors.New("Table object incorrectly initialized")
+	}
+	if tbl.metadata.Type != "" {
 		return errors.New("TODO: should return a table exists error")
 	}
-	t := &bigquery.TableMetadata{}
-	*tbl.metadata = t
-	**tbl.metadata = *meta
-	log.Printf("Metadata %p %p %v\n", tbl.metadata, *tbl.metadata, *tbl.metadata)
+	*tbl.metadata = *meta
+	if tbl.metadata.Type == "" {
+		tbl.metadata.Type = "TABLE"
+	}
+	log.Printf("Metadata %p %v\n", tbl.metadata, tbl.metadata)
 	return nil
 }
 
@@ -83,8 +92,7 @@ func (ds Dataset) Table(name string) bqiface.Table {
 	}
 	t, ok := ds.tables[name]
 	if !ok {
-		var pm *bigquery.TableMetadata
-		t = &Table{ds: ds, name: name, metadata: &pm}
+		t = &Table{ds: ds, name: name, metadata: &bigquery.TableMetadata{}}
 		// TODO is this better? t = &Table{ds: ds.Dataset, name: name, metadata: &pm}
 		ds.tables[name] = t
 	}

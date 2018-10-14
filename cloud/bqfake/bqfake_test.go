@@ -59,6 +59,28 @@ func TestDataset(t *testing.T) {
 	ds.Table("Foobar")
 }
 
+func TestUninitializedTable(t *testing.T) {
+	ctx := context.Background()
+	c, err := bqfake.NewClient(ctx, "fakeProject")
+	if err != nil {
+		t.Fatal(err)
+	}
+	ds := c.Dataset("fakeDataset")
+
+	tbl := ds.Table("DedupTest")
+	meta, err := tbl.Metadata(ctx)
+	if err == nil {
+		t.Error("should return an error")
+	} else if err.Error() != "Error 404: Not found: Table fakeProject:fakeDataset.DedupTest, notFound" {
+		t.Error("srong error", err)
+	}
+	if meta != nil {
+		t.Error("meta should be nil")
+	}
+
+	log.Println(err)
+}
+
 func TestTable(t *testing.T) {
 	ctx := context.Background()
 	c, err := bqfake.NewClient(ctx, "mlab-testing")
@@ -86,28 +108,6 @@ func TestTable(t *testing.T) {
 	if tbl.TableID() != "DedupTest" {
 		t.Error("Expected TableID() = DedupTest, got", tbl.TableID())
 	}
-}
-
-func TestUninitializedTable(t *testing.T) {
-	ctx := context.Background()
-	c, err := bqfake.NewClient(ctx, "mlab-testing")
-	if err != nil {
-		panic(err)
-	}
-	ds := c.Dataset("etl")
-
-	tbl := ds.Table("DedupTest")
-	meta, err := tbl.Metadata(ctx)
-	if err == nil {
-		t.Error("Should return an error")
-	} else if err.Error() != "Error 404: Not found: Table mlab-testing:etl.DedupTest, notFound" {
-		t.Error("Wrong error", err)
-	}
-	if meta != nil {
-		t.Error("Should have nil metadata")
-	}
-
-	log.Println(err)
 }
 
 func TestTableMetadata(t *testing.T) {
