@@ -183,7 +183,7 @@ func TestQuery(t *testing.T) {
 	ctx := context.Background()
 	c, err := bqfake.NewClient(ctx, "fakeProject")
 	if err != nil {
-		panic(err)
+		t.Fatal(err)
 	}
 
 	q := c.Query("foobar")

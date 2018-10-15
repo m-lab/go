@@ -75,7 +75,6 @@ type Client struct {
 func NewClient(ctx context.Context, project string, opts ...option.ClientOption) (*Client, error) {
 	dryRun, _ := DryRunClient()
 	opts = append(opts, option.WithHTTPClient(dryRun))
-	// This seems to never return non-nil error, so we don't check it.
 	c, err := bigquery.NewClient(ctx, project, opts...)
 	if err != nil {
 		return nil, err
