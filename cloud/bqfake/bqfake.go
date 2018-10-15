@@ -18,34 +18,13 @@ import (
 	"google.golang.org/api/iterator"
 )
 
-// Table implements part of the bqiface.Table interface required for basic testing
-// Other parts of the interface should be implemented as needed.
+// Table wraps a bigquery.Table, overriding parts of the bqiface.Table interface required for basic testing
+// Other parts of the interface should be overridden as needed.
 type Table struct {
 	bqiface.Table
-	ds   Dataset
-	name string
+	ds Dataset
 	// NOTE: TableType is used to indicate if this is initialized
 	metadata *bigquery.TableMetadata
-}
-
-// ProjectID implements the bqiface method.
-func (tbl Table) ProjectID() string {
-	return tbl.ds.ProjectID()
-}
-
-// DatasetID implements the bqiface method.
-func (tbl Table) DatasetID() string {
-	return tbl.ds.DatasetID()
-}
-
-// TableID implements the bqiface method.
-func (tbl Table) TableID() string {
-	return tbl.name
-}
-
-// FullyQualifiedName implements the bqiface method.
-func (tbl Table) FullyQualifiedName() string {
-	return tbl.ProjectID() + ":" + tbl.DatasetID() + "." + tbl.name
 }
 
 // Metadata implements the bqiface method.
@@ -89,7 +68,8 @@ type Dataset struct {
 func (ds Dataset) Table(name string) bqiface.Table {
 	t, ok := ds.tables[name]
 	if !ok {
-		t = &Table{ds: ds, name: name, metadata: &bigquery.TableMetadata{}}
+		t = &Table{ds: ds, metadata: &bigquery.TableMetadata{}}
+		t.Table = ds.Dataset.Table(name)
 		// TODO is this better? t = &Table{ds: ds.Dataset, name: name, metadata: &pm}
 		ds.tables[name] = t
 	}
