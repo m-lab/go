@@ -5,7 +5,10 @@ package bqfake
 import (
 	"context"
 	"io"
+	"log"
 	"net/http"
+	"os"
+	"runtime/debug"
 	"strings"
 	"sync/atomic"
 
@@ -48,6 +51,11 @@ func (ct *CountingTransport) RoundTrip(req *http.Request) (*http.Response, error
 	// Save the request for testing.
 	ct.reqs = append(ct.reqs, req)
 
+	if os.Getenv("VERBOSE_CLIENT") != "" {
+		log.Println("Called the underlying transport.")
+		log.Println(req.URL)
+		debug.PrintStack()
+	}
 	return resp, nil
 }
 
@@ -72,6 +80,10 @@ type Client struct {
 }
 
 // NewClient creates a new Client implementing bqiface.Client, with a dry run HTTPClient.
+// Most actions on objects derived from Client should be handled in methods on fakes.  Any actions
+// that pass through to calls on the client will go to the DryRunClient.  The calls to the client
+// can by accessing the underlying DryRunClient, or calls can be logged by setting the VERBOSE_CLIENT
+// environment variable.
 func NewClient(ctx context.Context, project string, opts ...option.ClientOption) (*Client, error) {
 	dryRun, _ := DryRunClient()
 	opts = append(opts, option.WithHTTPClient(dryRun))
@@ -82,13 +94,12 @@ func NewClient(ctx context.Context, project string, opts ...option.ClientOption)
 	return &Client{bqiface.AdaptClient(c), ctx}, nil
 }
 
-// Dataset creates a Dataset.
-// TODO - understand how bqiface adapters/structs work, and make this return a Dataset
-// that satisfies bqiface.Dataset interface?
+// Dataset creates a Dataset with an underlying DryRunClient.  Methods should generally be
+// handled by overrides at some level before hitting the client.
 func (client Client) Dataset(ds string) bqiface.Dataset {
 	return Dataset{Dataset: client.Client.Dataset(ds), tables: make(map[string]*Table)}
 }
 
-func (client Client) Query(string) bqiface.Query {
-	return Query{}
+func (client Client) Query(query string) bqiface.Query {
+	return Query{client.Client.Query(query)}
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 	"testing"
 	"time"
@@ -32,9 +33,10 @@ func assertClient(c bqfake.Client) {
 }
 
 func TestDryRunClient(t *testing.T) {
+	os.Setenv("VERBOSE_CLIENT", "true")
 	c, ct := bqfake.DryRunClient()
 
-	r, err := c.Get("http://foobar")
+	r, err := c.Get("http://foobar.com/request?foo=bar")
 	defer r.Body.Close()
 	if err != nil {
 		t.Fatal(err)

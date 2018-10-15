@@ -58,7 +58,8 @@ func (tbl Table) Create(ctx context.Context, meta *bigquery.TableMetadata) error
 	return nil
 }
 
-// Dataset implements part of the bqiface.Dataset interface.
+// Dataset wraps a concrete bigquery.Dataset, overriding parts of the bqiface.Dataset
+// interface to allow some basic unit tests.
 type Dataset struct {
 	bqiface.Dataset
 	tables map[string]*Table
@@ -76,25 +77,21 @@ func (ds Dataset) Table(name string) bqiface.Table {
 	return t
 }
 
-// Query implements parts of bqiface.Query to allow some very basic
-// unit tests.
+// Query wraps a concrete bigquery.Query, overriding parts of bqiface.Query to allow
+// some very basic unit tests.
 type Query struct {
 	bqiface.Query
 	//JobIDConfig() *bigquery.JobIDConfig
 }
 
-func (q Query) SetQueryConfig(bqiface.QueryConfig) {
-	log.Println("SetQueryConfig not implemented")
+func (q Query) Read(context.Context) (bqiface.RowIterator, error) {
+	log.Println("Read not implemented")
+	return RowIterator{}, nil
 }
 
 func (q Query) Run(context.Context) (bqiface.Job, error) {
 	log.Println("Run not implemented")
 	return Job{}, nil
-}
-
-func (q Query) Read(context.Context) (bqiface.RowIterator, error) {
-	log.Println("Read not implemented")
-	return RowIterator{}, nil
 }
 
 // Job implements parts of bqiface.Job to allow some very basic
