@@ -294,15 +294,15 @@ func bqToQueryParameter(q *bq.QueryParameter) (QueryParameter, error) {
 	return p, nil
 }
 
-var paramTypeToFieldType = map[string]FieldType{
-	int64ParamType.Type:   IntegerFieldType,
-	float64ParamType.Type: FloatFieldType,
-	boolParamType.Type:    BooleanFieldType,
-	stringParamType.Type:  StringFieldType,
-	bytesParamType.Type:   BytesFieldType,
-	dateParamType.Type:    DateFieldType,
-	timeParamType.Type:    TimeFieldType,
-	numericParamType.Type: NumericFieldType,
+var paramTypeToFieldType = map[string]bigquery.FieldType{
+	int64ParamType.Type:   bigquery.IntegerFieldType,
+	float64ParamType.Type: bigquery.FloatFieldType,
+	boolParamType.Type:    bigquery.BooleanFieldType,
+	stringParamType.Type:  bigquery.StringFieldType,
+	bytesParamType.Type:   bigquery.BytesFieldType,
+	dateParamType.Type:    bigquery.DateFieldType,
+	timeParamType.Type:    bigquery.TimeFieldType,
+	numericParamType.Type: bigquery.NumericFieldType,
 }
 
 // Convert a parameter value from the service to a Go value. This is similar to, but

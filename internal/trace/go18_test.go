@@ -21,7 +21,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/m-lab/go/cloud/bqfake/internal/testutil"
+	"github.com/m-lab/go/internal/testutil"
 	octrace "go.opencensus.io/trace"
 	"google.golang.org/api/googleapi"
 	"google.golang.org/genproto/googleapis/rpc/code"

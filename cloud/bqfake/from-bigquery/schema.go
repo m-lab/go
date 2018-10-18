@@ -6,6 +6,7 @@ import (
 	"reflect"
 
 	"cloud.google.com/go/bigquery"
+	"github.com/m-lab/go/internal/atomiccache"
 )
 
 //---------------------------------------------------------------------------------------
@@ -20,7 +21,7 @@ var (
 
 var typeOfByteSlice = reflect.TypeOf([]byte{})
 
-var schemaCache Cache
+var schemaCache atomiccache.Cache
 
 type cacheVal struct {
 	schema bigquery.Schema
