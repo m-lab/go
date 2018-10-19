@@ -15,6 +15,7 @@ import (
 
 	"cloud.google.com/go/bigquery"
 	"github.com/GoogleCloudPlatform/google-cloud-go-testing/bigquery/bqiface"
+	frombigquery "github.com/m-lab/go/cloud/bqfake/from-bigquery"
 	"google.golang.org/api/iterator"
 )
 
@@ -25,6 +26,7 @@ type Table struct {
 	ds Dataset
 	// NOTE: TableType is used to indicate if this is initialized
 	metadata *bigquery.TableMetadata
+	uploader bqiface.Uploader
 }
 
 // Metadata implements the bqiface method.
@@ -54,8 +56,13 @@ func (tbl Table) Create(ctx context.Context, meta *bigquery.TableMetadata) error
 	if tbl.metadata.Type == "" {
 		tbl.metadata.Type = "TABLE"
 	}
+	tbl.uploader = frombigquery.NewFakeUploader()
 	log.Printf("Metadata %p %v\n", tbl.metadata, tbl.metadata)
 	return nil
+}
+
+func (tbl Table) Uploader() bqiface.Uploader {
+	return tbl.uploader
 }
 
 // Dataset wraps a concrete bigquery.Dataset, overriding parts of the bqiface.Dataset
@@ -69,7 +76,7 @@ type Dataset struct {
 func (ds Dataset) Table(name string) bqiface.Table {
 	t, ok := ds.tables[name]
 	if !ok {
-		t = &Table{ds: ds, metadata: &bigquery.TableMetadata{}}
+		t = &Table{ds: ds, metadata: &bigquery.TableMetadata{}, uploader: frombigquery.NewFakeUploader()}
 		t.Table = ds.Dataset.Table(name)
 		// TODO is this better? t = &Table{ds: ds.Dataset, name: name, metadata: &pm}
 		ds.tables[name] = t

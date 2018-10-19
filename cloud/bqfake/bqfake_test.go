@@ -14,6 +14,7 @@ import (
 	"cloud.google.com/go/bigquery"
 	"github.com/GoogleCloudPlatform/google-cloud-go-testing/bigquery/bqiface"
 	"github.com/m-lab/go/cloud/bqfake"
+	frombigquery "github.com/m-lab/go/cloud/bqfake/from-bigquery"
 	"google.golang.org/api/iterator"
 )
 
@@ -206,4 +207,43 @@ func TestQuery(t *testing.T) {
 	if err != iterator.Done {
 		t.Fatal("Expected iterator.Done, got", err)
 	}
+}
+
+type foobar struct {
+	A int
+	B string
+}
+
+func TestUploader(t *testing.T) {
+	ctx := context.Background()
+	c, err := bqfake.NewClient(ctx, "fakeProject")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	ds := c.Dataset("fakeDataset")
+
+	// TODO: Test whether changes to table can be seen in existing table objects.
+	err = createTable(ctx, ds, "DedupTest")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	tbl := ds.Table("fakeTable")
+
+	err = tbl.Uploader().Put(ctx, foobar{A: 123, B: "foobar"})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	//	err = tbl.Uploader().Put(ctx, map[string]bigquery.Value{"foobar": 1234})
+	//	if err != nil {
+	//		t.Fatal(err)
+	//	}
+
+	rows := tbl.Uploader().(*frombigquery.FakeUploader).Rows
+	for _, r := range rows {
+		log.Printf("%+v\n", r.Row)
+	}
+
 }

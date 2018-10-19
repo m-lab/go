@@ -12,6 +12,8 @@ import (
 	"reflect"
 	"runtime/debug"
 
+	"github.com/GoogleCloudPlatform/google-cloud-go-testing/bigquery/bqiface"
+
 	"cloud.google.com/go/bigquery"
 	bqv2 "google.golang.org/api/bigquery/v2"
 )
@@ -23,6 +25,8 @@ import (
 // This is an fake for Uploader, for use in debugging, and tests.
 // See bigquery.Uploader for field info.
 type FakeUploader struct {
+	bqiface.Uploader
+
 	t                   *bigquery.Table
 	SkipInvalidRows     bool
 	IgnoreUnknownValues bool
@@ -74,7 +78,7 @@ func (u *FakeUploader) Put(ctx context.Context, src interface{}) error {
 	if err != nil {
 		log.Printf("Put: %v\n", err)
 		log.Printf("src: %v\n", src)
-		debug.PrintStack()
+		//debug.PrintStack()
 		return err
 	}
 	return u.putMulti(ctx, savers)
@@ -97,6 +101,7 @@ func valueSavers(src interface{}) ([]bigquery.ValueSaver, error) {
 	for i := 0; i < srcVal.Len(); i++ {
 		s := srcVal.Index(i).Interface()
 		saver, ok, err := toValueSaver(s)
+		log.Println(saver)
 		if err != nil {
 			return nil, err
 		}
@@ -144,7 +149,7 @@ func (u *FakeUploader) putMulti(ctx context.Context, src []bigquery.ValueSaver) 
 		rows = append(rows, &InsertionRow{InsertID: insertID, Row: row})
 	}
 
-	u.Rows = rows
+	u.Rows = append(u.Rows, rows...)
 
 	// Substitute for service call.
 	var err error
