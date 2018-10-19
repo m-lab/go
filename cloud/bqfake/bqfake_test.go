@@ -236,12 +236,10 @@ func TestUploader(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	//	err = tbl.Uploader().Put(ctx, map[string]bigquery.Value{"foobar": 1234})
-	//	if err != nil {
-	//		t.Fatal(err)
-	//	}
-
 	rows := tbl.Uploader().(*frombigquery.FakeUploader).Rows
+	if len(rows) != 1 {
+		t.Error("Uploader should now have 1 row:", len(rows))
+	}
 	for _, r := range rows {
 		log.Printf("%+v\n", r.Row)
 	}
