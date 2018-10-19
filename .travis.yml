@@ -44,13 +44,17 @@ script:
 # This script replaces / with ___ in the coverage file names. If you have
 # two modules, one named x/y and one named x___y, then this will break. But
 # don't put triple underscores in a module name: That's bad practice anyway.
+# We skip the internal and bigquery code copied/adapted from from cloud.google.com.
 - for module in $(find * -type d |
                   grep -v '^git-hooks$' |
+                  grep -v '^internal' |
+                  grep -v 'from-bigquery' |
                   grep -v '^travis$'); do
     go test -v -covermode=count -coverprofile=${module#/#___}.cov ./$module ;
   done
-# bqext should also have its integration tests run.
+# run integration tests for bqext and dataset
 - go test -covermode=count -coverprofile=_bqext.cov -v ./bqext -tags=$TEST_TAGS
+- go test -covermode=count -coverprofile=_dataset.cov -v ./dataset -tags=$TEST_TAGS
 
 # Coveralls
 # This will fail if you name a module ___merge, so don't do that.
