@@ -236,7 +236,7 @@ func TestUploader(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	rows := tbl.Uploader().(*frombigquery.FakeUploader).Rows
+	rows := tbl.Uploader().(*frombigquery.Uploader).Rows
 	if len(rows) != 1 {
 		t.Error("Uploader should now have 1 row:", len(rows))
 	}

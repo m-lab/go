@@ -1,10 +1,14 @@
 package frombigquery
 
 //========================================================================================
-// This file contains code pulled from bigquery golang libraries, to emulate the library
-// behavior, without hitting the backend.  It also allows examination of the rows that
-// are ultimately sent to the service.
+// This file contains a copy of unexported code from cloud.google.com/bigquery.  It should
+// be ideally be kept up to date with the corresponding code in cloud.google.com.
+// Only a minimal subset of the code, necessary to support fakes, has been copied.
+//
+// NOTE: Most comments have been left unchanged, even if the implementation has changed.
+//       This makes it easier to see correlation with original code.
 //========================================================================================
+
 import (
 	"context"
 	"fmt"
@@ -18,13 +22,9 @@ import (
 	bqv2 "google.golang.org/api/bigquery/v2"
 )
 
-//---------------------------------------------------------------------------------------
-// Stuff from uploader.go
-//---------------------------------------------------------------------------------------
-
-// This is an fake for Uploader, for use in debugging, and tests.
-// See bigquery.Uploader for field info.
-type FakeUploader struct {
+// Uploader provides an uploader for fake Tables.
+// See bigquery.Uploader for more information.
+type Uploader struct {
 	bqiface.Uploader
 
 	t                   *bigquery.Table
@@ -39,12 +39,9 @@ type FakeUploader struct {
 	CallCount int // Number of times Put is called.
 }
 
-func (u *FakeUploader) SetErr(err error) {
+// SetErr sets the Err value in the uploaders.
+func (u *Uploader) SetErr(err error) {
 	u.Err = err
-}
-
-func NewFakeUploader() *FakeUploader {
-	return new(FakeUploader)
 }
 
 // Put uploads one or more rows to the BigQuery service.
@@ -66,7 +63,7 @@ func NewFakeUploader() *FakeUploader {
 // in duplicate rows if you do not use insert IDs. Also, if the error persists,
 // the call will run indefinitely. Pass a context with a timeout to prevent
 // hanging calls.
-func (u *FakeUploader) Put(ctx context.Context, src interface{}) error {
+func (u *Uploader) Put(ctx context.Context, src interface{}) error {
 	u.CallCount++
 	if u.Err != nil {
 		t := u.Err
@@ -137,7 +134,7 @@ func toValueSaver(x interface{}) (bigquery.ValueSaver, bool, error) {
 	return &bigquery.StructSaver{Struct: x, Schema: schema}, true, nil
 }
 
-func (u *FakeUploader) putMulti(ctx context.Context, src []bigquery.ValueSaver) error {
+func (u *Uploader) putMulti(ctx context.Context, src []bigquery.ValueSaver) error {
 	var rows []*InsertionRow
 	for _, saver := range src {
 		row, insertID, err := saver.Save()
@@ -169,6 +166,7 @@ type InsertionRow struct {
 //---------------------------------------------------------------------------------------
 // Stuff from service.go
 //---------------------------------------------------------------------------------------
+// TODO - do we really need this?
 func insertRows(rows []*InsertionRow) (*bqv2.TableDataInsertAllRequest, error) {
 	req := &bqv2.TableDataInsertAllRequest{}
 	for _, row := range rows {

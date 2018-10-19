@@ -56,7 +56,7 @@ func (tbl Table) Create(ctx context.Context, meta *bigquery.TableMetadata) error
 	if tbl.metadata.Type == "" {
 		tbl.metadata.Type = "TABLE"
 	}
-	tbl.uploader = frombigquery.NewFakeUploader()
+	tbl.uploader = &frombigquery.Uploader{}
 	log.Printf("Metadata %p %v\n", tbl.metadata, tbl.metadata)
 	return nil
 }
@@ -76,9 +76,8 @@ type Dataset struct {
 func (ds Dataset) Table(name string) bqiface.Table {
 	t, ok := ds.tables[name]
 	if !ok {
-		t = &Table{ds: ds, metadata: &bigquery.TableMetadata{}, uploader: frombigquery.NewFakeUploader()}
+		t = &Table{ds: ds, metadata: &bigquery.TableMetadata{}, uploader: &frombigquery.Uploader{}}
 		t.Table = ds.Dataset.Table(name)
-		// TODO is this better? t = &Table{ds: ds.Dataset, name: name, metadata: &pm}
 		ds.tables[name] = t
 	}
 	return t
