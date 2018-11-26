@@ -44,9 +44,13 @@ creating a new type `bytecount` that can be used as a `flag.Value`.
 ### cloudtest
 Utilities for testing google cloud service abstractions.
 
-### flagext
+### flagx
 Extensions for the flag package.
 
-### runtimeext
-Tools for runtime assertions.
+### osx
+Extensions of the os package.
 
+### rtx
+Extensions of the runtime package.
+
+TODO: decide whether to rename this to runtimex.
