@@ -35,10 +35,10 @@ func TestDryRunClient(t *testing.T) {
 	c, ct := bqfake.DryRunClient()
 
 	r, err := c.Get("http://foobar")
-	defer r.Body.Close()
 	if err != nil {
 		t.Fatal(err)
 	}
+	defer r.Body.Close()
 	if r.StatusCode != http.StatusOK {
 		t.Fatal("wrong status code", r.StatusCode)
 	}

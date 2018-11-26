@@ -47,8 +47,10 @@ Utilities for testing google cloud service abstractions.
 ### flagx
 Extensions for the flag package.
 
-### rtx
-Tools for runtime assertions.
-
 ### osx
-Tools that extend the capabilities of the os package.
+Extensions of the os package.
+
+### rtx
+Extensions of the runtime package.
+
+TODO: decide whether to rename this to runtimex.

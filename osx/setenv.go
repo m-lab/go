@@ -1,8 +1,10 @@
+// Package osx provides functionx which are extensions of the functionality provided in os.
 package osx
 
 import (
-	"github.com/m-lab/go/rtx"
 	"os"
+
+	"github.com/m-lab/go/rtx"
 )
 
 // MustSetenv sets the environment variable named key to the passed-in value.
