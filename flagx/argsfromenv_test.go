@@ -3,10 +3,10 @@ package flagx_test
 import (
 	"flag"
 	"log"
-	"os"
 	"testing"
 
 	"github.com/m-lab/go/flagx"
+	"github.com/m-lab/go/osx"
 )
 
 func TestArgsFromEnvDefaults(t *testing.T) {
@@ -36,15 +36,8 @@ func TestArgsFromEnvSpecifiedNoEnv(t *testing.T) {
 func TestArgsFromEnvNotSpecifiedYesEnv(t *testing.T) {
 	flagSet := flag.NewFlagSet("test_flags", flag.ContinueOnError)
 	flagVal := flagSet.String("pusher_util_test_var", "default", "")
-	oldVal, ok := os.LookupEnv("PUSHER_UTIL_TEST_VAR")
-	os.Setenv("PUSHER_UTIL_TEST_VAR", "value_from_env")
-	defer func() {
-		if ok {
-			os.Setenv("PUSHER_UTIL_TEST_VAR", oldVal)
-		} else {
-			os.Unsetenv("PUSHER_UTIL_TEST_VAR")
-		}
-	}()
+	revert := osx.MustSetenv("PUSHER_UTIL_TEST_VAR", "value_from_env")
+	defer revert()
 	flagSet.Parse([]string{})
 	if err := flagx.ArgsFromEnv(flagSet); err != nil {
 		t.Error(err)
@@ -57,15 +50,8 @@ func TestArgsFromEnvNotSpecifiedYesEnv(t *testing.T) {
 func TestArgsFromEnvWontOverride(t *testing.T) {
 	flagSet := flag.NewFlagSet("test_flags", flag.ContinueOnError)
 	flagVal := flagSet.String("pusher_util_test_var", "default", "")
-	oldVal, ok := os.LookupEnv("PUSHER_UTIL_TEST_VAR")
-	os.Setenv("PUSHER_UTIL_TEST_VAR", "value_from_env")
-	defer func() {
-		if ok {
-			os.Setenv("PUSHER_UTIL_TEST_VAR", oldVal)
-		} else {
-			os.Unsetenv("PUSHER_UTIL_TEST_VAR")
-		}
-	}()
+	revert := osx.MustSetenv("PUSHER_UTIL_TEST_VAR", "value_from_env")
+	defer revert()
 	flagSet.Parse([]string{"-pusher_util_test_var=value_from_cmdline"})
 	if err := flagx.ArgsFromEnv(flagSet); err != nil {
 		t.Error(err)
@@ -78,15 +64,8 @@ func TestArgsFromEnvWontOverride(t *testing.T) {
 func TestArgsFromEnvWithBadEnv(t *testing.T) {
 	flagSet := flag.NewFlagSet("test_flags", flag.ContinueOnError)
 	flagVal := flagSet.Int("pusher_util_test_var", 1, "")
-	oldVal, ok := os.LookupEnv("PUSHER_UTIL_TEST_VAR")
-	os.Setenv("PUSHER_UTIL_TEST_VAR", "bad_value_from_env")
-	defer func() {
-		if ok {
-			os.Setenv("PUSHER_UTIL_TEST_VAR", oldVal)
-		} else {
-			os.Unsetenv("PUSHER_UTIL_TEST_VAR")
-		}
-	}()
+	revert := osx.MustSetenv("PUSHER_UTIL_TEST_VAR", "bad_value_from_env")
+	defer revert()
 	flagSet.Parse([]string{""})
 	err := flagx.ArgsFromEnv(flagSet)
 	if err == nil {
