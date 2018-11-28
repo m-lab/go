@@ -62,6 +62,9 @@ func (t loggingTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	} else {
 		resp, err = t.Transport.RoundTrip(req)
 	}
+	if err != nil {
+		return nil, err
+	}
 	resp.Body = loggingReader(resp.Body)
 	return resp, err
 }
