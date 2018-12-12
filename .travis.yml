@@ -42,7 +42,7 @@ cache:
 
 script:
 # Run every regular unit test.
-- go test -covermode=count -coverprofile=_coverage.cov ./...
+- go test -covermode=count -coverprofile=_coverage.cov -v ./...
 # bqext should also have its integration tests run.
 - go test -covermode=count -coverprofile=_bqext.cov -v ./bqext -tags=$TEST_TAGS
 
