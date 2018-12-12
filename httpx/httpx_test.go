@@ -193,8 +193,8 @@ func TestListenAndServeTLSAsyncFailsWhenListenFails(t *testing.T) {
 
 // Whitebox test.
 func TestListenAndServeTLSAsyncWithPermanentNetworkFailure(t *testing.T) {
-	cert, key, _, _ := makeTestCertsWithCleanup("localhost")
-	//defer cleanup()
+	cert, key, _, cleanup := makeTestCertsWithCleanup("localhost")
+	defer cleanup()
 	// Make sure that we call log.Fatal when the server exits with anything other
 	// than ErrServerClosed.
 	fakeFatalfCount = 0
