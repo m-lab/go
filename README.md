@@ -47,6 +47,9 @@ Utilities for testing google cloud service abstractions.
 ### flagx
 Extensions for the flag package.
 
+### httpx
+Extensions of the http package.
+
 ### osx
 Extensions of the os package.
 
