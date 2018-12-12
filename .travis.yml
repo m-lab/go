@@ -41,18 +41,11 @@ cache:
   - "$HOME/google-cloud-sdk/"
 
 script:
-# This script replaces / with ___ in the coverage file names. If you have
-# two modules, one named x/y and one named x___y, then this will break. But
-# don't put triple underscores in a module name: That's bad practice anyway.
-- for module in $(find * -type d |
-                  grep -v '^git-hooks$' |
-                  grep -v '^travis$'); do
-    go test -v -covermode=count -coverprofile=${module#/#___}.cov ./$module ;
-  done
+# Run every regular unit test.
+- go test -covermode=count -coverprofile=_coverage.cov -v ./...
 # bqext should also have its integration tests run.
 - go test -covermode=count -coverprofile=_bqext.cov -v ./bqext -tags=$TEST_TAGS
 
 # Coveralls
-# This will fail if you name a module ___merge, so don't do that.
-- $HOME/gopath/bin/gocovmerge *.cov > ___merge.cov
-- $HOME/gopath/bin/goveralls -coverprofile=___merge.cov -service=travis-ci
+- $HOME/gopath/bin/gocovmerge *.cov > __merged.cov
+- $HOME/gopath/bin/goveralls -coverprofile=__merged.cov -service=travis-ci
