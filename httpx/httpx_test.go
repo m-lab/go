@@ -54,14 +54,14 @@ func TestListenAndServeAsyncFailsWhenListenFails(t *testing.T) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", okay)
 	server := &http.Server{
-		Addr:    ":9090",
+		Addr:    ":9091",
 		Handler: mux,
 	}
 	rtx.Must(ListenAndServeAsync(server), "Could not start server")
 	defer server.Shutdown(context.Background())
 	// One server works.  The next one should fail.
 	server2 := &http.Server{
-		Addr:    ":9090",
+		Addr:    ":9091",
 		Handler: mux,
 	}
 	err := ListenAndServeAsync(server2)
@@ -98,7 +98,7 @@ func TestListenAndServeAsyncWithPermanentNetworkFailure(t *testing.T) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", okay)
 	server := &http.Server{
-		Addr:    ":9090",
+		Addr:    ":9092",
 		Handler: mux,
 	}
 	if fakeFatalfCount != 0 {
@@ -140,11 +140,11 @@ func TestListenAndServeTLSAsync(t *testing.T) {
 		mux := http.NewServeMux()
 		mux.HandleFunc("/", okay)
 		server := &http.Server{
-			Addr:    ":9090",
+			Addr:    ":9093",
 			Handler: mux,
 		}
 		rtx.Must(ListenAndServeTLSAsync(server, cert, key), "Could not start server")
-		response, err := client.Get("https://localhost:9090/")
+		response, err := client.Get("https://localhost:9093/")
 		if err != nil {
 			t.Fatalf("HTTP server returned %v", err)
 		}
@@ -166,7 +166,7 @@ func TestListenAndServeTLSAsyncFailsWhenListenFails(t *testing.T) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", okay)
 	server := &http.Server{
-		Addr:    ":9092",
+		Addr:    ":9094",
 		Handler: mux,
 	}
 	rtx.Must(ListenAndServeTLSAsync(server, cert, key), "Could not start server")
@@ -178,11 +178,11 @@ func TestListenAndServeTLSAsyncFailsWhenListenFails(t *testing.T) {
 	client := &http.Client{Transport: &http.Transport{
 		TLSClientConfig: &tls.Config{RootCAs: roots},
 	}}
-	_, err := client.Get("https://localhost:9092/")
+	_, err := client.Get("https://localhost:9094/")
 	rtx.Must(err, "Could not connect to local TLS server")
 	// One server works.  The next one should fail.
 	server2 := &http.Server{
-		Addr:    ":9092",
+		Addr:    ":9094",
 		Handler: mux,
 	}
 	err = ListenAndServeTLSAsync(server2, cert, key)
@@ -206,7 +206,7 @@ func TestListenAndServeTLSAsyncWithPermanentNetworkFailure(t *testing.T) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", okay)
 	server := &http.Server{
-		Addr:    ":9091",
+		Addr:    ":9095",
 		Handler: mux,
 	}
 	if fakeFatalfCount != 0 {
