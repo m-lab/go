@@ -9,15 +9,26 @@ import (
 	"time"
 )
 
-// Config represents the time we should wait. "Once" is provided as a helper,
-// because frequently for unit testing and integration testing, you only want
-// the "Forever" loop to run once.
+// Config represents the time we should wait between runs of the function.
 //
-// The zero value of this struct has Once set to false, which means the value
-// only needs to be set explicitly in codepaths where it might be true.
+// A valid config will have:
+//  0 <= Min <= Expected <= Max (or 0 <= Min <= Expected and Max is 0)
 type Config struct {
-	Expected, Min, Max time.Duration
-	Once               bool
+	// Expected records the expected/mean/average amount of time between runs.
+	Expected time.Duration
+	// Min provides clamping of the randomly produced value. All timers will wait
+	// at least Min time.
+	Min time.Duration
+	// Max provides clamping of the randomly produced value. All timers will take
+	// at least Max time.
+	Max time.Duration
+
+	// Once is provided as a helper, because frequently for unit testing and
+	// integration testing, you only want the "Forever" loop to run once.
+	//
+	// The zero value of this struct has Once set to false, which means the value
+	// only needs to be set explicitly in codepaths where it might be true.
+	Once bool
 }
 
 func (c Config) waittime() time.Duration {
@@ -64,21 +75,9 @@ func Run(ctx context.Context, f func(), c Config) error {
 		f()
 		return nil
 	}
-	// We use this flow control method because select {} doesn't promise that
-	// multiple channels will get selected with equal probability. By using a
-	// "done" variable, we ensure that no matter why the wait was ended (which is
-	// what the select in the loop does - it ends the wait for one reason or
-	// another), if the context was canceled then the "done" variable will be set
-	// to true as soon as the goroutine resumes. Goroutines get scheduled by a
-	// central scheduler that promises no starvation, so the "the timer is always
-	// finished by the time the function is done" condition will not have the
-	// potential to cause livelock for Run()
-	done := false
-	go func() {
-		<-ctx.Done()
-		done = true
-	}()
-	for !done {
+	// When Done() is not closed and the Deadline has not been exceeded, the error
+	// is nil.
+	for ctx.Err() == nil {
 		// Start the timer before the function call because the time between function
 		// call *starts* should be exponentially distributed.
 		t := time.NewTimer(c.waittime())
@@ -87,11 +86,16 @@ func Run(ctx context.Context, f func(), c Config) error {
 		// are true, which case gets called is unspecified.
 		select {
 		case <-ctx.Done():
+			// Clean up the timer.
+			t.Stop()
+			// Please don't put logic here that assumes that this code path will
+			// definitely execute if the context is done. select {} doesn't promise that
+			// multiple channels will get selected with equal probability, which means
+			// that if f() takes a while and c.Max is low, then it could be true that the
+			// timer is done AND the context is canceled, and we have no guarantee that
+			// in that case the canceled context case will be the one that is selected.
 		case <-t.C:
 		}
 	}
-	// The only way this function can return is if the goroutine set done to true,
-	// which means that the goroutine is no longer blocked on the channel read.
-	// Therefore, the goroutine does not leak.
 	return nil
 }
