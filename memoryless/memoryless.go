@@ -20,7 +20,7 @@ type Config struct {
 	// at least Min time.
 	Min time.Duration
 	// Max provides clamping of the randomly produced value. All timers will take
-	// at least Max time.
+	// at most Max time.
 	Max time.Duration
 
 	// Once is provided as a helper, because frequently for unit testing and
