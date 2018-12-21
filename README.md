@@ -50,6 +50,10 @@ Extensions for the flag package.
 ### httpx
 Extensions of the http package.
 
+### memoryless
+Tools to run a function as a memoryless poisson process.  Helps prevent spurious
+patterns.
+
 ### osx
 Extensions of the os package.
 
