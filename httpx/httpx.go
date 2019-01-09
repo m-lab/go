@@ -53,7 +53,7 @@ func serve(server *http.Server, listener net.Listener) {
 // Returns a non-nil error if the listening socket can't be established. Logs a
 // fatal error if the server dies for a reason besides ErrServerClosed. If the
 // server.Addr is set to :0, then after this function returns server.Addr will
-// contain the address and port which this server is listenting on.
+// contain the address and port which this server is listening on.
 func ListenAndServeAsync(server *http.Server) error {
 	// Start listening synchronously.
 	listener, err := net.Listen("tcp", server.Addr)
