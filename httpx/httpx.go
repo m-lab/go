@@ -11,6 +11,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -50,12 +51,19 @@ func serve(server *http.Server, listener net.Listener) {
 // against it.
 //
 // Returns a non-nil error if the listening socket can't be established. Logs a
-// fatal error if the server dies for a reason besides ErrServerClosed.
+// fatal error if the server dies for a reason besides ErrServerClosed. If the
+// server.Addr is set to :0, then after this function returns server.Addr will
+// contain the address and port which this server is listenting on.
 func ListenAndServeAsync(server *http.Server) error {
 	// Start listening synchronously.
 	listener, err := net.Listen("tcp", server.Addr)
 	if err != nil {
 		return err
+	}
+	if strings.HasSuffix(server.Addr, ":0") {
+		// Allow :0 to select a random port, and then update the server with the
+		// selected port and address.  This is very useful for unit tests.
+		server.Addr = listener.Addr().String()
 	}
 	// Serve asynchronously.
 	go serve(server, tcpKeepAliveListener{listener.(*net.TCPListener)})
@@ -83,6 +91,16 @@ func ListenAndServeTLSAsync(server *http.Server, certFile, keyFile string) error
 	if err != nil {
 		return err
 	}
+
+	// Unlike ListenAndServeAsync we don't update the server's Addr when the
+	// server.Addr ends with :0, because the resulting URL may or may not be
+	// GET-able. In ipv6-only contexts it could be, for example, "[::]:3232", and
+	// that URL can't be used for TLS because TLS needs a name or an explicit IP
+	// and [::] doesn't qualify. It is unclear what the right thing to do is in
+	// this situation, because names and IPs and TLS are suffciently complicated
+	// that no one thing is the right thing in all situations, so we affirmatively
+	// do nothing in an attempt to avoid making a bad situation worse.
+
 	// Serve asynchronously.
 	go serveTLS(server, tcpKeepAliveListener{listener.(*net.TCPListener)}, certFile, keyFile)
 	return nil
