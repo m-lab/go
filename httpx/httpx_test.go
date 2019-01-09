@@ -30,11 +30,11 @@ func TestListenAndServeAsync(t *testing.T) {
 		mux := http.NewServeMux()
 		mux.HandleFunc("/", okay)
 		server := &http.Server{
-			Addr:    ":9090",
+			Addr:    ":0",
 			Handler: mux,
 		}
 		rtx.Must(ListenAndServeAsync(server), "Could not start server")
-		response, err := http.Get("http://localhost:9090/")
+		response, err := http.Get("http://" + server.Addr + "/")
 		if err != nil {
 			t.Fatalf("HTTP server returned %v", err)
 		}
