@@ -109,5 +109,5 @@ func FromCookie(cookie uint64) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return fmt.Sprintf("%s_%X", prefix, cookie), nil
+	return fmt.Sprintf("%s_%016X", prefix, cookie), nil
 }
