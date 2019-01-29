@@ -61,3 +61,6 @@ Extensions of the os package.
 Extensions of the runtime package.
 
 TODO: decide whether to rename this to runtimex.
+
+### uuid
+Generate a globally unique id for any TCP socket.
