@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"net"
 	"os"
-	"sync"
 	"syscall"
 	"unsafe"
 )
@@ -18,8 +17,10 @@ const (
 	syscallSoCookie = 57 // syscall.SO_COOKIE does not exist in golang 1.11
 )
 
-var cachedPrefixString = ""
-var cacheMutex = sync.Mutex{}
+var (
+	// Only calculate these once - they never change.
+	cachedPrefixString, cachedPrefixError = getPrefix()
+)
 
 func getBoottime() (int64, error) {
 	// We use the mtime of /proc as a proxy for the boot time. If the superuser
@@ -46,26 +47,15 @@ func getBoottime() (int64, error) {
 // instance of the program, unless the boot time changes (how?) or the hostname
 // changes (why?) while this program is running.
 func getPrefix() (string, error) {
-	if cachedPrefixString == "" {
-		cacheMutex.Lock()
-		defer cacheMutex.Unlock()
-		// Check twice because check-then-lock has an implicit race condition. We use
-		// check-then-lock because it means that the common path needs no mutex
-		// locking, which is nice. This code also ensures that we only stop trying to
-		// set up the prefix when we don't get an error.
-		if cachedPrefixString == "" {
-			hostname, err := os.Hostname()
-			if err != nil {
-				return "", err
-			}
-			boottime, err := getBoottime()
-			if err != nil {
-				return "", err
-			}
-			cachedPrefixString = fmt.Sprintf("%s_%d", hostname, boottime)
-		}
+	hostname, err := os.Hostname()
+	if err != nil {
+		return "", err
 	}
-	return cachedPrefixString, nil
+	boottime, err := getBoottime()
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%s_%d", hostname, boottime), nil
 }
 
 // getCookie returns the cookie (the UUID) associated with a socket. For a given
@@ -110,9 +100,8 @@ func FromTCPConn(t *net.TCPConn) (string, error) {
 // FromCookie returns a string that is a globally unique identifier for the
 // passed-in socket cookie.
 func FromCookie(cookie uint64) (string, error) {
-	prefix, err := getPrefix()
-	if err != nil {
-		return "", err
+	if cachedPrefixError != nil {
+		return "", cachedPrefixError
 	}
-	return fmt.Sprintf("%s_%016X", prefix, cookie), nil
+	return fmt.Sprintf("%s_%016X", cachedPrefixString, cookie), nil
 }
