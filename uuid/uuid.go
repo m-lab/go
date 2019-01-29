@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"sync"
 	"syscall"
-	"time"
 	"unsafe"
 )
 
@@ -19,10 +19,7 @@ const (
 )
 
 var cachedPrefixString = ""
-
-func timeToUnix(t time.Time) int64 {
-	return int64(t.Sub(time.Date(1970, 1, 1, 0, 0, 0, 0, time.UTC)).Seconds())
-}
+var cacheMutex = sync.Mutex{}
 
 func getBoottime() (int64, error) {
 	// We use the mtime of /proc as a proxy for the boot time. If the superuser
@@ -40,7 +37,7 @@ func getBoottime() (int64, error) {
 	if err != nil {
 		return 0, err
 	}
-	return timeToUnix(stat.ModTime()), err
+	return stat.ModTime().Unix(), err
 }
 
 // getPrefix returns a prefix string which contains the hostname and boot time
@@ -50,15 +47,23 @@ func getBoottime() (int64, error) {
 // changes (why?) while this program is running.
 func getPrefix() (string, error) {
 	if cachedPrefixString == "" {
-		hostname, err := os.Hostname()
-		if err != nil {
-			return "", err
+		cacheMutex.Lock()
+		defer cacheMutex.Unlock()
+		// Check twice because check-then-lock has an implicit race condition. We use
+		// check-then-lock because it means that the common path needs no mutex
+		// locking, which is nice. This code also ensures that we only stop trying to
+		// set up the prefix when we don't get an error.
+		if cachedPrefixString == "" {
+			hostname, err := os.Hostname()
+			if err != nil {
+				return "", err
+			}
+			boottime, err := getBoottime()
+			if err != nil {
+				return "", err
+			}
+			cachedPrefixString = fmt.Sprintf("%s_%d", hostname, boottime)
 		}
-		boottime, err := getBoottime()
-		if err != nil {
-			return "", err
-		}
-		cachedPrefixString = fmt.Sprintf("%s_%d", hostname, boottime)
 	}
 	return cachedPrefixString, nil
 }
