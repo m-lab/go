@@ -1,12 +1,13 @@
+// +build linux
+
+// Package uuid provides functions that create a consistent globally unique UUID
+// for a given TCP socket.
 package uuid
 
 import (
 	"fmt"
-	"io/ioutil"
 	"net"
 	"os"
-	"strconv"
-	"strings"
 	"syscall"
 	"time"
 	"unsafe"
@@ -23,47 +24,23 @@ func timeToUnix(t time.Time) int64 {
 	return int64(t.Sub(time.Date(1970, 1, 1, 0, 0, 0, 0, time.UTC)).Seconds())
 }
 
-// getBoottimeWithRaceCondition has a race condition between the reading of
-// /proc/uptime and the call to time.Now(). If, between those two syscalls, we
-// cross a second-granularity time boundary, then the result will be off by one.
-// It seems safe to assume, however, that this race condition won't happen twice
-// in quick succession, so the recommended way to use this function is to call
-// it multiple times until it returns the same answer twice.
-func getBoottimeWithRaceCondition() (int64, error) {
-	procuptime, err := ioutil.ReadFile("/proc/uptime")
-	if err != nil {
-		return -1, err
-	}
-	times := strings.Split(string(procuptime), " ")
-	if len(times) != 2 {
-		return -1, fmt.Errorf("Could not split /proc/uptime into two parts")
-	}
-	uptime, err := strconv.ParseFloat(times[0], 64)
-	if len(times) != 2 {
-		return -1, fmt.Errorf("Could not parse /proc/uptime into a float")
-	}
-	return timeToUnix(time.Now().Add(time.Duration(-1 * uptime * float64(time.Second)))), nil
-}
-
 func getBoottime() (int64, error) {
-	// Call the function with the race condition repeatedly until it returns the
-	// same answer twice. As long as things take significantly less than a second
-	// to run, this will eleiminate the race condition. And if it takes
-	// significantly more than a fraction of a second to call time.Now and read
-	// /proc/uptime, things are truly messed up.
-	var prev, curr int64
-	curr, err := getBoottimeWithRaceCondition()
+	// We use the mtime of /proc as a proxy for the boot time. If the superuser
+	// modifies the /proc mount at runtime with something like `sudo touch /proc`
+	// while processes using this library are running then this will be wrong.
+	//
+	// All existing solutions are worse, however, as they depend on the stable
+	// conversion of the difference of two floating point numbers into an integer,
+	// by reading /proc/uptime and then subtracting the first number in that file
+	// from time.Now(). If a machine boots up too close to a half-second boundary,
+	// then even the old standby `uptime -s` will become inconsistent. On the scale
+	// of a single machine boot, that's pretty unlikely, but on M-Lab's scale it
+	// will be sure to bite us regularly.
+	stat, err := os.Stat("/proc")
 	if err != nil {
-		return curr, err
+		return 0, err
 	}
-	for prev != curr {
-		prev = curr
-		curr, err := getBoottimeWithRaceCondition()
-		if err != nil {
-			return curr, err
-		}
-	}
-	return curr, nil
+	return timeToUnix(stat.ModTime()), err
 }
 
 // getPrefix returns a prefix string which contains the hostname and boot time
