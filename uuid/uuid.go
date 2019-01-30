@@ -15,6 +15,7 @@ import (
 const (
 	// defined in socket.h in the linux kernel
 	syscallSoCookie = 57 // syscall.SO_COOKIE does not exist in golang 1.11
+	badUUID         = "BAD_UUID"
 )
 
 var (
@@ -92,7 +93,7 @@ func getCookie(t *net.TCPConn) (uint64, error) {
 func FromTCPConn(t *net.TCPConn) (string, error) {
 	cookie, err := getCookie(t)
 	if err != nil {
-		return "", err
+		return badUUID, err
 	}
 	return FromCookie(cookie)
 }
@@ -101,7 +102,7 @@ func FromTCPConn(t *net.TCPConn) (string, error) {
 // passed-in socket cookie.
 func FromCookie(cookie uint64) (string, error) {
 	if cachedPrefixError != nil {
-		return "", cachedPrefixError
+		return badUUID, cachedPrefixError
 	}
 	return fmt.Sprintf("%s_%016X", cachedPrefixString, cookie), nil
 }
