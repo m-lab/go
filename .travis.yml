@@ -12,6 +12,7 @@
 #  * test and build the go code
 #
 language: go
+dist: xenial
 
 before_install:
 # Coverage tools
