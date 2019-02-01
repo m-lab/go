@@ -12,11 +12,10 @@ import (
 
 func TestFileBytes(t *testing.T) {
 	tests := []struct {
-		name        string
-		content     string
-		hexdump     string
-		badFilename string
-		wantErr     bool
+		name    string
+		content string
+		hexdump string
+		wantErr bool
 	}{
 		{
 			name:    "okay",
@@ -24,9 +23,8 @@ func TestFileBytes(t *testing.T) {
 			hexdump: "00000000  31 32 33 34 35 36 37 38  39 30 61 62 63 64 65 66  |1234567890abcdef|\n",
 		},
 		{
-			name:        "error-bad-filename",
-			badFilename: "this-file-does-not-exist",
-			wantErr:     true,
+			name:    "error-bad-filename",
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
@@ -35,12 +33,14 @@ func TestFileBytes(t *testing.T) {
 			var f *os.File
 			var err error
 
-			if tt.badFilename == "" {
+			if !tt.wantErr {
 				f, err = ioutil.TempFile("", "-filebytes")
 				rtx.Must(err, "Failed to create tempfile")
 				defer os.Remove(f.Name())
 				f.WriteString(tt.content)
 				fname = f.Name()
+			} else {
+				fname = "this-is-not-a-file"
 			}
 
 			fb := &flagx.FileBytes{}
