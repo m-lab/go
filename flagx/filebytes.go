@@ -5,7 +5,8 @@ import (
 	"io/ioutil"
 )
 
-// FileBytes holds the file bytes.
+// FileBytes is a new flag type. It automatically reads the content of the
+// given filename as a `[]byte`, handling errors during flag parsing.
 type FileBytes []byte
 
 // Get retrieves the value contained in the flag.
