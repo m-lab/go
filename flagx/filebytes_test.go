@@ -61,6 +61,6 @@ func TestFileBytes(t *testing.T) {
 // Successful compilation of this function means that FileBytes implements the
 // flag.Getter interface. The function need not be called.
 func assertFlagGetter(in flag.Getter) {
-	var b ByteCount
+	var b flagx.FileBytes
 	func(in flag.Getter) {}(&b)
 }
