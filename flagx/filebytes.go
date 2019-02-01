@@ -23,8 +23,7 @@ func (fb *FileBytes) Set(s string) error {
 	return nil
 }
 
-// String reports the FileBytes as a raw string. Unprintable characters will
-// still be unprintable.
+// String reports the FileBytes content as a hexdump.
 func (fb FileBytes) String() string {
 	return hex.Dump(fb)
 }
