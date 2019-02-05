@@ -2,7 +2,9 @@ package uuid_test
 
 import (
 	"fmt"
+	"io/ioutil"
 	"net"
+	"os"
 	"strings"
 	"testing"
 
@@ -39,5 +41,20 @@ func TestUUID(t *testing.T) {
 	left2 := strings.LastIndex(uuid2, "_")
 	if left1 <= 0 || left2 <= 0 || uuid1[0:left1] != uuid2[0:left2] {
 		t.Error("The left part of the UUIDs was not constant:", uuid1, uuid2)
+	}
+}
+
+func TestFromFileError(t *testing.T) {
+	f, err := ioutil.TempFile("", "TestFileError")
+	if err != nil {
+		t.Error(err)
+	}
+	defer os.Remove(f.Name())
+	id, err := uuid.FromFile(f)
+	if err == nil {
+		t.Error("Should have had an error")
+	}
+	if id == "" {
+		t.Error("Should not return the empty string on error")
 	}
 }
