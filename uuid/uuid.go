@@ -88,7 +88,7 @@ func getCookie(file *os.File) (uint64, error) {
 func FromTCPConn(t *net.TCPConn) (string, error) {
 	file, err := t.File()
 	if err != nil {
-		return "", err
+		return badUUID, err
 	}
 	defer file.Close()
 	return FromFile(file)
