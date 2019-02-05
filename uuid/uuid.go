@@ -62,14 +62,9 @@ func getPrefix() (string, error) {
 // getCookie returns the cookie (the UUID) associated with a socket. For a given
 // boot of a given hostname, this UUID is guaranteed to be unique (until the
 // host receives more than 2^64 connections without rebooting).
-func getCookie(t *net.TCPConn) (uint64, error) {
+func getCookie(file *os.File) (uint64, error) {
 	var cookie uint64
 	cookieLen := uint32(unsafe.Sizeof(cookie))
-	file, err := t.File()
-	if err != nil {
-		return 0, err
-	}
-	defer file.Close()
 	// GetsockoptInt does not work for 64 bit integers, which is what the UUID is.
 	// So we crib from the GetsockoptInt implementation and ndt-server/tcpinfox,
 	// and call the syscall manually.
@@ -91,7 +86,18 @@ func getCookie(t *net.TCPConn) (uint64, error) {
 // FromTCPConn returns a string that is a globally unique identifier for the
 // socket held by the passed-in TCPConn (assuming hostnames are unique).
 func FromTCPConn(t *net.TCPConn) (string, error) {
-	cookie, err := getCookie(t)
+	file, err := t.File()
+	if err != nil {
+		return badUUID, err
+	}
+	defer file.Close()
+	return FromFile(file)
+}
+
+// FromFile returns a string that is a globally unique identifier for the socket
+// represented by the os.File pointer.
+func FromFile(file *os.File) (string, error) {
+	cookie, err := getCookie(file)
 	if err != nil {
 		return badUUID, err
 	}
