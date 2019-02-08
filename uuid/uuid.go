@@ -19,23 +19,27 @@ const (
 )
 
 var (
-	// Only calculate these once - they never change.
-	cachedPrefixString, cachedPrefixError = getPrefix()
+	// Only calculate these once - they never change. We use the mtime of /proc as
+	// a proxy for the boot time. If the superuser modifies the /proc mount at
+	// runtime with something like `sudo touch /proc` while processes using this
+	// library are running then this will be wrong.
+	cachedPrefixString, cachedPrefixError = getPrefix("/proc")
+
+	// Made into a variable to enable the testing of error handling.
+	osHostname = os.Hostname
 )
 
-func getBoottime() (int64, error) {
-	// We use the mtime of /proc as a proxy for the boot time. If the superuser
-	// modifies the /proc mount at runtime with something like `sudo touch /proc`
-	// while processes using this library are running then this will be wrong.
+func getBoottime(proxyFile string) (int64, error) {
+	// We use the mtime of the passed-in file as a proxy for the boot time.
 	//
-	// All existing solutions are worse, however, as they depend on the stable
-	// conversion of the difference of two floating point numbers into an integer,
-	// by reading /proc/uptime and then subtracting the first number in that file
-	// from time.Now(). If a machine boots up too close to a half-second boundary,
-	// then even the old standby `uptime -s` will become inconsistent. On the scale
-	// of a single machine boot, that's pretty unlikely, but on M-Lab's scale it
-	// will be sure to bite us regularly.
-	stat, err := os.Stat("/proc")
+	// This is potentially brittle, but all existing solutions are worse, as they
+	// depend on the stable conversion of the difference of two floating point
+	// numbers into an integer, by reading /proc/uptime and then subtracting the
+	// first number in that file from time.Now(). If a machine boots up too close
+	// to a half-second boundary, then even the old standby `uptime -s` will become
+	// inconsistent. On the scale of a single machine boot, that's pretty unlikely,
+	// but on M-Lab's scale it will be sure to bite us regularly.
+	stat, err := os.Stat(proxyFile)
 	if err != nil {
 		return 0, err
 	}
@@ -47,12 +51,12 @@ func getBoottime() (int64, error) {
 // This function is cached because that pair should be constant for a given
 // instance of the program, unless the boot time changes (how?) or the hostname
 // changes (why?) while this program is running.
-func getPrefix() (string, error) {
-	hostname, err := os.Hostname()
+func getPrefix(proxyFile string) (string, error) {
+	hostname, err := osHostname()
 	if err != nil {
 		return "", err
 	}
-	boottime, err := getBoottime()
+	boottime, err := getBoottime(proxyFile)
 	if err != nil {
 		return "", err
 	}

@@ -58,3 +58,24 @@ func TestFromFileError(t *testing.T) {
 		t.Error("Should not return the empty string on error")
 	}
 }
+
+func TestFromTCPConnError(t *testing.T) {
+	localAddr, err := net.ResolveTCPAddr("tcp", "localhost:12346")
+	rtx.Must(err, "No localhost")
+	listener, err := net.ListenTCP("tcp", localAddr)
+	rtx.Must(err, "Could not make TCP listener")
+	local, err := net.Dial("tcp", ":12346")
+	defer local.Close()
+	rtx.Must(err, "Could not connect to myself")
+	conn, err := listener.AcceptTCP()
+	rtx.Must(err, "Could not accept conn1")
+	conn.Close()
+	local.Close()
+	id, err := uuid.FromTCPConn(conn)
+	if err == nil {
+		t.Error("Should have had an error")
+	}
+	if id == "" {
+		t.Error("Should not return the empty string on error")
+	}
+}
