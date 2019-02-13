@@ -15,7 +15,18 @@ import (
 const (
 	// defined in socket.h in the linux kernel
 	syscallSoCookie = 57 // syscall.SO_COOKIE does not exist in golang 1.11
-	badUUID         = "BAD_UUID"
+
+	// Whenever there is an error We return this value instead of the empty
+	// string. We do this in an effort to detect when client code
+	// accidentally uses the returned UUID even when it should not have.
+	//
+	// This is borne out of past experience, most notably an incident where
+	// returning an empty string and an error condition caused the
+	// resulting code to create a file named ".gz", which was (thanks to
+	// shell-filename-hiding rules) a very hard bug to uncover.  If a file
+	// is ever named "INVALID_UUID.gz", it will be much easier to detect
+	// that there is a problem versus just ".gz"
+	badUUID = "INVALID_UUID"
 )
 
 var (
@@ -89,6 +100,9 @@ func getCookie(file *os.File) (uint64, error) {
 
 // FromTCPConn returns a string that is a globally unique identifier for the
 // socket held by the passed-in TCPConn (assuming hostnames are unique).
+//
+// This function will never return the empty string, but the returned string
+// value should only be used if the error is nil.
 func FromTCPConn(t *net.TCPConn) (string, error) {
 	file, err := t.File()
 	if err != nil {
@@ -100,6 +114,9 @@ func FromTCPConn(t *net.TCPConn) (string, error) {
 
 // FromFile returns a string that is a globally unique identifier for the socket
 // represented by the os.File pointer.
+//
+// This function will never return the empty string, but the returned string
+// value should only be used if the error is nil.
 func FromFile(file *os.File) (string, error) {
 	cookie, err := getCookie(file)
 	if err != nil {
@@ -110,6 +127,9 @@ func FromFile(file *os.File) (string, error) {
 
 // FromCookie returns a string that is a globally unique identifier for the
 // passed-in socket cookie.
+//
+// This function will never return the empty string, but the returned string
+// value should only be used if the error is nil.
 func FromCookie(cookie uint64) (string, error) {
 	if cachedPrefixError != nil {
 		return badUUID, cachedPrefixError
