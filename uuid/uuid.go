@@ -26,7 +26,7 @@ const (
 	// shell-filename-hiding rules) a very hard bug to uncover.  If a file
 	// is ever named "INVALID_UUID.gz", it will be much easier to detect
 	// that there is a problem versus just ".gz"
-	badUUID = "INVALID_UUID"
+	invalidUUID = "INVALID_UUID"
 )
 
 var (
@@ -106,7 +106,7 @@ func getCookie(file *os.File) (uint64, error) {
 func FromTCPConn(t *net.TCPConn) (string, error) {
 	file, err := t.File()
 	if err != nil {
-		return badUUID, err
+		return invalidUUID, err
 	}
 	defer file.Close()
 	return FromFile(file)
@@ -120,7 +120,7 @@ func FromTCPConn(t *net.TCPConn) (string, error) {
 func FromFile(file *os.File) (string, error) {
 	cookie, err := getCookie(file)
 	if err != nil {
-		return badUUID, err
+		return invalidUUID, err
 	}
 	return FromCookie(cookie)
 }
@@ -132,7 +132,7 @@ func FromFile(file *os.File) (string, error) {
 // value should only be used if the error is nil.
 func FromCookie(cookie uint64) (string, error) {
 	if cachedPrefixError != nil {
-		return badUUID, cachedPrefixError
+		return invalidUUID, cachedPrefixError
 	}
 	return fmt.Sprintf("%s_%016X", cachedPrefixString, cookie), nil
 }
