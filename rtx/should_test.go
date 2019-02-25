@@ -16,7 +16,7 @@ func TestShouldSuccess(t *testing.T) {
 
 func TestShouldFail(t *testing.T) {
 	logPrintln = callPrintln
-	defer func() { logFatal = log.Fatal }()
+	defer func() { logPrintln = log.Println }()
 
 	// Technique from https://stackoverflow.com/questions/10473800/in-go-how-do-i-capture-stdout-of-a-function-into-a-string
 	// Intercept stdout
@@ -48,7 +48,7 @@ func TestShouldFail(t *testing.T) {
 
 func TestShouldFailWithFormatting(t *testing.T) {
 	logPrintln = callPrintln
-	defer func() { logFatal = log.Fatal }()
+	defer func() { logPrintln = log.Println }()
 
 	// Technique from https://stackoverflow.com/questions/10473800/in-go-how-do-i-capture-stdout-of-a-function-into-a-string
 	// Intercept stdout
