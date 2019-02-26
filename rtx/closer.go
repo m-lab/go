@@ -23,7 +23,7 @@ type errorLoggingCloser struct {
 	c io.Closer
 }
 
-// Close() wraps io.Closer.Closer() and logs errors.
+// Close() wraps io.Closer.Close() and logs errors.
 func (elc errorLoggingCloser) Close() error {
 	err := elc.c.Close()
 	if err != nil {
