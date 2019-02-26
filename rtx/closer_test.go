@@ -1,5 +1,3 @@
-// Package rtx provides free functions that would be handy to have as part of
-// the go standard runtime.
 package rtx
 
 import (
