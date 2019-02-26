@@ -5,9 +5,9 @@ its first argument is not a nil error.  Using `Must` aids in the pursuit of 100%
 code coverage, because it means that the error pathway of `log.Fatal` is in this
 package instead of inline with the code being tested.
 
-A similar function `Should` is provided, with the difference that the program
-won't exit after the error message is printed, and it's meant to be used for
-non-critical errors. A possible usage is to simplify deferred calls to close
-resources:
-
-`defer Should(resources.Close(), "Helpful message")`
+It also contains a function `ErrorLoggingCloser` that wraps any implementation
+of `io.Closer` into an `errorLoggingCloser`, which makes sure errors happening
+when calling Close() are logged. It can be used in a `defer` statement, e.g.:
+```
+defer ErrorLoggingCloser(resource).Close()
+```
