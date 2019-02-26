@@ -1,6 +1,5 @@
-// Package rtx provides free functions that would be handy to have as part of
-// the go standard runtime.
-package rtx
+// Package iox contains functions that extend the io package.
+package iox
 
 import (
 	"io"
