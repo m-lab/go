@@ -1,3 +1,5 @@
+// Package prometheusx provides a canonical way to expose Prometheus metrics
+// and provides a utility function for linting those metrics.
 package prometheusx
 
 import (
@@ -16,10 +18,10 @@ import (
 	"github.com/prometheus/prometheus/util/promlint"
 )
 
-// MustStartPrometheus starts the prometheus server. If the address passed in is
-// ":0" then a random open port will be chosen and the .Addr element of the
-// returned server will be udpated to reflect the actual port. The server will
-// run until the passed-in context is canceled.
+// MustStartPrometheus starts an http server which exposes local metrics to
+// Prometheus.  If the passed-in address is ":0" then a random open port will
+// be chosen and the .Addr element of the returned server will be udpated to
+// reflect the actual port.
 func MustStartPrometheus(addr string) *http.Server {
 	// Prometheus with some extras.
 	mux := http.NewServeMux()
@@ -41,7 +43,7 @@ func MustStartPrometheus(addr string) *http.Server {
 	return server
 }
 
-// LintMetrics will ensure that the names of the passed-in promethus metrics
+// LintMetrics will ensure that the names of the passed-in Promethus metrics
 // follow all best practices. If the passed-in testing.T is nil, then all lint
 // errors are just log messages. If a real testing.T is passed in, then lint
 // errors cause test failures.
