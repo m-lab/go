@@ -28,7 +28,9 @@ func TestMustStartPrometheusOnEmptyAddr(t *testing.T) {
 func TestLintMetricsEmpty(t *testing.T) {
 	// No metrics.
 	prometheusx.LintMetrics(t)
-	prometheusx.LintMetrics(nil)
+	if !prometheusx.LintMetrics(nil) {
+		t.Error("Failed to lint empty metrics")
+	}
 }
 
 func TestLintMetricsGoodMetric(t *testing.T) {
@@ -40,7 +42,9 @@ func TestLintMetricsGoodMetric(t *testing.T) {
 	prometheus.MustRegister(goodC)
 	defer prometheus.Unregister(goodC)
 	prometheusx.LintMetrics(t)
-	prometheusx.LintMetrics(nil)
+	if !prometheusx.LintMetrics(nil) {
+		t.Error("Failed to lint one good metric")
+	}
 }
 
 func TestLintMetricsBadMetric(t *testing.T) {
@@ -50,10 +54,12 @@ func TestLintMetricsBadMetric(t *testing.T) {
 	})
 	prometheus.MustRegister(badC)
 	defer prometheus.Unregister(badC)
-	prometheusx.LintMetrics(nil)
 	subT := &testing.T{}
 	prometheusx.LintMetrics(subT)
 	if !subT.Failed() {
 		t.Errorf("On bad metrics the test should fail")
+	}
+	if prometheusx.LintMetrics(nil) {
+		t.Error("Failed to lint error on one bad metric")
 	}
 }
