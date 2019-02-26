@@ -25,7 +25,6 @@ func TestErrorLoggingCloser(t *testing.T) {
 		shouldErr: true,
 	}
 
-	// Call the function which causes the output
 	err := ErrorLoggingCloser(res).Close()
 
 	if err != nil {
