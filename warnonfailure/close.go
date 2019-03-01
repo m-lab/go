@@ -9,7 +9,8 @@ import (
 
 var logPrintf = log.Printf
 
-// Close wraps a resource.Close() call and logs the error, if any.
+// Close wraps a resource.Close() call and logs the error, if any, adding a
+// custom message.
 //
 // This function is intended to be used as a better alternative to completely
 // ignoring an error in cases where there isn't any obvious reason to handle it
