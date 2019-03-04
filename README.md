@@ -39,28 +39,34 @@ Utilities for interacting with BigQuery
 
 ### bytecount
 Allows commandline flags to express quantities of Bytes like `--size=20MB` by
-creating a new type `bytecount` that can be used as a `flag.Value`.
+creating a new type `bytecount` that can be used as a `flag.Value`.  *stable*
 
 ### cloudtest
 Utilities for testing google cloud service abstractions.
 
 ### flagx
-Extensions for the flag package.
+Extensions for the flag package. *stable*
 
 ### httpx
-Extensions of the http package.
+Extensions of the http package. *stable*
+
+### iox
+Extensions of the io package.
 
 ### memoryless
 Tools to run a function as a memoryless poisson process.  Helps prevent spurious
-patterns.
+patterns. *stable*
 
 ### osx
-Extensions of the os package.
+Extensions of the os package. *stable*
+
+### prometheusx
+Helpful utilities for working with Prometheus. *alpha*
 
 ### rtx
-Extensions of the runtime package.
+Extensions of the runtime package. *stable*
 
 TODO: decide whether to rename this to runtimex.
 
 ### uuid
-Generate a globally unique id for any TCP socket.
+Generate a globally unique id for any TCP socket. *beta*
