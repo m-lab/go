@@ -11,5 +11,5 @@ find any instances of this in our log files.
 
 It can be used in a `defer` statement, e.g.:
 ```
-defer Close(resource, "Warning: ignoring error")
+defer warnonerror.Close(resource, "Warning: ignoring error")
 ```

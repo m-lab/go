@@ -1,4 +1,4 @@
-package warnonfailure
+package warnonerror
 
 import (
 	"bytes"

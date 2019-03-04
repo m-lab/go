@@ -1,6 +1,6 @@
-// Package warnonfailure contains custom versions of common functions/methods
+// Package warnonerror contains custom versions of common functions/methods
 // that always log a warning in case of error.
-package warnonfailure
+package warnonerror
 
 import (
 	"io"
@@ -24,7 +24,7 @@ var logPrintf = log.Printf
 //        }
 //    }()
 // into a simplified pattern of:
-//    defer Close(resource, "Warning: ignoring error")
+//    defer warnonerror.Close(resource, "Warning: ignoring error")
 func Close(c io.Closer, msg string) error {
 	err := c.Close()
 	if err != nil {
