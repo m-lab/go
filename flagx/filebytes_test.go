@@ -50,7 +50,7 @@ func TestFileBytes(t *testing.T) {
 			if !tt.wantErr && tt.content != (string)(fb.Get().(flagx.FileBytes)) {
 				t.Errorf("FileBytes.Get() want = %q, got %q", tt.content, string(*fb))
 			}
-			if !tt.wantErr && string(tt.content) != fb.String() {
+			if !tt.wantErr && tt.content != fb.String() {
 				t.Errorf("FileBytes.String() want = %q, got %q", tt.content, fb.String())
 			}
 		})
