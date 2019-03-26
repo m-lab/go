@@ -10,13 +10,49 @@ import (
 	"log"
 	"net/http"
 	"net/http/pprof"
+	"strconv"
 	"testing"
 
 	"github.com/m-lab/go/httpx"
 	"github.com/m-lab/go/rtx"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/prometheus/prometheus/util/promlint"
 )
+
+var (
+	// GitShortCommit holds the truncated commit id for a git commit. It should be
+	// equal to the first column of the output of `git log --oneline`. This string
+	// is interpreted by init() as a base-16 number and the Prometheus metric
+	// git_short_commit is set to the resulting numerical value. It is recommended
+	// that the string be set as part of the build/link process, as follows:
+	//
+	//   go build -ldflags "-X prometheusx.GitShortCommit=`git log HEAD~1..HEAD --format=tformat:%h`" ./...
+	//
+	// This metric should be useful when determining whether code on various
+	// systems is running the same version, which should, among other things, help
+	// detect failed rollouts, or extended periods in which test deployments occur
+	// but never a production deployment.
+	GitShortCommit       = "No commit specified"
+	gitShortCommitMetric = promauto.NewGauge(prometheus.GaugeOpts{
+		Name: "git_short_commit",
+		Help: "The git commit interpreted as a number.",
+	})
+)
+
+func setCommitNumber(commit string) {
+	number, err := strconv.ParseInt(commit, 16, 64)
+	if err == nil {
+		gitShortCommitMetric.Set(float64(number))
+	} else {
+		gitShortCommitMetric.Set(0)
+	}
+}
+
+func init() {
+	setCommitNumber(GitShortCommit)
+}
 
 // MustStartPrometheus starts an http server which exposes local metrics to
 // Prometheus.  If the passed-in address is ":0" then a random open port will
