@@ -15,13 +15,11 @@ func TestFileBytes(t *testing.T) {
 	tests := []struct {
 		name    string
 		content string
-		hexdump string
 		wantErr bool
 	}{
 		{
 			name:    "okay",
 			content: "1234567890abcdef",
-			hexdump: "00000000  31 32 33 34 35 36 37 38  39 30 61 62 63 64 65 66  |1234567890abcdef|\n",
 		},
 		{
 			name:    "error-bad-filename",
@@ -40,6 +38,7 @@ func TestFileBytes(t *testing.T) {
 				defer os.Remove(f.Name())
 				f.WriteString(tt.content)
 				fname = f.Name()
+				f.Close()
 			} else {
 				fname = "this-is-not-a-file"
 			}
@@ -51,8 +50,8 @@ func TestFileBytes(t *testing.T) {
 			if !tt.wantErr && tt.content != (string)(fb.Get().(flagx.FileBytes)) {
 				t.Errorf("FileBytes.Get() want = %q, got %q", tt.content, string(*fb))
 			}
-			if !tt.wantErr && tt.hexdump != fb.String() {
-				t.Errorf("FileBytes.String() want = %q, got %q", tt.hexdump, fb.String())
+			if !tt.wantErr && string(tt.content) != fb.String() {
+				t.Errorf("FileBytes.String() want = %q, got %q", tt.content, fb.String())
 			}
 		})
 	}
@@ -60,7 +59,6 @@ func TestFileBytes(t *testing.T) {
 
 // Successful compilation of this function means that FileBytes implements the
 // flag.Getter interface. The function need not be called.
-func assertFlagGetter(in flag.Getter) {
-	var b flagx.FileBytes
+func assertFlagGetter(b flagx.FileBytes) {
 	func(in flag.Getter) {}(&b)
 }
