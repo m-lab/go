@@ -3,6 +3,7 @@ package prometheusx
 import (
 	"context"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -11,7 +12,7 @@ import (
 	"github.com/m-lab/go/rtx"
 )
 
-func readMetricNumber(t *testing.T, srv *http.Server) float64 {
+func readMetricNumber(t *testing.T, srv *http.Server, label string) float64 {
 	metricReader, err := http.Get("http://" + srv.Addr + "/metrics")
 	rtx.Must(err, "Could not GET metrics")
 	metricBytes, err := ioutil.ReadAll(metricReader.Body)
@@ -20,12 +21,16 @@ func readMetricNumber(t *testing.T, srv *http.Server) float64 {
 	sawMetric := false
 	for _, line := range strings.Split(string(metricBytes), "\n") {
 		if strings.HasPrefix(line, "git_short_commit") {
+			log.Println("LINE:", line)
+			if !strings.Contains(line, "{commit=\""+label+"\"}") {
+				continue
+			}
 			sawMetric = true
 			chunks := strings.Split(line, " ")
-			if len(chunks) != 2 {
+			if len(chunks) < 2 {
 				t.Errorf("Wrong number of pieces in %q", line)
 			}
-			n, err := strconv.ParseFloat(chunks[1], 64)
+			n, err := strconv.ParseFloat(chunks[len(chunks)-1], 64)
 			rtx.Must(err, "Could not convert %q data to an int", line)
 			return n
 		}
@@ -53,7 +58,7 @@ func TestSetCommit(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.commit, func(t *testing.T) {
 			setCommitNumber(tt.commit)
-			if commit := readMetricNumber(t, srv); commit != tt.number {
+			if commit := readMetricNumber(t, srv, tt.commit); commit != tt.number {
 				t.Errorf("Bad commit number: %f", commit)
 			}
 		})

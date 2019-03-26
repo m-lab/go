@@ -35,18 +35,20 @@ var (
 	// detect failed rollouts, or extended periods in which test deployments occur
 	// but never a production deployment.
 	GitShortCommit       = "No commit specified"
-	gitShortCommitMetric = promauto.NewGauge(prometheus.GaugeOpts{
-		Name: "git_short_commit",
-		Help: "The git commit interpreted as a number.",
-	})
+	gitShortCommitMetric = promauto.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "git_short_commit",
+			Help: "The git commit interpreted as a number.",
+		},
+		[]string{"commit"})
 )
 
 func setCommitNumber(commit string) {
 	number, err := strconv.ParseInt(commit, 16, 64)
 	if err == nil {
-		gitShortCommitMetric.Set(float64(number))
+		gitShortCommitMetric.WithLabelValues(commit).Set(float64(number))
 	} else {
-		gitShortCommitMetric.Set(0)
+		gitShortCommitMetric.WithLabelValues(commit).Set(0)
 	}
 }
 
