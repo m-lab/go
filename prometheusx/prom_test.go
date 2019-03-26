@@ -4,9 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/prometheus/client_golang/prometheus"
-
 	"github.com/m-lab/go/prometheusx"
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 func TestMustStartPrometheus(t *testing.T) {
