@@ -48,7 +48,6 @@ func TestStringArray(t *testing.T) {
 
 // Successful compilation of this function means that StringArray implements the
 // flag.Getter interface. The function need not be called.
-func assertFlagGetterStringArray(in flag.Getter) {
-	var b flagx.StringArray
+func assertFlagGetterStringArray(b flagx.StringArray) {
 	func(in flag.Getter) {}(&b)
 }
