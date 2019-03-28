@@ -3,7 +3,9 @@ package flagx
 import "fmt"
 
 // StringArray is a new flag type. It appends the flag parameter to an
-// `[]string` allowing the parameter to be specified multiple times.
+// `[]string` allowing the parameter to be specified multiple times. Unlike
+// other Flag types, the default argument should almost always be the empty
+// array, because there is no way to remove an element, only to add one.
 type StringArray []string
 
 // Get retrieves the value contained in the flag.
