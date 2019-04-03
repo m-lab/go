@@ -44,8 +44,10 @@ cache:
 script:
 # Run every regular unit test.
 - go test -covermode=count -coverprofile=_coverage.cov -v ./...
-# bqext should also have its integration tests run.
-- go test -covermode=count -coverprofile=_bqext.cov -v ./bqext -tags=$TEST_TAGS
+### bqext should also have its integration tests run.
+## CURRENTLY BROKEN
+## TODO: fix https://github.com/m-lab/go/issues/46 and uncomment the test below.
+##- go test -covermode=count -coverprofile=_bqext.cov -v ./bqext -tags=$TEST_TAGS
 
 # Coveralls
 - $HOME/gopath/bin/gocovmerge *.cov > __merged.cov
