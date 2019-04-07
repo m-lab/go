@@ -2,6 +2,8 @@
 package prometheusx
 
 import (
+	"flag"
+	"log"
 	"net/http"
 	"net/http/pprof"
 	"strconv"
@@ -35,6 +37,12 @@ var (
 		[]string{"commit"})
 )
 
+var (
+	// ListenAddress is a package flag to specify the prometheus metric
+	// server listen address.
+	ListenAddress = flag.String("metrics.listen-address", ":9990", "")
+)
+
 func setCommitNumber(commit string) {
 	number, err := strconv.ParseInt(commit, 16, 64)
 	if err == nil {
@@ -48,11 +56,22 @@ func init() {
 	setCommitNumber(GitShortCommit)
 }
 
+// MustStartMetricsServer starts the prometheus http metrics server with the
+// package flag ListenAddress.
+func MustStartMetricsServer() *http.Server {
+	return MustStartPrometheus(*ListenAddress)
+}
+
 // MustStartPrometheus starts an http server which exposes local metrics to
 // Prometheus.  If the passed-in address is ":0" then a random open port will
 // be chosen and the .Addr element of the returned server will be udpated to
 // reflect the actual port.
 func MustStartPrometheus(addr string) *http.Server {
+	if addr != *ListenAddress {
+		log.Printf("WARNING: Starting metrics server with %q when flag is %s", addr, *ListenAddress)
+		log.Printf("WARNING: Update code to use `prometheusx.MustStartMetricsServer()`")
+	}
+
 	// Prometheus with some extras.
 	mux := http.NewServeMux()
 	mux.HandleFunc("/debug/pprof/", pprof.Index)
