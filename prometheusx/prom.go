@@ -40,7 +40,7 @@ var (
 var (
 	// ListenAddress is a package flag to specify the prometheus metric
 	// server listen address.
-	ListenAddress = flag.String("metrics.listen-address", ":9990", "")
+	ListenAddress = flag.String("prometheusx.listen-address", ":9990", "")
 )
 
 func setCommitNumber(commit string) {
@@ -56,9 +56,9 @@ func init() {
 	setCommitNumber(GitShortCommit)
 }
 
-// MustStartMetricsServer starts the prometheus http metrics server with the
+// MustServeMetrics starts the prometheus http metrics server with the
 // package flag ListenAddress.
-func MustStartMetricsServer() *http.Server {
+func MustServeMetrics() *http.Server {
 	return MustStartPrometheus(*ListenAddress)
 }
 

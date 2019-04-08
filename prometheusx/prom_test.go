@@ -23,8 +23,8 @@ func TestMustStartPrometheusOnEmptyAddr(t *testing.T) {
 	}
 }
 
-func TestMustStartMetricsServer(t *testing.T) {
-	srv := prometheusx.MustStartMetricsServer()
+func TestMustServeMetrics(t *testing.T) {
+	srv := prometheusx.MustServeMetrics()
 	defer srv.Shutdown(context.Background())
 	if srv.Addr != *prometheusx.ListenAddress {
 		t.Error("We should get back any non-empty address we pass in")
