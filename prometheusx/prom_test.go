@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/m-lab/go/prometheusx"
-	"github.com/prometheus/client_golang/prometheus"
 )
 
 func TestMustStartPrometheus(t *testing.T) {
@@ -24,41 +23,10 @@ func TestMustStartPrometheusOnEmptyAddr(t *testing.T) {
 	}
 }
 
-func TestLintMetricsEmpty(t *testing.T) {
-	// No metrics.
-	prometheusx.LintMetrics(t)
-	if !prometheusx.LintMetrics(nil) {
-		t.Error("Failed to lint empty metrics")
-	}
-}
-
-func TestLintMetricsGoodMetric(t *testing.T) {
-	// One good metric.
-	goodC := prometheus.NewCounter(prometheus.CounterOpts{
-		Name: "good_total",
-		Help: "Counts good things",
-	})
-	prometheus.MustRegister(goodC)
-	defer prometheus.Unregister(goodC)
-	prometheusx.LintMetrics(t)
-	if !prometheusx.LintMetrics(nil) {
-		t.Error("Failed to lint one good metric")
-	}
-}
-
-func TestLintMetricsBadMetric(t *testing.T) {
-	// One bad metric.
-	badC := prometheus.NewCounter(prometheus.CounterOpts{
-		Name: "bad_name_name_for_a_counter",
-	})
-	prometheus.MustRegister(badC)
-	defer prometheus.Unregister(badC)
-	subT := &testing.T{}
-	prometheusx.LintMetrics(subT)
-	if !subT.Failed() {
-		t.Errorf("On bad metrics the test should fail")
-	}
-	if prometheusx.LintMetrics(nil) {
-		t.Error("Failed to lint error on one bad metric")
+func TestMustStartMetricsServer(t *testing.T) {
+	srv := prometheusx.MustStartMetricsServer()
+	defer srv.Shutdown(context.Background())
+	if srv.Addr != *prometheusx.ListenAddress {
+		t.Error("We should get back any non-empty address we pass in")
 	}
 }
