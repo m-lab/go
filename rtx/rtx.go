@@ -34,3 +34,20 @@ func Must(err error, prefix string, args ...interface{}) {
 		logFatal(prefix, suffix)
 	}
 }
+
+// Should will call panic if passed a non-nil error. The message to panic is the
+// prefix argument. If further args are passed, the prefix is treated as a
+// format string.
+//
+// This provides a version of Must which has a recoverable failure, for use in
+// things like web handlers, where the crashing and failure of a single response
+// should not crash the server as a whole.
+func Should(err error, prefix string, args ...interface{}) {
+	if err != nil {
+		suffix := fmt.Sprintf(" (error: %v)", err)
+		if len(args) != 0 {
+			prefix = fmt.Sprintf(prefix, args...)
+		}
+		panic(prefix + suffix)
+	}
+}
