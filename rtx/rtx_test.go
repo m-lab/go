@@ -93,3 +93,33 @@ func TestMustFailureWithFormatting(t *testing.T) {
 		t.Errorf("%q != \"Should fail with arg 5 (error: An error for testing)\"", out)
 	}
 }
+
+func TestPanicOnErrorWontPanicOnNil(t *testing.T) {
+	PanicOnError(nil, "This should be fine")
+}
+
+func TestPanicOnErrorPanicsOnError(t *testing.T) {
+	defer func() {
+		r := recover()
+		if r == nil {
+			t.Error("We should have recovered from a panic")
+		}
+		if r != "Expect an error (error: Error for testing)" {
+			t.Error(r, "was not the expected string")
+		}
+	}()
+	PanicOnError(errors.New("Error for testing"), "Expect an error")
+}
+
+func TestPanicOnErrorPanicsOnErrorAndFormatsCorrectly(t *testing.T) {
+	defer func() {
+		r := recover()
+		if r == nil {
+			t.Error("We should have recovered from a panic")
+		}
+		if r != "Expect an error and 1 should be one (error: Error for testing)" {
+			t.Error(r, "was not the expected string")
+		}
+	}()
+	PanicOnError(errors.New("Error for testing"), "Expect an error and %d should be one", 1)
+}
