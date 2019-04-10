@@ -94,11 +94,11 @@ func TestMustFailureWithFormatting(t *testing.T) {
 	}
 }
 
-func TestShouldWontPanicOnNil(t *testing.T) {
-	Should(nil, "This should be fine")
+func TestPanicOnErrorWontPanicOnNil(t *testing.T) {
+	PanicOnError(nil, "This should be fine")
 }
 
-func TestShouldPanicsOnError(t *testing.T) {
+func TestPanicOnErrorPanicsOnError(t *testing.T) {
 	defer func() {
 		r := recover()
 		if r == nil {
@@ -108,10 +108,10 @@ func TestShouldPanicsOnError(t *testing.T) {
 			t.Error(r, "was not the expected string")
 		}
 	}()
-	Should(errors.New("Error for testing"), "Expect an error")
+	PanicOnError(errors.New("Error for testing"), "Expect an error")
 }
 
-func TestShouldPanicsOnErrorAndFormatsCorrectly(t *testing.T) {
+func TestPanicOnErrorPanicsOnErrorAndFormatsCorrectly(t *testing.T) {
 	defer func() {
 		r := recover()
 		if r == nil {
@@ -121,5 +121,5 @@ func TestShouldPanicsOnErrorAndFormatsCorrectly(t *testing.T) {
 			t.Error(r, "was not the expected string")
 		}
 	}()
-	Should(errors.New("Error for testing"), "Expect an error and %d should be one", 1)
+	PanicOnError(errors.New("Error for testing"), "Expect an error and %d should be one", 1)
 }

@@ -35,14 +35,21 @@ func Must(err error, prefix string, args ...interface{}) {
 	}
 }
 
-// Should will call panic if passed a non-nil error. The message to panic is the
-// prefix argument. If further args are passed, the prefix is treated as a
-// format string.
+// PanicOnError will call panic if passed a non-nil error. The message to panic
+// is the prefix argument. If further args are passed, the prefix is treated as
+// a format string. If you don't know whether to use `Must` or `PanicOnError`,
+// you should use `Must`.
 //
-// This provides a version of Must which has a recoverable failure, for use in
-// things like web handlers, where the crashing and failure of a single response
-// should not crash the server as a whole.
-func Should(err error, prefix string, args ...interface{}) {
+// This provides a function like Must which causes a recoverable failure, for
+// use in things like web handlers, where the crashing and failure of a single
+// response should not crash the server as a whole. The use of `panic()` and
+// `recover()` in Go code is discouraged, and best practices dictate that the
+// call to `panic()` and any corresponding `recover()` should be in the same
+// package. PanicOnError is a simple function, so we adopt the rule that every
+// call to PanicOnError and its corresponding `recover()` should be in the
+// same package. For an example of this, see the code in the `scamper` package
+// in https://github.com/m-lab/traceroute-caller
+func PanicOnError(err error, prefix string, args ...interface{}) {
 	if err != nil {
 		suffix := fmt.Sprintf(" (error: %v)", err)
 		if len(args) != 0 {
