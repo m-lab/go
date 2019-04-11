@@ -12,8 +12,6 @@ import (
 	"google.golang.org/api/iterator"
 )
 
-const sourceBucketPattern = `^gs://(?P<bucket>[^/]*)/(?P<path>.*)`
-
 // Object extends the storage.ObjectHandle operations on GCS Objects. Objects are
 // generated during a Bucket.Walk.
 type Object struct {
