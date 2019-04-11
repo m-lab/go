@@ -54,7 +54,7 @@ func TestBucket_Walk(t *testing.T) {
 	for _, tt := range tests {
 		ctx, cancel := context.WithTimeout(ctx, time.Minute)
 		defer cancel()
-		bucket := NewBucket(client.Bucket("soltesz-mlab-sandbox"))
+		bucket := NewBucket(client.Bucket("m-lab-go-storagex-mlab-testing"))
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.wantErr {
 				itNext = itNextErr
@@ -94,14 +94,14 @@ func TestObjectImpl_Copy(t *testing.T) {
 		{
 			name:         "okay",
 			ctx:          context.Background(),
-			ObjectHandle: client.Bucket("soltesz-mlab-sandbox").Object("t1/okay.txt"),
+			ObjectHandle: client.Bucket("m-lab-go-storagex-mlab-testing").Object("t1/okay.txt"),
 			w:            &bytes.Buffer{},
 			wantW:        "okay\n",
 		},
 		{
 			name:         "bad-writer",
 			ctx:          context.Background(),
-			ObjectHandle: client.Bucket("soltesz-mlab-sandbox").Object("t1/okay.txt"),
+			ObjectHandle: client.Bucket("m-lab-go-storagex-mlab-testing").Object("t1/okay.txt"),
 			w:            &errorWriter{},
 			wantErr:      true,
 		},
@@ -136,13 +136,13 @@ func TestObjectImpl_LocalName(t *testing.T) {
 	}{
 		{
 			name:         "okay-remove-prefix",
-			ObjectHandle: client.Bucket("soltesz-mlab-sandbox").Object("t1/okay.txt"),
+			ObjectHandle: client.Bucket("m-lab-go-storagex-mlab-testing").Object("t1/okay.txt"),
 			prefix:       "t1/",
 			want:         "okay.txt",
 		},
 		{
 			name:         "okay-return-basename",
-			ObjectHandle: client.Bucket("soltesz-mlab-sandbox").Object("t1/okay.txt"),
+			ObjectHandle: client.Bucket("m-lab-go-storagex-mlab-testing").Object("t1/okay.txt"),
 			prefix:       "t1/okay.txt",
 			want:         "okay.txt",
 		},
