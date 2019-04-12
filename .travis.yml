@@ -41,7 +41,7 @@ cache:
   - "$HOME/google-cloud-sdk/"
 
 script:
-- export GOOGLE_APPLICATION_CREDENTIALS=travis-testing.json
+- export GOOGLE_APPLICATION_CREDENTIALS=$TRAVIS_BUILD_DIR/travis-testing.json
 # Run every regular unit test.
 - go test -covermode=count -coverprofile=_coverage.cov -v ./...
 # bqext should also have its integration tests run.
