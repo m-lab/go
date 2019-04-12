@@ -67,3 +67,7 @@ Helpful utilities for working with Prometheus. *alpha*
 Extensions of the runtime package. *stable*
 
 TODO: decide whether to rename this to runtimex.
+
+### storagex
+
+Extensions of the cloud.google.com/go/storage package. *alpha*
