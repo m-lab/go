@@ -22,7 +22,7 @@ var (
 	// git_short_commit is set to the resulting numerical value. It is recommended
 	// that the string be set as part of the build/link process, as follows:
 	//
-	//   go build -ldflags "-X prometheusx.GitShortCommit=`git log HEAD~1..HEAD --format=tformat:%h`" ./...
+	//   go build -ldflags "-X prometheusx.GitShortCommit=$(git log -1 --format=%h)" ./...
 	//
 	// This metric should be useful when determining whether code on various
 	// systems is running the same version, which should, among other things, help
