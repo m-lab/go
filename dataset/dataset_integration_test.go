@@ -96,7 +96,7 @@ func TestQueryAndParse(t *testing.T) {
 	client, _ := LoggingCloudClient() // Use this for creating the ResponseBody.
 	opts := []option.ClientOption{option.WithHTTPClient(client)}
 	if os.Getenv("TRAVIS") != "" {
-		authOpt := option.WithCredentialsFile("../travis-testing.key")
+		authOpt := option.WithCredentialsFile("../travis-testing.json")
 		opts = append(opts, authOpt)
 	}
 	tExt, err := bqext.NewDataset("mlab-testing", "go", opts...)
@@ -140,7 +140,7 @@ func TestQueryAndParse(t *testing.T) {
 func clientOpts() []option.ClientOption {
 	opts := []option.ClientOption{}
 	if os.Getenv("TRAVIS") != "" {
-		authOpt := option.WithCredentialsFile("../travis-testing.key")
+		authOpt := option.WithCredentialsFile("../travis-testing.json")
 		opts = append(opts, authOpt)
 	}
 	return opts
