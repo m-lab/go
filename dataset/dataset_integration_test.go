@@ -49,7 +49,7 @@ func TestGetTableStats(t *testing.T) {
 
 	opts := []option.ClientOption{option.WithHTTPClient(client)}
 	if os.Getenv("TRAVIS") != "" {
-		authOpt := option.WithCredentialsFile("../travis-testing.key")
+		authOpt := option.WithCredentialsFile("../travis-testing.json")
 		opts = append(opts, authOpt)
 	}
 	tExt, err := bqext.NewDataset("mlab-testing", "go", opts...)
