@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/m-lab/go/logx"
+	"github.com/m-lab/go/rtx"
 )
 
 func init() {
@@ -16,7 +17,7 @@ func init() {
 }
 
 func TestCaptureLog(t *testing.T) {
-	out := logx.CaptureLog(nil, func() {
+	out, err := logx.CaptureLog(nil, func() {
 		logger := logx.NewLogEvery(nil, time.Millisecond)
 		start := time.Now()
 		log.Println("key phrase")
@@ -24,6 +25,7 @@ func TestCaptureLog(t *testing.T) {
 			logger.Println(time.Now())
 		}
 	})
+	rtx.Must(err, "Error capturing log")
 
 	if !strings.Contains(out, "logx_test.go:") {
 		t.Error("Missing short filename")
@@ -36,13 +38,14 @@ func TestCaptureLog(t *testing.T) {
 
 func TestLogEvery_Println(t *testing.T) {
 	logger := log.New(os.Stderr, "", log.LstdFlags|log.Lshortfile)
-	out := logx.CaptureLog(logger, func() {
+	out, err := logx.CaptureLog(logger, func() {
 		logger := logx.NewLogEvery(logger, time.Millisecond)
 		start := time.Now()
 		for ; time.Since(start) < 10*time.Millisecond; time.Sleep(100 * time.Microsecond) {
 			logger.Println("foobar")
 		}
 	})
+	rtx.Must(err, "Error capturing log")
 
 	if !strings.Contains(out, "logx.go:") {
 		t.Error("Missing short filename")
@@ -59,13 +62,14 @@ func TestLogEvery_Println(t *testing.T) {
 
 func TestLogEvery_Printf(t *testing.T) {
 	logger := log.New(os.Stderr, "", log.LstdFlags|log.Lshortfile)
-	out := logx.CaptureLog(logger, func() {
+	out, err := logx.CaptureLog(logger, func() {
 		logger := logx.NewLogEvery(logger, time.Millisecond)
 		start := time.Now()
 		for ; time.Since(start) < 10*time.Millisecond; time.Sleep(100 * time.Microsecond) {
 			logger.Printf("%s\n", "foobar")
 		}
 	})
+	rtx.Must(err, "Error capturing log")
 
 	if !strings.Contains(out, "logx.go:") {
 		t.Error("Missing short filename")

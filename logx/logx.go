@@ -26,10 +26,10 @@ import (
 
 // CaptureLog captures all output from log.Println, etc.
 // Adapted from github.com/kami-zh
-func CaptureLog(logger *log.Logger, f func()) string {
+func CaptureLog(logger *log.Logger, f func()) (string, error) {
 	r, w, err := os.Pipe()
 	if err != nil {
-		panic(err)
+		return "", err
 	}
 
 	if logger != nil {
@@ -55,7 +55,7 @@ func CaptureLog(logger *log.Logger, f func()) string {
 	var buf bytes.Buffer
 	io.Copy(&buf, r)
 
-	return buf.String()
+	return buf.String(), nil
 }
 
 // A Logger has basic Printf and Println functions.
