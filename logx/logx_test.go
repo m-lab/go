@@ -82,4 +82,26 @@ func TestLogEvery_Printf(t *testing.T) {
 	if len(lines) < 9 {
 		t.Error("Too few logs", len(lines))
 	}
+
+	// Test with log.std
+	out, err = logx.CaptureLog(nil, func() {
+		logger := logx.NewLogEvery(nil, time.Millisecond)
+		start := time.Now()
+		for ; time.Since(start) < 10*time.Millisecond; time.Sleep(100 * time.Microsecond) {
+			logger.Printf("%s\n", "foobar")
+		}
+	})
+	rtx.Must(err, "Error capturing log")
+
+	if !strings.Contains(out, "logx.go:") {
+		t.Error("Missing short filename")
+	}
+	lines = strings.Split(out, "\n")
+	// Should be 10 or 11.  Error if more than 12.
+	if len(lines) > 12 {
+		t.Error("Too many logs", len(lines))
+	}
+	if len(lines) < 9 {
+		t.Error("Too few logs", len(lines))
+	}
 }
