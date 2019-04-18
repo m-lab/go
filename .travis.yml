@@ -33,11 +33,8 @@ before_install:
 - echo EVENT_TYPE is ${TRAVIS_EVENT_TYPE}
 - TEST_TAGS=integration
 # Disable integration tests for cron, fork builds, or fork PRs.
-# https://docs.travis-ci.com/user/environment-variables/#default-environment-variables
-- if [[ ${TRAVIS_EVENT_TYPE} == cron ||
-       ( ${TRAVIS_EVENT_TYPE} == push && ! ${TRAVIS_REPO_SLUG} =~ m-lab/.* ) ||
-       ( ${TRAVIS_EVENT_TYPE} == pull_request && ! ${TRAVIS_PULL_REQUEST_SLUG} =~ m-lab/.* ) ]];
-       then TEST_TAGS= ;
+- if [[ -z "$TEST_SERVICE_ACCOUNT_mlab_testing" ]] ; then
+    TEST_TAGS= ;
   fi;
 - echo TEST_TAGS is ${TEST_TAGS}
 
@@ -52,7 +49,8 @@ script:
 # Run every regular unit test.
 - go test -covermode=count -coverprofile=_coverage.cov -v ./...
 # bqext & storagex should also have its integration tests run.
-- go test -covermode=count -coverprofile=_bqext.cov -v ./bqext ./storagex -tags=$TEST_TAGS
+- if [[ -n "${TEST_TAGS}" ]] ; then
+  go test -covermode=count -coverprofile=_bqext.cov -v ./dataset ./bqext ./storagex -tags=$TEST_TAGS ; fi
 
 # Coveralls
 - $HOME/gopath/bin/gocovmerge *.cov > __merged.cov
