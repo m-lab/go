@@ -12,6 +12,9 @@
 #  * test and build the go code
 #
 language: go
+go:
+- "1.12"
+
 dist: xenial
 
 before_install:
