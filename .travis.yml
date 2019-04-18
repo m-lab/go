@@ -31,7 +31,14 @@ before_install:
 
 - echo Branch is ${TRAVIS_BRANCH} and Tag is $TRAVIS_TAG
 - echo EVENT_TYPE is ${TRAVIS_EVENT_TYPE}
-- if [[ ${TRAVIS_EVENT_TYPE} == cron ]]; then TEST_TAGS=integration; fi;
+- TEST_TAGS=integration
+# Disable integration tests for cron, fork builds, or fork PRs.
+# https://docs.travis-ci.com/user/environment-variables/#default-environment-variables
+- if [[ ${TRAVIS_EVENT_TYPE} == cron ||
+       ( ${TRAVIS_EVENT_TYPE} == push && ! ${TRAVIS_REPO_SLUG} =~ m-lab/.* ) ||
+       ( ${TRAVIS_EVENT_TYPE} == pull_request && ! ${TRAVIS_PULL_REQUEST_SLUG} =~ m-lab/.* ) ]];
+       then TEST_TAGS= ;
+  fi;
 - echo TEST_TAGS is ${TEST_TAGS}
 
 # These directories will be cached on successful "script" builds, and restored,
@@ -44,8 +51,8 @@ script:
 - export GOOGLE_APPLICATION_CREDENTIALS=$TRAVIS_BUILD_DIR/travis-testing.json
 # Run every regular unit test.
 - go test -covermode=count -coverprofile=_coverage.cov -v ./...
-# bqext should also have its integration tests run.
-- go test -covermode=count -coverprofile=_bqext.cov -v ./bqext -tags=$TEST_TAGS
+# bqext & storagex should also have its integration tests run.
+- go test -covermode=count -coverprofile=_bqext.cov -v ./bqext ./storagex -tags=$TEST_TAGS
 
 # Coveralls
 - $HOME/gopath/bin/gocovmerge *.cov > __merged.cov
