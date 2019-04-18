@@ -36,6 +36,22 @@ func TestCaptureLog(t *testing.T) {
 	}
 }
 
+func TestCaptureLog_BadPipe(t *testing.T) {
+	logx.BadPipeForTest()
+	defer logx.RestorePipeForTest()
+	_, err := logx.CaptureLog(nil, func() {
+		logger := logx.NewLogEvery(nil, time.Millisecond)
+		start := time.Now()
+		log.Println("key phrase")
+		for time.Since(start) < 10*time.Millisecond {
+			logger.Println(time.Now())
+		}
+	})
+	if err == nil {
+		t.Fatal("Should have gracefully handled error")
+	}
+}
+
 func TestLogEvery_Println(t *testing.T) {
 	logger := log.New(os.Stderr, "", log.LstdFlags|log.Lshortfile)
 	out, err := logx.CaptureLog(logger, func() {

@@ -24,10 +24,14 @@ import (
 	"unsafe"
 )
 
+// This indirection allows breaking os.Pipe call for testing.
+// Trying it out.  Seems a bit ugly.
+var pipe = os.Pipe
+
 // CaptureLog captures all output from log.Println, etc.
 // Adapted from github.com/kami-zh
 func CaptureLog(logger *log.Logger, f func()) (string, error) {
-	r, w, err := os.Pipe()
+	r, w, err := pipe()
 	if err != nil {
 		return "", err
 	}
