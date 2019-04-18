@@ -2,6 +2,7 @@ package logx_test
 
 import (
 	"log"
+	"os"
 	"strings"
 	"testing"
 	"time"
@@ -15,8 +16,8 @@ func init() {
 }
 
 func TestCaptureLog(t *testing.T) {
-	out := logx.CaptureLog(func() {
-		logger := logx.NewLogEvery(time.Millisecond)
+	out := logx.CaptureLog(nil, func() {
+		logger := logx.NewLogEvery(nil, time.Millisecond)
 		start := time.Now()
 		log.Println("key phrase")
 		for time.Since(start) < 10*time.Millisecond {
@@ -34,8 +35,9 @@ func TestCaptureLog(t *testing.T) {
 }
 
 func TestLogEvery_Println(t *testing.T) {
-	out := logx.CaptureLog(func() {
-		logger := logx.NewLogEvery(time.Millisecond)
+	logger := log.New(os.Stderr, "", log.LstdFlags|log.Lshortfile)
+	out := logx.CaptureLog(logger, func() {
+		logger := logx.NewLogEvery(logger, time.Millisecond)
 		start := time.Now()
 		for ; time.Since(start) < 10*time.Millisecond; time.Sleep(100 * time.Microsecond) {
 			logger.Println("foobar")
@@ -56,8 +58,9 @@ func TestLogEvery_Println(t *testing.T) {
 }
 
 func TestLogEvery_Printf(t *testing.T) {
-	out := logx.CaptureLog(func() {
-		logger := logx.NewLogEvery(time.Millisecond)
+	logger := log.New(os.Stderr, "", log.LstdFlags|log.Lshortfile)
+	out := logx.CaptureLog(logger, func() {
+		logger := logx.NewLogEvery(logger, time.Millisecond)
 		start := time.Now()
 		for ; time.Since(start) < 10*time.Millisecond; time.Sleep(100 * time.Microsecond) {
 			logger.Printf("%s\n", "foobar")

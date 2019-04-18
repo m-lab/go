@@ -26,16 +26,28 @@ import (
 
 // CaptureLog captures all output from log.Println, etc.
 // Adapted from github.com/kami-zh
-func CaptureLog(f func()) string {
+func CaptureLog(logger *log.Logger, f func()) string {
 	r, w, err := os.Pipe()
 	if err != nil {
 		panic(err)
 	}
 
-	log.SetOutput(w)
-	defer func() {
-		log.SetOutput(os.Stderr)
-	}()
+	if logger != nil {
+		writer := logger.Writer()
+		defer func() {
+			logger.SetOutput(writer)
+		}()
+		logger.SetOutput(w)
+	} else {
+		// Use the system default logger.
+		// Unfortunately, we cannot get the current Writer from the log.std.  8-(
+		defer func() {
+			// NOTE: This may be troublesome if SetOutput has been called
+			// elsewhere.
+			log.SetOutput(os.Stderr)
+		}()
+		log.SetOutput(w)
+	}
 
 	f()
 	w.Close()
@@ -53,13 +65,14 @@ type Logger interface {
 }
 
 type logEvery struct {
+	logger   *log.Logger
 	lastTime unsafe.Pointer
 	interval time.Duration
 }
 
 // NewLogEvery creates a logger that will log not more than once every interval.
-func NewLogEvery(interval time.Duration) Logger {
-	return &logEvery{unsafe.Pointer(&time.Time{}), interval}
+func NewLogEvery(logger *log.Logger, interval time.Duration) Logger {
+	return &logEvery{logger, unsafe.Pointer(&time.Time{}), interval}
 }
 
 func (le *logEvery) ok() bool {
@@ -75,13 +88,22 @@ func (le *logEvery) ok() bool {
 
 func (le *logEvery) Println(v ...interface{}) {
 	if le.ok() {
-		log.Println(v...)
+		if le.logger != nil {
+			le.logger.Println(v...)
+		} else {
+			log.Println(v...)
+		}
 	}
 }
 
 // LogEvery takes an interval and pointer to a time.Time, and determines whether to produce the log or not.
 func (le *logEvery) Printf(fmt string, v ...interface{}) {
 	if le.ok() {
-		log.Printf(fmt, v...)
+		if le.logger != nil {
+			le.logger.Printf(fmt, v...)
+		} else {
+			log.Printf(fmt, v...)
+
+		}
 	}
 }
