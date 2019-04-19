@@ -12,6 +12,9 @@
 #  * test and build the go code
 #
 language: go
+go:
+- "1.12"
+
 dist: xenial
 
 before_install:
@@ -26,11 +29,10 @@ before_install:
 # Install test credentials.
 # Note that anyone with github ACLs to push to a branch can hack .travis.yml
 # and discover these credentials in the travis logs.
-- echo $TEST_SERVICE_ACCOUNT_mlab_testing | base64 -d > travis-testing.key
-- gcloud auth activate-service-account --key-file=travis-testing.key
+- echo $TEST_SERVICE_ACCOUNT_mlab_testing | base64 -d > travis-testing.json
+- gcloud auth activate-service-account --key-file=travis-testing.json
 
 - echo Branch is ${TRAVIS_BRANCH} and Tag is $TRAVIS_TAG
-
 - echo EVENT_TYPE is ${TRAVIS_EVENT_TYPE}
 - if [[ ${TRAVIS_EVENT_TYPE} == cron ]]; then TEST_TAGS=integration; fi;
 - echo TEST_TAGS is ${TEST_TAGS}
@@ -42,6 +44,7 @@ cache:
   - "$HOME/google-cloud-sdk/"
 
 script:
+- export GOOGLE_APPLICATION_CREDENTIALS=$TRAVIS_BUILD_DIR/travis-testing.json
 # Run every regular unit test.
 - go test -covermode=count -coverprofile=_coverage.cov -v ./...
 # bqext should also have its integration tests run.
