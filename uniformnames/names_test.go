@@ -26,6 +26,7 @@ func TestNames(t *testing.T) {
 		"!nope",
 		"",
 		":(",
+		"abd.def",
 	} {
 		if uniformnames.Check(badname) == nil {
 			t.Errorf("%q was a bad name but passed the check", badname)

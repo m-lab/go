@@ -1,5 +1,5 @@
 // Package uniformnames allows experiments and utilities to check whether names
-// conform the requirements for experiment and datatype names in M-Lab.
+// conform to the requirements for experiment and datatype names in M-Lab.
 package uniformnames
 
 import (
