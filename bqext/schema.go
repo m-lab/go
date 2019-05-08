@@ -86,6 +86,7 @@ func RemoveRequired(schema bigquery.Schema) {
 			fs.Required = false
 			RemoveRequired(fs.Schema)
 
+		// These field types seem to be always required.
 		case bigquery.TimeFieldType:
 		case bigquery.TimestampFieldType:
 		case bigquery.DateFieldType:
