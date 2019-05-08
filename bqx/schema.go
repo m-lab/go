@@ -1,4 +1,4 @@
-package bqext
+package bqx
 
 import (
 	"bytes"
@@ -12,6 +12,7 @@ import (
 // PrettyPrint generates a formatted json representation of a Schema.
 // It simplifies the schema by removing zero valued fields, and compacting
 // each field record onto a single line.
+// Intended for diagnostics and debugging.  Not suitable for production use.
 func PrettyPrint(schema bigquery.Schema, simplify bool) (string, error) {
 	jsonBytes, err := json.MarshalIndent(schema, "", "  ")
 	if err != nil {
@@ -62,29 +63,40 @@ func PrettyPrint(schema bigquery.Schema, simplify bool) (string, error) {
 
 // Customize recursively traverses a schema, substituting any fields that have a matching
 // name in the provided map.
-func Customize(schema bigquery.Schema, subs map[string]bigquery.FieldSchema) {
+func Customize(schema bigquery.Schema, subs map[string]bigquery.FieldSchema) bigquery.Schema {
+	// We have to copy the schema, to avoid corrupting the bigquery fieldCache.
+	out := make(bigquery.Schema, len(schema))
 	for i := range schema {
-		fs := schema[i]
+		out[i] = &bigquery.FieldSchema{}
+		*out[i] = *schema[i]
+		fs := out[i]
 		s, ok := subs[fs.Name]
 		if ok {
 			*fs = s
+
 		} else {
 			if fs.Type == bigquery.RecordFieldType {
-				Customize(fs.Schema, subs)
+				fs.Schema = Customize(fs.Schema, subs)
 			}
 		}
+
 	}
+	return out
 }
 
 // RemoveRequired recursively traverses a schema, setting Required to false in all fields
 // that are not fundamentally required by BigQuery
-func RemoveRequired(schema bigquery.Schema) {
+func RemoveRequired(schema bigquery.Schema) bigquery.Schema {
+	// We have to copy the schema, to avoid corrupting the bigquery fieldCache.
+	out := make(bigquery.Schema, len(schema))
 	for i := range schema {
-		fs := schema[i]
+		out[i] = &bigquery.FieldSchema{}
+		*out[i] = *schema[i]
+		fs := out[i]
 		switch fs.Type {
 		case bigquery.RecordFieldType:
 			fs.Required = false
-			RemoveRequired(fs.Schema)
+			fs.Schema = RemoveRequired(fs.Schema)
 
 		// These field types seem to be always required.
 		case bigquery.TimeFieldType:
@@ -96,4 +108,6 @@ func RemoveRequired(schema bigquery.Schema) {
 			fs.Required = false
 		}
 	}
+
+	return out
 }

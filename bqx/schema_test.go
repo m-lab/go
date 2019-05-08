@@ -1,14 +1,15 @@
-package bqext_test
+package bqx_test
 
 import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
 
-	"github.com/m-lab/go/bqext"
+	"github.com/m-lab/go/bqx"
 	"github.com/m-lab/go/rtx"
 
 	"cloud.google.com/go/bigquery"
@@ -20,7 +21,7 @@ func init() {
 }
 
 type Embedded struct {
-	EmbeddedA int32
+	EmbeddedA int32 // These will be required
 	EmbeddedB int32
 }
 
@@ -43,7 +44,9 @@ func expect(t *testing.T, sch bigquery.Schema, str string, count int) {
 		if err != nil {
 			log.Fatal(err)
 		}
-		t.Errorf("%s got %d, wanted %d\n%s", str, strings.Count(string(j1), str), count, string(j1))
+		_, _, line, _ := runtime.Caller(1)
+		pp, _ := bqx.PrettyPrint(sch, false)
+		t.Errorf("line %d: %s got %d, wanted %d\n%s", line, str, strings.Count(string(j1), str), count, pp)
 	}
 }
 
@@ -54,8 +57,8 @@ func TestRemoveRequired(t *testing.T) {
 	expect(t, s, `"Required":true`, 8)
 	expect(t, s, `"Repeated":true`, 1) // From the ByteArray
 
-	bqext.RemoveRequired(s)
-	expect(t, s, `"Required":true`, 1)
+	c := bqx.RemoveRequired(s)
+	expect(t, c, `"Required":true`, 1)
 }
 
 func TestCustomize(t *testing.T) {
@@ -66,11 +69,11 @@ func TestCustomize(t *testing.T) {
 		"ByteArray":    bigquery.FieldSchema{Name: "ByteArray", Description: "", Repeated: false, Required: true, Type: "INTEGER"},
 		"IntTimestamp": bigquery.FieldSchema{Name: "IntTimestamp", Description: "", Repeated: false, Required: true, Type: "TIMESTAMP"},
 	}
-	bqext.Customize(s, subs) // Substitute integer for ByteSlice
-	expect(t, s, `"Required":true`, 9)
-	expect(t, s, `"Repeated":true`, 0) // because we replaced the ByteArray
-	expect(t, s, `"BYTES"`, 1)
-	expect(t, s, `"RECORD"`, 1)
+	c := bqx.Customize(s, subs) // Substitute integer for ByteSlice
+	expect(t, c, `"Required":true`, 9)
+	expect(t, c, `"Repeated":true`, 0) // because we replaced the ByteArray
+	expect(t, c, `"BYTES"`, 1)
+	expect(t, c, `"RECORD"`, 1)
 }
 
 func TestPrettyPrint(t *testing.T) {
@@ -92,8 +95,9 @@ func TestPrettyPrint(t *testing.T) {
 	s, err := bigquery.InferSchema(outer{})
 	rtx.Must(err, "")
 
-	pp, err := bqext.PrettyPrint(s, true)
+	pp, err := bqx.PrettyPrint(s, true)
 	rtx.Must(err, "")
+
 	if pp != expected {
 		t.Error("Pretty print lines don't match")
 		ppLines := strings.Split(pp, "\n")
@@ -103,7 +107,7 @@ func TestPrettyPrint(t *testing.T) {
 		}
 		for i := range ppLines {
 			if ppLines[i] != expLines[i] {
-				fmt.Println(i, ppLines[i], expLines[i])
+				fmt.Printf("%d expected: %s, got: %s\n", i, expLines[i], ppLines[i])
 			}
 		}
 	}
