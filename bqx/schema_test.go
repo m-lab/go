@@ -1,6 +1,7 @@
 package bqx_test
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -110,5 +111,63 @@ func TestPrettyPrint(t *testing.T) {
 				fmt.Printf("%d expected: %s, got: %s\n", i, expLines[i], ppLines[i])
 			}
 		}
+	}
+}
+
+func deleteTable(ctx context.Context, table string) error {
+	pdt, err := bqx.ParsePDT(table)
+	if err != nil {
+		return err
+	}
+	client, err := bigquery.NewClient(ctx, pdt.Project)
+	if err != nil {
+		return err
+	}
+
+	ds := client.Dataset(pdt.Dataset)
+
+	ds.Create(ctx, nil)
+
+	tt := ds.Table(pdt.Table)
+
+	return tt.Delete(ctx)
+}
+
+func TestCreate(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping test that hits bigquery backend")
+	}
+	schema, err := bigquery.InferSchema(outer{})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+	defer cancel()
+
+	// Bad field
+	err = bqx.CreateOrUpdateTable(ctx, "mlab-testing.foo.bar", schema,
+		&bigquery.TimePartitioning{Field: "NonExistantField"}, nil)
+	if err == nil {
+		t.Fatal("Should have failed")
+	}
+
+	// Create
+	err = bqx.CreateOrUpdateTable(ctx, "mlab-testing.foo.bar", schema,
+		&bigquery.TimePartitioning{Field: "Timestamp"}, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Update
+	err = bqx.CreateOrUpdateTable(ctx, "mlab-testing.foo.bar", schema,
+		&bigquery.TimePartitioning{Field: "TestTime"}, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = deleteTable(ctx, "mlab-testing.foo.bar")
+	if err != nil {
+		t.Fatal(err)
 	}
 }

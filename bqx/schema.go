@@ -2,8 +2,12 @@ package bqx
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"log"
+	"regexp"
 	"strings"
 
 	"cloud.google.com/go/bigquery"
@@ -110,4 +114,81 @@ func RemoveRequired(schema bigquery.Schema) bigquery.Schema {
 	}
 
 	return out
+}
+
+var (
+	ErrInvalidProject = errors.New("Invalid project name")
+	ErrInvalidDataset = errors.New("Invalid dataset name")
+	ErrInvalidTable   = errors.New("Invalid table name")
+	ErrInvalidFQTable = errors.New("Invalid fully qualified table name")
+
+	projectRegex = regexp.MustCompile("[a-z0-9-]+")
+	datasetRegex = regexp.MustCompile("[a-zA-Z0-9_]+")
+	tableRegex   = regexp.MustCompile("[a-zA-Z0-9_]+")
+)
+
+type pdt struct {
+	Project string
+	Dataset string
+	Table   string
+}
+
+func parsePDT(fq string) (*pdt, error) {
+	parts := strings.Split(fq, ".")
+	if len(parts) != 3 {
+		return nil, ErrInvalidFQTable
+	}
+	if !projectRegex.MatchString(parts[0]) {
+		return nil, ErrInvalidProject
+	}
+	if !datasetRegex.MatchString(parts[1]) {
+		return nil, ErrInvalidDataset
+	}
+	if !tableRegex.MatchString(parts[2]) {
+		return nil, ErrInvalidTable
+	}
+	return &pdt{parts[0], parts[1], parts[2]}, nil
+}
+
+// TODO maybe include flag to enable dataset creation?
+func CreateOrUpdateTable(ctx context.Context, table string,
+	schema bigquery.Schema, partitioning *bigquery.TimePartitioning, clustering *bigquery.Clustering) error {
+	pdt, err := parsePDT(table)
+	if err != nil {
+		return err
+	}
+	client, err := bigquery.NewClient(ctx, pdt.Project)
+	if err != nil {
+		return err
+	}
+
+	ds := client.Dataset(pdt.Dataset)
+
+	ds.Create(ctx, nil)
+
+	t := ds.Table(pdt.Table)
+
+	meta, err := t.Metadata(ctx)
+	if err != nil {
+		// Table probably doesn't exist
+		log.Println(err)
+
+		meta = &bigquery.TableMetadata{Schema: schema}
+		meta.TimePartitioning = partitioning
+		meta.Clustering = clustering
+
+		err = t.Create(ctx, meta)
+		return err
+	}
+
+	changes := bigquery.TableMetadataToUpdate{
+		Schema: schema,
+	}
+
+	md, err := t.Update(ctx, changes, meta.ETag)
+	if err != nil {
+		return err
+	}
+	log.Printf("%+v\n", md)
+	return nil
 }
