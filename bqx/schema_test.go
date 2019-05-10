@@ -127,7 +127,6 @@ func deleteDatasetAndContents(ctx context.Context, table string) error {
 	}
 
 	ds := client.Dataset(pdt.Dataset)
-	tt := ds.Table(pdt.Table)
 
 	return ds.DeleteWithContents(ctx)
 }
@@ -158,9 +157,10 @@ func TestCreate(t *testing.T) {
 
 	// Bad field
 	err = bqx.CreateTable(ctx, name, schema, "description",
-		&bigquery.TimePartitioning{Field: "NonExistantField"}, nil)
+		&bigquery.TimePartitioning{Field: "NonExistentField"}, nil)
 	if err == nil {
-		t.Error("Should have failed")
+		t.Error("Should have failed", name)
+		t.Fatal("")
 	}
 
 	// Create

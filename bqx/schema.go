@@ -7,9 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"math/rand"
 	"regexp"
-	"strconv"
 	"strings"
 
 	"cloud.google.com/go/bigquery"
@@ -156,10 +154,6 @@ func parsePDT(fq string) (*pdt, error) {
 	return &pdt{parts[0], parts[1], parts[2]}, nil
 }
 
-func randName(prefix string) string {
-	return prefix + strconv.FormatInt(rand.Int63(), 36)
-}
-
 // UpdateTable will update an existing table.
 // Returns error if the table doesn't already exist, or if the schema changes are incompatible.
 func UpdateTable(ctx context.Context, table string,
@@ -194,15 +188,7 @@ func UpdateTable(ctx context.Context, table string,
 
 	meta, err := t.Metadata(ctx)
 	if err != nil {
-		apiErr, ok := err.(*googleapi.Error)
-		if !ok {
-			// This is not a googleapi.Error, so treat it as fatal.
-			return err
-		}
-		// We can only handle 404 errors caused by the table not existing.
-		if apiErr.Code != 404 {
-			return err
-		}
+		return err
 	}
 
 	// If table already exists, attempt to update the schema.
@@ -232,11 +218,29 @@ func CreateTable(ctx context.Context, table string, schema bigquery.Schema, desc
 		return err
 	}
 	ds := client.Dataset(pdt.Dataset)
-	ds.Create(ctx, nil)
-	t := ds.Table(pdt.Table)
 
-	// Table probably doesn't exist
-	log.Println(err)
+	if _, err = ds.Metadata(ctx); err != nil {
+		apiErr, ok := err.(*googleapi.Error)
+		if !ok {
+			// This is not a googleapi.Error, so treat it as fatal.
+			// TODO - or maybe we should retry?
+			return err
+		}
+		if apiErr.Code == 404 {
+			// Need to create the dataset.
+			err = ds.Create(ctx, nil)
+			if err != nil {
+				_, ok := err.(*googleapi.Error)
+				if !ok {
+					// This is not a googleapi.Error, so treat it as fatal.
+					return err
+				}
+				// TODO possibly retry if this is a transient error.
+			}
+		}
+	}
+
+	t := ds.Table(pdt.Table)
 
 	meta := &bigquery.TableMetadata{
 		Schema:           schema,
