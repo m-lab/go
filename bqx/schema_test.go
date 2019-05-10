@@ -115,7 +115,7 @@ func TestPrettyPrint(t *testing.T) {
 }
 
 func deleteTable(ctx context.Context, table string) error {
-	pdt, err := bqx.ParsePDT(table)
+	pdt, err := bqx.ParsePDTForTest(table)
 	if err != nil {
 		return err
 	}
@@ -146,29 +146,27 @@ func TestCreate(t *testing.T) {
 	defer cancel()
 
 	// Update non-existing table
-	err = bqx.CreateOrUpdateTable(ctx, "mlab-testing.foo.bar", false, schema,
-		&bigquery.TimePartitioning{Field: "Timestamp"}, nil)
+	err = bqx.UpdateTable(ctx, "mlab-testing.foo.bar", schema)
 	if err == nil {
 		t.Error("Update non-existing table should have failed")
 	}
 
 	// Bad field
-	err = bqx.CreateOrUpdateTable(ctx, "mlab-testing.foo.bar", true, schema,
+	err = bqx.CreateTable(ctx, "mlab-testing.foo.bar", schema, "description",
 		&bigquery.TimePartitioning{Field: "NonExistantField"}, nil)
 	if err == nil {
 		t.Error("Should have failed")
 	}
 
 	// Create
-	err = bqx.CreateOrUpdateTable(ctx, "mlab-testing.foo.bar", true, schema,
+	err = bqx.CreateTable(ctx, "mlab-testing.foo.bar", schema, "description",
 		&bigquery.TimePartitioning{Field: "Timestamp"}, nil)
 	if err != nil {
 		t.Error(err)
 	}
 
 	// Update
-	err = bqx.CreateOrUpdateTable(ctx, "mlab-testing.foo.bar", false, schema,
-		&bigquery.TimePartitioning{Field: "TestTime"}, nil)
+	err = bqx.UpdateTable(ctx, "mlab-testing.foo.bar", schema)
 	if err != nil {
 		t.Error(err)
 	}

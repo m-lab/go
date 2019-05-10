@@ -1,3 +1,3 @@
 package bqx
 
-var ParsePDT = parsePDT
+var ParsePDTForTest = parsePDT

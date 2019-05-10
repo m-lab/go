@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"cloud.google.com/go/bigquery"
+	"google.golang.org/api/googleapi"
 )
 
 // PrettyPrint generates a formatted json representation of a Schema.
@@ -116,12 +117,15 @@ func RemoveRequired(schema bigquery.Schema) bigquery.Schema {
 	return out
 }
 
+// These errors are self-explanatory.
 var (
-	ErrInvalidProject = errors.New("Invalid project name")
-	ErrInvalidDataset = errors.New("Invalid dataset name")
-	ErrInvalidTable   = errors.New("Invalid table name")
-	ErrInvalidFQTable = errors.New("Invalid fully qualified table name")
+	ErrInvalidProjectName = errors.New("Invalid project name")
+	ErrInvalidDatasetName = errors.New("Invalid dataset name")
+	ErrInvalidTableName   = errors.New("Invalid table name")
+	ErrInvalidFQTable     = errors.New("Invalid fully qualified table name")
+)
 
+var (
 	projectRegex = regexp.MustCompile("[a-z0-9-]+")
 	datasetRegex = regexp.MustCompile("[a-zA-Z0-9_]+")
 	tableRegex   = regexp.MustCompile("[a-zA-Z0-9_]+")
@@ -139,22 +143,21 @@ func parsePDT(fq string) (*pdt, error) {
 		return nil, ErrInvalidFQTable
 	}
 	if !projectRegex.MatchString(parts[0]) {
-		return nil, ErrInvalidProject
+		return nil, ErrInvalidProjectName
 	}
 	if !datasetRegex.MatchString(parts[1]) {
-		return nil, ErrInvalidDataset
+		return nil, ErrInvalidDatasetName
 	}
 	if !tableRegex.MatchString(parts[2]) {
-		return nil, ErrInvalidTable
+		return nil, ErrInvalidTableName
 	}
 	return &pdt{parts[0], parts[1], parts[2]}, nil
 }
 
-// CreateOrUpdateTable will create a new table (with createIfNew flag), or update an existing table.
-// It will also set appropriate time-partitioning field and clustering fields if non-nil arguments are provided.
-func CreateOrUpdateTable(ctx context.Context, table string, createIfNew bool,
-	schema bigquery.Schema,
-	partitioning *bigquery.TimePartitioning, clustering *bigquery.Clustering) error {
+// UpdateTable will update an existing table.
+// Returns error if the table doesn't already exist, or if the schema changes are incompatible.
+func UpdateTable(ctx context.Context, table string,
+	schema bigquery.Schema) error {
 	pdt, err := parsePDT(table)
 	if err != nil {
 		return err
@@ -170,17 +173,15 @@ func CreateOrUpdateTable(ctx context.Context, table string, createIfNew bool,
 
 	meta, err := t.Metadata(ctx)
 	if err != nil {
-		if createIfNew {
-			// Table probably doesn't exist
-			log.Println(err)
-
-			meta = &bigquery.TableMetadata{Schema: schema}
-			meta.TimePartitioning = partitioning
-			meta.Clustering = clustering
-
-			err = t.Create(ctx, meta)
+		apiErr, ok := err.(*googleapi.Error)
+		if !ok {
+			// This is not a googleapi.Error, so treat it as fatal.
+			return err
 		}
-		return err
+		// We can only handle 404 errors caused by the table not existing.
+		if apiErr.Code != 404 {
+			return err
+		}
 	}
 
 	// If table already exists, attempt to update the schema.
@@ -193,5 +194,46 @@ func CreateOrUpdateTable(ctx context.Context, table string, createIfNew bool,
 		return err
 	}
 	log.Printf("%+v\n", md)
+	return nil
+}
+
+// CreateTable will create a new table, or fail if the table already exists.
+// It will also set appropriate time-partitioning field and clustering fields if non-nil arguments are provided.
+func CreateTable(ctx context.Context, table string, schema bigquery.Schema, description string,
+	partitioning *bigquery.TimePartitioning, clustering *bigquery.Clustering) error {
+	pdt, err := parsePDT(table)
+	if err != nil {
+		return err
+	}
+
+	client, err := bigquery.NewClient(ctx, pdt.Project)
+	if err != nil {
+		return err
+	}
+	ds := client.Dataset(pdt.Dataset)
+	ds.Create(ctx, nil)
+	t := ds.Table(pdt.Table)
+
+	// Table probably doesn't exist
+	log.Println(err)
+
+	meta := &bigquery.TableMetadata{
+		Schema:           schema,
+		TimePartitioning: partitioning,
+		Clustering:       clustering,
+		Description:      description,
+	}
+
+	err = t.Create(ctx, meta)
+
+	if err != nil {
+		_, ok := err.(*googleapi.Error)
+		if !ok {
+			// This is not a googleapi.Error, so treat it as fatal.
+			return err
+		}
+		// TODO possibly retry if this is a transient error.
+	}
+
 	return nil
 }
