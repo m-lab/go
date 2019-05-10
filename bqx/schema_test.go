@@ -145,29 +145,36 @@ func TestCreate(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
 
+	// Update non-existing table
+	err = bqx.CreateOrUpdateTable(ctx, "mlab-testing.foo.bar", false, schema,
+		&bigquery.TimePartitioning{Field: "Timestamp"}, nil)
+	if err == nil {
+		t.Error("Update non-existing table should have failed")
+	}
+
 	// Bad field
-	err = bqx.CreateOrUpdateTable(ctx, "mlab-testing.foo.bar", schema,
+	err = bqx.CreateOrUpdateTable(ctx, "mlab-testing.foo.bar", true, schema,
 		&bigquery.TimePartitioning{Field: "NonExistantField"}, nil)
 	if err == nil {
-		t.Fatal("Should have failed")
+		t.Error("Should have failed")
 	}
 
 	// Create
-	err = bqx.CreateOrUpdateTable(ctx, "mlab-testing.foo.bar", schema,
+	err = bqx.CreateOrUpdateTable(ctx, "mlab-testing.foo.bar", true, schema,
 		&bigquery.TimePartitioning{Field: "Timestamp"}, nil)
 	if err != nil {
-		t.Fatal(err)
+		t.Error(err)
 	}
 
 	// Update
-	err = bqx.CreateOrUpdateTable(ctx, "mlab-testing.foo.bar", schema,
+	err = bqx.CreateOrUpdateTable(ctx, "mlab-testing.foo.bar", false, schema,
 		&bigquery.TimePartitioning{Field: "TestTime"}, nil)
 	if err != nil {
-		t.Fatal(err)
+		t.Error(err)
 	}
 
 	err = deleteTable(ctx, "mlab-testing.foo.bar")
 	if err != nil {
-		t.Fatal(err)
+		t.Error(err)
 	}
 }

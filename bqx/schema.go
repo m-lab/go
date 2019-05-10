@@ -151,7 +151,7 @@ func parsePDT(fq string) (*pdt, error) {
 }
 
 // TODO maybe include flag to enable dataset creation?
-func CreateOrUpdateTable(ctx context.Context, table string,
+func CreateOrUpdateTable(ctx context.Context, table string, createIfNew bool,
 	schema bigquery.Schema, partitioning *bigquery.TimePartitioning, clustering *bigquery.Clustering) error {
 	pdt, err := parsePDT(table)
 	if err != nil {
@@ -170,14 +170,16 @@ func CreateOrUpdateTable(ctx context.Context, table string,
 
 	meta, err := t.Metadata(ctx)
 	if err != nil {
-		// Table probably doesn't exist
-		log.Println(err)
+		if createIfNew {
+			// Table probably doesn't exist
+			log.Println(err)
 
-		meta = &bigquery.TableMetadata{Schema: schema}
-		meta.TimePartitioning = partitioning
-		meta.Clustering = clustering
+			meta = &bigquery.TableMetadata{Schema: schema}
+			meta.TimePartitioning = partitioning
+			meta.Clustering = clustering
 
-		err = t.Create(ctx, meta)
+			err = t.Create(ctx, meta)
+		}
 		return err
 	}
 
