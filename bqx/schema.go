@@ -7,7 +7,9 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"math/rand"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"cloud.google.com/go/bigquery"
@@ -154,6 +156,10 @@ func parsePDT(fq string) (*pdt, error) {
 	return &pdt{parts[0], parts[1], parts[2]}, nil
 }
 
+func randName(prefix string) string {
+	return prefix + strconv.FormatInt(rand.Int63(), 36)
+}
+
 // UpdateTable will update an existing table.
 // Returns error if the table doesn't already exist, or if the schema changes are incompatible.
 func UpdateTable(ctx context.Context, table string,
@@ -167,8 +173,23 @@ func UpdateTable(ctx context.Context, table string,
 	if err != nil {
 		return err
 	}
+	// See if dataset exists, or create it.
 	ds := client.Dataset(pdt.Dataset)
-	ds.Create(ctx, nil)
+	_, err = ds.Metadata(ctx)
+	if err != nil {
+		apiErr, ok := err.(*googleapi.Error)
+		if !ok {
+			// Don't know how to interpret non googleapi error.
+			return err
+		}
+		log.Printf("%+v\n", apiErr)
+
+		// TODO - if we create the dataset, is there a concern that it won't be immediately available?
+		err = ds.Create(ctx, nil)
+		if err != nil {
+			return err
+		}
+	}
 	t := ds.Table(pdt.Table)
 
 	meta, err := t.Metadata(ctx)

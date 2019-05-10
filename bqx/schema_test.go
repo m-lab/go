@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"math/rand"
 	"runtime"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -114,7 +116,7 @@ func TestPrettyPrint(t *testing.T) {
 	}
 }
 
-func deleteTable(ctx context.Context, table string) error {
+func deleteDatasetAndContents(ctx context.Context, table string) error {
 	pdt, err := bqx.ParsePDTForTest(table)
 	if err != nil {
 		return err
@@ -125,12 +127,13 @@ func deleteTable(ctx context.Context, table string) error {
 	}
 
 	ds := client.Dataset(pdt.Dataset)
-
-	ds.Create(ctx, nil)
-
 	tt := ds.Table(pdt.Table)
 
-	return tt.Delete(ctx)
+	return ds.DeleteWithContents(ctx)
+}
+
+func randName(prefix string) string {
+	return prefix + strconv.FormatInt(rand.Int63(), 36)
 }
 
 func TestCreate(t *testing.T) {
@@ -142,36 +145,38 @@ func TestCreate(t *testing.T) {
 		log.Fatal(err)
 	}
 
+	name := "mlab-testing." + randName("ds") + randName(".tbl")
+
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
 
 	// Update non-existing table
-	err = bqx.UpdateTable(ctx, "mlab-testing.foo.bar", schema)
+	err = bqx.UpdateTable(ctx, name, schema)
 	if err == nil {
 		t.Error("Update non-existing table should have failed")
 	}
 
 	// Bad field
-	err = bqx.CreateTable(ctx, "mlab-testing.foo.bar", schema, "description",
+	err = bqx.CreateTable(ctx, name, schema, "description",
 		&bigquery.TimePartitioning{Field: "NonExistantField"}, nil)
 	if err == nil {
 		t.Error("Should have failed")
 	}
 
 	// Create
-	err = bqx.CreateTable(ctx, "mlab-testing.foo.bar", schema, "description",
+	err = bqx.CreateTable(ctx, name, schema, "description",
 		&bigquery.TimePartitioning{Field: "Timestamp"}, nil)
 	if err != nil {
 		t.Error(err)
 	}
 
 	// Update
-	err = bqx.UpdateTable(ctx, "mlab-testing.foo.bar", schema)
+	err = bqx.UpdateTable(ctx, name, schema)
 	if err != nil {
 		t.Error(err)
 	}
 
-	err = deleteTable(ctx, "mlab-testing.foo.bar")
+	err = deleteDatasetAndContents(ctx, name)
 	if err != nil {
 		t.Error(err)
 	}
