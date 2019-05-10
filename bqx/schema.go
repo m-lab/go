@@ -150,22 +150,22 @@ func parsePDT(fq string) (*pdt, error) {
 	return &pdt{parts[0], parts[1], parts[2]}, nil
 }
 
-// TODO maybe include flag to enable dataset creation?
+// CreateOrUpdateTable will create a new table (with createIfNew flag), or update an existing table.
+// It will also set appropriate time-partitioning field and clustering fields if non-nil arguments are provided.
 func CreateOrUpdateTable(ctx context.Context, table string, createIfNew bool,
-	schema bigquery.Schema, partitioning *bigquery.TimePartitioning, clustering *bigquery.Clustering) error {
+	schema bigquery.Schema,
+	partitioning *bigquery.TimePartitioning, clustering *bigquery.Clustering) error {
 	pdt, err := parsePDT(table)
 	if err != nil {
 		return err
 	}
+
 	client, err := bigquery.NewClient(ctx, pdt.Project)
 	if err != nil {
 		return err
 	}
-
 	ds := client.Dataset(pdt.Dataset)
-
 	ds.Create(ctx, nil)
-
 	t := ds.Table(pdt.Table)
 
 	meta, err := t.Metadata(ctx)
@@ -183,6 +183,7 @@ func CreateOrUpdateTable(ctx context.Context, table string, createIfNew bool,
 		return err
 	}
 
+	// If table already exists, attempt to update the schema.
 	changes := bigquery.TableMetadataToUpdate{
 		Schema: schema,
 	}
