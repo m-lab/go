@@ -235,7 +235,9 @@ func CreateTable(ctx context.Context, table string, schema bigquery.Schema, desc
 					// This is not a googleapi.Error, so treat it as fatal.
 					return err
 				}
+
 				// TODO possibly retry if this is a transient error.
+				return err
 			}
 		}
 	}
@@ -258,6 +260,7 @@ func CreateTable(ctx context.Context, table string, schema bigquery.Schema, desc
 			return err
 		}
 		// TODO possibly retry if this is a transient error.
+		return err
 	}
 
 	return nil
