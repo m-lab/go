@@ -132,6 +132,7 @@ func deleteDatasetAndContents(ctx context.Context, table string) error {
 }
 
 func randName(prefix string) string {
+	rand.Seed(time.Now().Unix())
 	return prefix + strconv.FormatInt(rand.Int63(), 36)
 }
 
@@ -145,6 +146,7 @@ func TestCreate(t *testing.T) {
 	}
 
 	name := "mlab-testing." + randName("ds") + randName(".tbl")
+	t.Log("Using:", name)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
@@ -160,7 +162,6 @@ func TestCreate(t *testing.T) {
 		&bigquery.TimePartitioning{Field: "NonExistentField"}, nil)
 	if err == nil {
 		t.Error("Should have failed", name)
-		t.Fatal("")
 	}
 
 	// Create
