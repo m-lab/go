@@ -156,8 +156,7 @@ func parsePDT(fq string) (*pdt, error) {
 
 // UpdateTable will update an existing table.
 // Returns error if the table doesn't already exist, or if the schema changes are incompatible.
-func UpdateTable(ctx context.Context, table string,
-	schema bigquery.Schema) error {
+func UpdateTable(ctx context.Context, table string, schema bigquery.Schema) error {
 	pdt, err := parsePDT(table)
 	if err != nil {
 		return err
