@@ -9,11 +9,13 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
 	"github.com/m-lab/go/bqx"
 	"github.com/m-lab/go/rtx"
+	"google.golang.org/api/googleapi"
 
 	"cloud.google.com/go/bigquery"
 )
@@ -116,6 +118,46 @@ func TestPrettyPrint(t *testing.T) {
 	}
 }
 
+func createDatasetFor(ctx context.Context, table string) error {
+	pdt, err := bqx.ParsePDTForTest(table)
+	if err != nil {
+		return err
+	}
+
+	client, err := bigquery.NewClient(ctx, pdt.Project)
+	if err != nil {
+		return err
+	}
+	ds := client.Dataset(pdt.Dataset)
+
+	if _, err = ds.Metadata(ctx); err == nil {
+		return nil // already exists
+	}
+
+	apiErr, ok := err.(*googleapi.Error)
+	if !ok {
+		// This is not a googleapi.Error, so treat it as fatal.
+		// TODO - or maybe we should retry?
+		return err
+	}
+	if apiErr.Code == 404 {
+		// Need to create the dataset.
+		err = ds.Create(ctx, nil)
+		if err != nil {
+			_, ok := err.(*googleapi.Error)
+			if !ok {
+				// This is not a googleapi.Error, so treat it as fatal.
+				return err
+			}
+
+			// TODO possibly retry if this is a transient error.
+			return err
+		}
+	}
+
+	return nil
+}
+
 func deleteDatasetAndContents(ctx context.Context, table string) error {
 	pdt, err := bqx.ParsePDTForTest(table)
 	if err != nil {
@@ -131,8 +173,10 @@ func deleteDatasetAndContents(ctx context.Context, table string) error {
 	return ds.DeleteWithContents(ctx)
 }
 
+var once sync.Once
+
 func randName(prefix string) string {
-	rand.Seed(time.Now().Unix())
+	once.Do(func() { rand.Seed(time.Now().Unix()) })
 	return prefix + strconv.FormatInt(rand.Int63(), 36)
 }
 
@@ -151,6 +195,23 @@ func TestCreate(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
 
+	// Attempt to create with non-existent dataset
+	err = bqx.CreateTable(ctx, name, schema, "", nil, nil)
+	if err == nil {
+		t.Error("Update non-existing table should have failed")
+	}
+	apiErr, ok := err.(*googleapi.Error)
+	if !ok || apiErr.Code != 404 {
+		t.Error(err)
+	}
+
+	// Create the dataset (temporary)
+	err = createDatasetFor(ctx, name)
+	if err != nil {
+		t.Error(err)
+	}
+	t.Log("Created dataset for", name)
+
 	// Update non-existing table
 	err = bqx.UpdateTable(ctx, name, schema)
 	if err == nil {
@@ -164,7 +225,7 @@ func TestCreate(t *testing.T) {
 		t.Error("Should have failed", name)
 	}
 
-	// Create
+	// Create should succeed now.
 	err = bqx.CreateTable(ctx, name, schema, "description",
 		&bigquery.TimePartitioning{Field: "Timestamp"}, nil)
 	if err != nil {

@@ -176,13 +176,7 @@ func UpdateTable(ctx context.Context, table string,
 			// Don't know how to interpret non googleapi error.
 			return err
 		}
-		log.Printf("%+v\n", apiErr)
-
-		// TODO - if we create the dataset, is there a concern that it won't be immediately available?
-		err = ds.Create(ctx, nil)
-		if err != nil {
-			return err
-		}
+		return apiErr
 	}
 	t := ds.Table(pdt.Table)
 
@@ -206,6 +200,7 @@ func UpdateTable(ctx context.Context, table string,
 
 // CreateTable will create a new table, or fail if the table already exists.
 // It will also set appropriate time-partitioning field and clustering fields if non-nil arguments are provided.
+// Returns error if the dataset does not already exist, or if other errors are encountered.
 func CreateTable(ctx context.Context, table string, schema bigquery.Schema, description string,
 	partitioning *bigquery.TimePartitioning, clustering *bigquery.Clustering) error {
 	pdt, err := parsePDT(table)
@@ -227,18 +222,8 @@ func CreateTable(ctx context.Context, table string, schema bigquery.Schema, desc
 			return err
 		}
 		if apiErr.Code == 404 {
-			// Need to create the dataset.
-			err = ds.Create(ctx, nil)
-			if err != nil {
-				_, ok := err.(*googleapi.Error)
-				if !ok {
-					// This is not a googleapi.Error, so treat it as fatal.
-					return err
-				}
-
-				// TODO possibly retry if this is a transient error.
-				return err
-			}
+			// The dataset should already exist, so just return error.
+			return apiErr
 		}
 	}
 
@@ -257,8 +242,10 @@ func CreateTable(ctx context.Context, table string, schema bigquery.Schema, desc
 		_, ok := err.(*googleapi.Error)
 		if !ok {
 			// This is not a googleapi.Error, so treat it as fatal.
+			// TODO possibly retry if this is a transient error.
 			return err
 		}
+
 		// TODO possibly retry if this is a transient error.
 		return err
 	}
