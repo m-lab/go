@@ -199,13 +199,11 @@ func (pdt PDT) CreateTable(ctx context.Context, client *bigquery.Client, schema 
 	ds := client.Dataset(pdt.Dataset)
 
 	if _, err := ds.Metadata(ctx); err != nil {
-		if err != nil {
-			// TODO if we see errors showing up here.
-			// TODO possibly retry if this is a transient error.
-			// apiErr, ok := err.(*googleapi.Error)
-			log.Println(err) // So we can discover these and add explicit handling.
-			return err
-		}
+		// TODO if we see errors showing up here.
+		// TODO possibly retry if this is a transient error.
+		// apiErr, ok := err.(*googleapi.Error)
+		log.Println(err) // So we can discover these and add explicit handling.
+		return err
 	}
 
 	t := ds.Table(pdt.Table)
@@ -220,13 +218,11 @@ func (pdt PDT) CreateTable(ctx context.Context, client *bigquery.Client, schema 
 	err := t.Create(ctx, meta)
 
 	if err != nil {
-		if err != nil {
-			// TODO if we see errors showing up here.
-			// TODO possibly retry if this is a transient error.
-			// apiErr, ok := err.(*googleapi.Error)
-			log.Println(err) // So we can discover these and add explicit handling.
-			return err
-		}
+		// TODO if we see errors showing up here.
+		// TODO possibly retry if this is a transient error.
+		// apiErr, ok := err.(*googleapi.Error)
+		log.Println(err) // So we can discover these and add explicit handling.
+		return err
 	}
 
 	return nil
