@@ -126,49 +126,43 @@ var (
 )
 
 var (
-	projectRegex = regexp.MustCompile("[a-z0-9-]+")
-	datasetRegex = regexp.MustCompile("[a-zA-Z0-9_]+")
-	tableRegex   = regexp.MustCompile("[a-zA-Z0-9_]+")
+	projectRegex = regexp.MustCompile("^[a-z0-9-]+$")
+	datasetRegex = regexp.MustCompile("^[a-zA-Z0-9_]+$")
+	tableRegex   = regexp.MustCompile("^[a-zA-Z0-9_]+$")
 )
 
-type pdt struct {
+// PDT contains a bigquery project, dataset, and table name.
+type PDT struct {
 	Project string
 	Dataset string
 	Table   string
 }
 
-func parsePDT(fq string) (*pdt, error) {
+// ParsePDT parses and validates a fully qualified bigquery table name of the form project.dataset.table
+// None of the elements needs to exist, but all must conform to the corresponding naming restrictions.
+func ParsePDT(fq string) (PDT, error) {
 	parts := strings.Split(fq, ".")
 	if len(parts) != 3 {
-		return nil, ErrInvalidFQTable
+		return PDT{}, ErrInvalidFQTable
 	}
 	if !projectRegex.MatchString(parts[0]) {
-		return nil, ErrInvalidProjectName
+		return PDT{}, ErrInvalidProjectName
 	}
 	if !datasetRegex.MatchString(parts[1]) {
-		return nil, ErrInvalidDatasetName
+		return PDT{}, ErrInvalidDatasetName
 	}
 	if !tableRegex.MatchString(parts[2]) {
-		return nil, ErrInvalidTableName
+		return PDT{}, ErrInvalidTableName
 	}
-	return &pdt{parts[0], parts[1], parts[2]}, nil
+	return PDT{parts[0], parts[1], parts[2]}, nil
 }
 
 // UpdateTable will update an existing table.
 // Returns error if the table doesn't already exist, or if the schema changes are incompatible.
-func UpdateTable(ctx context.Context, table string, schema bigquery.Schema) error {
-	pdt, err := parsePDT(table)
-	if err != nil {
-		return err
-	}
-
-	client, err := bigquery.NewClient(ctx, pdt.Project)
-	if err != nil {
-		return err
-	}
+func (pdt PDT) UpdateTable(ctx context.Context, client *bigquery.Client, schema bigquery.Schema) error {
 	// See if dataset exists, or create it.
 	ds := client.Dataset(pdt.Dataset)
-	_, err = ds.Metadata(ctx)
+	_, err := ds.Metadata(ctx)
 	if err != nil {
 		apiErr, ok := err.(*googleapi.Error)
 		if !ok {
@@ -200,20 +194,11 @@ func UpdateTable(ctx context.Context, table string, schema bigquery.Schema) erro
 // CreateTable will create a new table, or fail if the table already exists.
 // It will also set appropriate time-partitioning field and clustering fields if non-nil arguments are provided.
 // Returns error if the dataset does not already exist, or if other errors are encountered.
-func CreateTable(ctx context.Context, table string, schema bigquery.Schema, description string,
+func (pdt PDT) CreateTable(ctx context.Context, client *bigquery.Client, schema bigquery.Schema, description string,
 	partitioning *bigquery.TimePartitioning, clustering *bigquery.Clustering) error {
-	pdt, err := parsePDT(table)
-	if err != nil {
-		return err
-	}
-
-	client, err := bigquery.NewClient(ctx, pdt.Project)
-	if err != nil {
-		return err
-	}
 	ds := client.Dataset(pdt.Dataset)
 
-	if _, err = ds.Metadata(ctx); err != nil {
+	if _, err := ds.Metadata(ctx); err != nil {
 		apiErr, ok := err.(*googleapi.Error)
 		if !ok {
 			// This is not a googleapi.Error, so treat it as fatal.
@@ -235,7 +220,7 @@ func CreateTable(ctx context.Context, table string, schema bigquery.Schema, desc
 		Description:      description,
 	}
 
-	err = t.Create(ctx, meta)
+	err := t.Create(ctx, meta)
 
 	if err != nil {
 		_, ok := err.(*googleapi.Error)

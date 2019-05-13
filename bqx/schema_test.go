@@ -118,8 +118,40 @@ func TestPrettyPrint(t *testing.T) {
 	}
 }
 
+func TestParsePDT(t *testing.T) {
+	pdt, err := bqx.ParsePDT("foobar")
+	if err != bqx.ErrInvalidFQTable {
+		t.Error("Wrong error", err)
+	}
+
+	pdt, err = bqx.ParsePDT("^&%.ds.t")
+	if err != bqx.ErrInvalidProjectName {
+		t.Error("Wrong error", err)
+	}
+
+	pdt, err = bqx.ParsePDT("bq-project.bad-ds!@#.t")
+	if err != bqx.ErrInvalidDatasetName {
+		t.Error("Wrong error", err)
+	}
+
+	pdt, err = bqx.ParsePDT("bq-project.goodDataset.badTable@")
+	if err != bqx.ErrInvalidTableName {
+		t.Error("Wrong error", err)
+	}
+
+	pdt, err = bqx.ParsePDT("bq-project.goodDataset.goodTable")
+	if err != nil {
+		t.Error("Unexpected error", err)
+	} else {
+		if pdt.Project != "bq-project" || pdt.Dataset != "goodDataset" || pdt.Table != "goodTable" {
+			t.Error("Bad parse", pdt)
+		}
+	}
+
+}
+
 func createDatasetFor(ctx context.Context, table string) error {
-	pdt, err := bqx.ParsePDTForTest(table)
+	pdt, err := bqx.ParsePDT(table)
 	if err != nil {
 		return err
 	}
@@ -158,16 +190,7 @@ func createDatasetFor(ctx context.Context, table string) error {
 	return nil
 }
 
-func deleteDatasetAndContents(ctx context.Context, table string) error {
-	pdt, err := bqx.ParsePDTForTest(table)
-	if err != nil {
-		return err
-	}
-	client, err := bigquery.NewClient(ctx, pdt.Project)
-	if err != nil {
-		return err
-	}
-
+func deleteDatasetAndContents(ctx context.Context, client *bigquery.Client, pdt bqx.PDT) error {
 	ds := client.Dataset(pdt.Dataset)
 
 	return ds.DeleteWithContents(ctx)
@@ -184,6 +207,7 @@ func TestCreate(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping test that hits bigquery backend")
 	}
+
 	schema, err := bigquery.InferSchema(outer{})
 	if err != nil {
 		log.Fatal(err)
@@ -191,12 +215,20 @@ func TestCreate(t *testing.T) {
 
 	name := "mlab-testing." + randName("ds") + randName(".tbl")
 	t.Log("Using:", name)
+	pdt, err := bqx.ParsePDT(name)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
+	client, err := bigquery.NewClient(ctx, "mlab-testing")
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	// Attempt to create with non-existent dataset
-	err = bqx.CreateTable(ctx, name, schema, "", nil, nil)
+	err = pdt.CreateTable(ctx, client, schema, "", nil, nil)
 	if err == nil {
 		t.Error("Update non-existing table should have failed")
 	}
@@ -213,32 +245,32 @@ func TestCreate(t *testing.T) {
 	t.Log("Created dataset for", name)
 
 	// Update non-existing table
-	err = bqx.UpdateTable(ctx, name, schema)
+	err = pdt.UpdateTable(ctx, client, schema)
 	if err == nil {
 		t.Error("Update non-existing table should have failed")
 	}
 
 	// Bad field
-	err = bqx.CreateTable(ctx, name, schema, "description",
+	err = pdt.CreateTable(ctx, client, schema, "description",
 		&bigquery.TimePartitioning{Field: "NonExistentField"}, nil)
 	if err == nil {
 		t.Error("Should have failed", name)
 	}
 
 	// Create should succeed now.
-	err = bqx.CreateTable(ctx, name, schema, "description",
+	err = pdt.CreateTable(ctx, client, schema, "description",
 		&bigquery.TimePartitioning{Field: "Timestamp"}, nil)
 	if err != nil {
 		t.Error(err)
 	}
 
 	// Update
-	err = bqx.UpdateTable(ctx, name, schema)
+	err = pdt.UpdateTable(ctx, client, schema)
 	if err != nil {
 		t.Error(err)
 	}
 
-	err = deleteDatasetAndContents(ctx, name)
+	err = deleteDatasetAndContents(ctx, client, pdt)
 	if err != nil {
 		t.Error(err)
 	}
