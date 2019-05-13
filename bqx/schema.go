@@ -11,7 +11,6 @@ import (
 	"strings"
 
 	"cloud.google.com/go/bigquery"
-	"google.golang.org/api/googleapi"
 )
 
 // PrettyPrint generates a formatted json representation of a Schema.
@@ -165,12 +164,11 @@ func (pdt PDT) UpdateTable(ctx context.Context, client *bigquery.Client, schema 
 	ds := client.Dataset(pdt.Dataset)
 	_, err := ds.Metadata(ctx)
 	if err != nil {
-		apiErr, ok := err.(*googleapi.Error)
-		if !ok {
-			// Don't know how to interpret non googleapi error.
-			return err
-		}
-		return apiErr
+		// TODO if we see errors showing up here.
+		// TODO possibly retry if this is a transient error.
+		// apiErr, ok := err.(*googleapi.Error)
+		log.Println(err) // So we can discover these and add explicit handling.
+		return err
 	}
 	t := ds.Table(pdt.Table)
 
@@ -201,15 +199,12 @@ func (pdt PDT) CreateTable(ctx context.Context, client *bigquery.Client, schema 
 	ds := client.Dataset(pdt.Dataset)
 
 	if _, err := ds.Metadata(ctx); err != nil {
-		apiErr, ok := err.(*googleapi.Error)
-		if !ok {
-			// This is not a googleapi.Error, so treat it as fatal.
-			// TODO - or maybe we should retry?
+		if err != nil {
+			// TODO if we see errors showing up here.
+			// TODO possibly retry if this is a transient error.
+			// apiErr, ok := err.(*googleapi.Error)
+			log.Println(err) // So we can discover these and add explicit handling.
 			return err
-		}
-		if apiErr.Code == 404 {
-			// The dataset should already exist, so just return error.
-			return apiErr
 		}
 	}
 
@@ -225,15 +220,13 @@ func (pdt PDT) CreateTable(ctx context.Context, client *bigquery.Client, schema 
 	err := t.Create(ctx, meta)
 
 	if err != nil {
-		_, ok := err.(*googleapi.Error)
-		if !ok {
-			// This is not a googleapi.Error, so treat it as fatal.
+		if err != nil {
+			// TODO if we see errors showing up here.
 			// TODO possibly retry if this is a transient error.
+			// apiErr, ok := err.(*googleapi.Error)
+			log.Println(err) // So we can discover these and add explicit handling.
 			return err
 		}
-
-		// TODO possibly retry if this is a transient error.
-		return err
 	}
 
 	return nil

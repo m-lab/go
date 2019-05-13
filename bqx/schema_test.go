@@ -203,7 +203,7 @@ func randName(prefix string) string {
 	return prefix + strconv.FormatInt(rand.Int63(), 36)
 }
 
-func TestCreate(t *testing.T) {
+func TestCreateAndUpdate(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping test that hits bigquery backend")
 	}
