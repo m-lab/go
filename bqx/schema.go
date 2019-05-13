@@ -30,7 +30,7 @@ func PrettyPrint(schema bigquery.Schema, simplify bool) (string, error) {
 
 	for _, line := range lines {
 		// Remove Required from all fields.
-		trim := strings.Trim(strings.TrimSpace(line), ",") // remove leading space, trailing comma
+		trim := strings.Trim(strings.TrimSpace(line), ",")
 		switch trim {
 		case `"Schema": null`:
 			fallthrough
@@ -66,8 +66,8 @@ func PrettyPrint(schema bigquery.Schema, simplify bool) (string, error) {
 	return output.String(), nil
 }
 
-// Customize recursively traverses a schema, substituting any fields that have a matching
-// name in the provided map.
+// Customize recursively traverses a schema, substituting any fields that have
+// a matching name in the provided map.
 func Customize(schema bigquery.Schema, subs map[string]bigquery.FieldSchema) bigquery.Schema {
 	// We have to copy the schema, to avoid corrupting the bigquery fieldCache.
 	out := make(bigquery.Schema, len(schema))
@@ -89,8 +89,8 @@ func Customize(schema bigquery.Schema, subs map[string]bigquery.FieldSchema) big
 	return out
 }
 
-// RemoveRequired recursively traverses a schema, setting Required to false in all fields
-// that are not fundamentally required by BigQuery
+// RemoveRequired recursively traverses a schema, setting Required to false in
+// all fields that are not fundamentally required by BigQuery.
 func RemoveRequired(schema bigquery.Schema) bigquery.Schema {
 	// We have to copy the schema, to avoid corrupting the bigquery fieldCache.
 	out := make(bigquery.Schema, len(schema))
@@ -138,8 +138,9 @@ type PDT struct {
 	Table   string
 }
 
-// ParsePDT parses and validates a fully qualified bigquery table name of the form project.dataset.table
-// None of the elements needs to exist, but all must conform to the corresponding naming restrictions.
+// ParsePDT parses and validates a fully qualified bigquery table name of the
+// form project.dataset.table.  None of the elements needs to exist, but all
+// must conform to the corresponding naming restrictions.
 func ParsePDT(fq string) (PDT, error) {
 	parts := strings.Split(fq, ".")
 	if len(parts) != 3 {
@@ -157,8 +158,8 @@ func ParsePDT(fq string) (PDT, error) {
 	return PDT{parts[0], parts[1], parts[2]}, nil
 }
 
-// UpdateTable will update an existing table.
-// Returns error if the table doesn't already exist, or if the schema changes are incompatible.
+// UpdateTable will update an existing table.  Returns error if the table
+// doesn't already exist, or if the schema changes are incompatible.
 func (pdt PDT) UpdateTable(ctx context.Context, client *bigquery.Client, schema bigquery.Schema) error {
 	// See if dataset exists, or create it.
 	ds := client.Dataset(pdt.Dataset)
@@ -192,8 +193,9 @@ func (pdt PDT) UpdateTable(ctx context.Context, client *bigquery.Client, schema 
 }
 
 // CreateTable will create a new table, or fail if the table already exists.
-// It will also set appropriate time-partitioning field and clustering fields if non-nil arguments are provided.
-// Returns error if the dataset does not already exist, or if other errors are encountered.
+// It will also set appropriate time-partitioning field and clustering fields
+// if non-nil arguments are provided.  Returns error if the dataset does not
+// already exist, or if other errors are encountered.
 func (pdt PDT) CreateTable(ctx context.Context, client *bigquery.Client, schema bigquery.Schema, description string,
 	partitioning *bigquery.TimePartitioning, clustering *bigquery.Clustering) error {
 	ds := client.Dataset(pdt.Dataset)
