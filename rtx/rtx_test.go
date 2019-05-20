@@ -5,10 +5,9 @@ package rtx
 import (
 	"bytes"
 	"errors"
-	"fmt"
-	"io"
 	"log"
 	"os"
+	"strings"
 	"testing"
 )
 
@@ -24,73 +23,67 @@ func TestMustSuccess(t *testing.T) {
 	Must(success(), "Works")
 }
 
-func callPrintln(args ...interface{}) {
-	fmt.Println(args...)
+type exiter struct {
+	count int
+}
+
+func (e *exiter) dontExit(_ int) {
+	e.count++
 }
 
 func TestMustFailure(t *testing.T) {
-	logFatal = callPrintln
-	defer func() { logFatal = log.Fatal }()
+	// Inject our own output and failure routines.
+	e := exiter{}
+	osExit = e.dontExit
+	defer func() { osExit = os.Exit }()
 
-	// Technique from https://stackoverflow.com/questions/10473800/in-go-how-do-i-capture-stdout-of-a-function-into-a-string
-	// Intercept stdout
-	old := os.Stdout // keep backup of the real stdout
-	r, w, _ := os.Pipe()
-	os.Stdout = w
-	outC := make(chan string)
-
-	// Copy the output in a separate goroutine so printing can't block indefinitely
-	go func() {
-		var buf bytes.Buffer
-		io.Copy(&buf, r)
-		outC <- buf.String()
-	}()
+	defer log.SetOutput(os.Stdout)
+	b := bytes.Buffer{}
+	log.SetOutput(&b)
 
 	// Call the function which causes the output
 	Must(fail(), "Should fail")
 
-	// Return back to normal state
-	w.Close()
-	os.Stdout = old
+	// Find out what got written.
+	out := b.String()
 
-	// Find out what got read
-	out := <-outC
+	// Return logging back to normal state
+	log.SetOutput(os.Stdout)
 
-	if string(out) != "Should fail (error: A failure for testing)\n" {
-		t.Errorf("%q != \"Should fail (error: An error for testing)\"", out)
+	if !strings.HasSuffix(string(out), "Should fail (error: A failure for testing)\n") {
+		t.Errorf("%q does not end with \"Should fail (error: An error for testing)\"", out)
+	}
+
+	if e.count != 1 {
+		t.Errorf("Should have exited once, not %d times", e.count)
 	}
 }
 
 func TestMustFailureWithFormatting(t *testing.T) {
-	logFatal = callPrintln
-	defer func() { logFatal = log.Fatal }()
+	// Inject our own output and failure routines.
+	e := exiter{}
+	osExit = e.dontExit
+	defer func() { osExit = os.Exit }()
 
-	// Technique from https://stackoverflow.com/questions/10473800/in-go-how-do-i-capture-stdout-of-a-function-into-a-string
-	// Intercept stdout
-	old := os.Stdout // keep backup of the real stdout
-	r, w, _ := os.Pipe()
-	os.Stdout = w
-	outC := make(chan string)
-
-	// Copy the output in a separate goroutine so printing can't block indefinitely
-	go func() {
-		var buf bytes.Buffer
-		io.Copy(&buf, r)
-		outC <- buf.String()
-	}()
+	defer log.SetOutput(os.Stdout)
+	b := bytes.Buffer{}
+	log.SetOutput(&b)
 
 	// Call the function which causes the output
 	Must(fail(), "Should fail with arg %d", 5)
 
-	// Return back to normal state
-	w.Close()
-	os.Stdout = old
-
 	// Find out what got read
-	out := <-outC
+	out := b.String()
 
-	if string(out) != "Should fail with arg 5 (error: A failure for testing)\n" {
-		t.Errorf("%q != \"Should fail with arg 5 (error: An error for testing)\"", out)
+	// Return logging back to normal state
+	log.SetOutput(os.Stdout)
+
+	if !strings.HasSuffix(out, "Should fail with arg 5 (error: A failure for testing)\n") {
+		t.Errorf("%q does not end with \"Should fail with arg 5 (error: An error for testing)\"", out)
+	}
+
+	if e.count != 1 {
+		t.Errorf("Should have exited once, not %d times", e.count)
 	}
 }
 
