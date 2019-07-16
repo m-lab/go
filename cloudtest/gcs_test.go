@@ -17,6 +17,8 @@ func init() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 }
 
+func assertStifaceClient() { func(c stiface.Client) {}(&cloudtest.GCSClient{}) }
+
 func countAll(t *testing.T, it stiface.ObjectIterator) (total int, normal int, prefix int) {
 	for o, err := it.Next(); err != iterator.Done; o, err = it.Next() {
 		if err != nil {
