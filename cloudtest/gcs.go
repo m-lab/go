@@ -41,10 +41,23 @@ func (bh BucketHandle) Attrs(ctx context.Context) (*storage.BucketAttrs, error) 
 func (bh BucketHandle) Objects(ctx context.Context, q *storage.Query) stiface.ObjectIterator {
 	// TODO - should check if ctx has expired?
 	obj := make([]*storage.ObjectAttrs, 0, len(bh.ObjAttrs))
+	dir := ""
 	for i := range bh.ObjAttrs {
-		if strings.HasPrefix(bh.ObjAttrs[i].Name, q.Prefix) {
-			obj = append(obj, bh.ObjAttrs[i])
+		if !strings.HasPrefix(bh.ObjAttrs[i].Name, q.Prefix) {
+			continue
 		}
+		if q.Delimiter != "" {
+			suffix := strings.Trim(bh.ObjAttrs[i].Name[len(q.Prefix):], q.Delimiter)
+			parts := strings.Split(suffix, q.Delimiter)
+			if len(parts) > 1 {
+				if dir != parts[0] {
+					dir = parts[0]
+					obj = append(obj, &storage.ObjectAttrs{Prefix: strings.Trim(q.Prefix, q.Delimiter) + q.Delimiter + parts[0]})
+				}
+				continue
+			}
+		}
+		obj = append(obj, bh.ObjAttrs[i])
 	}
 	n := 0
 	return objIt{next: &n, objects: obj}
