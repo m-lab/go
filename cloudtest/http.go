@@ -13,7 +13,7 @@
 // limitations under the License.
 
 // Package cloudtest provides utilities for testing, e.g. cloud
-// service tests using mock http Transport.
+// service tests using mock http Transport, fake storage client, etc.
 package cloudtest
 
 import (
