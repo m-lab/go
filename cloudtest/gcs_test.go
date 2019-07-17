@@ -68,46 +68,31 @@ func TestGCSClient(t *testing.T) {
 		t.Error(err)
 	}
 
-	qry := storage.Query{
-		Delimiter: "/",
-		Prefix:    "ndt/2019/01/01/",
+	type test struct {
+		prefix string
+		n      int
+		p      int
 	}
-	it := bucket.Objects(ctx, &qry)
-
-	_, n, p := countAll(t, it)
-	if n != 2 {
-		t.Error("Expected 2 items, got", n)
-	}
-	if p != 1 {
-		t.Error("Expected 1 prefix, got", p)
+	tests := []test{
+		{"ndt/2019/01/01", 2, 1},
+		{"ndt/2019/01/01/", 2, 1},
+		{"ndt/2019/01/01/obj", 2, 0},
 	}
 
-	qry = storage.Query{
-		Delimiter: "/",
-		Prefix:    "ndt/2019/01/01",
-	}
-	it = bucket.Objects(ctx, &qry)
+	for _, tt := range tests {
+		qry := storage.Query{
+			Delimiter: "/",
+			Prefix:    tt.prefix,
+		}
+		it := bucket.Objects(ctx, &qry)
 
-	_, n, p = countAll(t, it)
-	if n != 2 {
-		t.Error("Expected 2 items, got", n)
-	}
-	if p != 1 {
-		t.Error("Expected 1 prefix, got", p)
-	}
-
-	qry = storage.Query{
-		Delimiter: "/",
-		Prefix:    "ndt/2019/01/01/obj",
-	}
-	it = bucket.Objects(ctx, &qry)
-
-	_, n, p = countAll(t, it)
-	if n != 2 {
-		t.Error("Expected 2 items, got", n)
-	}
-	if p != 0 {
-		t.Error("Expected 0 prefix, got", p)
+		_, n, p := countAll(t, it)
+		if n != tt.n {
+			t.Error("Expected", tt.n, "items, got", n)
+		}
+		if p != tt.p {
+			t.Error("Expected", tt.p, "prefix, got", p)
+		}
 	}
 
 	fc.Close()

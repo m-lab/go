@@ -9,11 +9,13 @@ import (
 	"google.golang.org/api/iterator"
 )
 
+// GCSClient provides a fake storage client that can be customized with arbitrary fake bucket contents.
 type GCSClient struct {
 	stiface.Client
 	buckets map[string]BucketHandle
 }
 
+// AddTestBucket adds a fake bucket for testing.
 func (c *GCSClient) AddTestBucket(name string, bh BucketHandle) {
 	if c.buckets == nil {
 		c.buckets = make(map[string]BucketHandle, 5)
@@ -21,23 +23,28 @@ func (c *GCSClient) AddTestBucket(name string, bh BucketHandle) {
 	c.buckets[name] = bh
 }
 
+// Close implements stiface.Client.Close
 func (c GCSClient) Close() error {
 	return nil
 }
 
+// Bucket implements stiface.Client.Bucket
 func (c GCSClient) Bucket(name string) stiface.BucketHandle {
 	return c.buckets[name]
 }
 
+// BucketHandle provides a fake BucketHandle implementation for testing.
 type BucketHandle struct {
 	stiface.BucketHandle
 	ObjAttrs []*storage.ObjectAttrs // Objects that will be returned by iterator
 }
 
+// Attrs implements trivial stiface.BucketHandle.Attrs
 func (bh BucketHandle) Attrs(ctx context.Context) (*storage.BucketAttrs, error) {
 	return &storage.BucketAttrs{}, nil
 }
 
+// Objects implements stiface.BucketHandle.Objects
 func (bh BucketHandle) Objects(ctx context.Context, q *storage.Query) stiface.ObjectIterator {
 	// TODO - should check if ctx has expired?
 	obj := make([]*storage.ObjectAttrs, 0, len(bh.ObjAttrs))
@@ -63,12 +70,14 @@ func (bh BucketHandle) Objects(ctx context.Context, q *storage.Query) stiface.Ob
 	return objIt{next: &n, objects: obj}
 }
 
+// objIt provides a fake stiface.ObjectIterator
 type objIt struct {
 	stiface.ObjectIterator
 	objects []*storage.ObjectAttrs
 	next    *int
 }
 
+// Next implements stiface.ObjectIterator.Next
 func (it objIt) Next() (*storage.ObjectAttrs, error) {
 	if *it.next >= len(it.objects) {
 		return nil, iterator.Done
@@ -76,5 +85,3 @@ func (it objIt) Next() (*storage.ObjectAttrs, error) {
 	*it.next++
 	return it.objects[*it.next-1], nil
 }
-
-func assertStifaceClient() { func(c stiface.Client) {}(&GCSClient{}) }
