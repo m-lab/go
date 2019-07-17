@@ -51,10 +51,10 @@ func TestGCSClient(t *testing.T) {
 			ObjAttrs: []*storage.ObjectAttrs{
 				&storage.ObjectAttrs{Name: "ndt/2019/01/01/obj1", Updated: time.Now()},
 				&storage.ObjectAttrs{Name: "ndt/2019/01/01/obj2", Updated: time.Now()},
-				&storage.ObjectAttrs{Name: "ndt/2019/01/01/obj3"},
-				&storage.ObjectAttrs{Name: "ndt/2019/01/01/subdir/obj4", Updated: time.Now()},
+				&storage.ObjectAttrs{Name: "ndt/2019/01/01/obj3"},                             // Will be filtered out by the "since" filter.
+				&storage.ObjectAttrs{Name: "ndt/2019/01/01/subdir/obj4", Updated: time.Now()}, // filtered because of subdir.
 				&storage.ObjectAttrs{Name: "ndt/2019/01/01/subdir/obj5", Updated: time.Now()},
-				&storage.ObjectAttrs{Name: "obj6", Updated: time.Now()},
+				&storage.ObjectAttrs{Name: "obj6", Updated: time.Now()}, // Will be filtered by prefix.
 			}})
 
 	bucket := fc.Bucket("foobar")
@@ -74,9 +74,9 @@ func TestGCSClient(t *testing.T) {
 		p      int
 	}
 	tests := []test{
-		{"ndt/2019/01/01", 2, 1},
-		{"ndt/2019/01/01/", 2, 1},
-		{"ndt/2019/01/01/obj", 2, 0},
+		{"ndt/2019/01/01", 2, 1},     // Prefix that is a directory, but without the final /
+		{"ndt/2019/01/01/", 2, 1},    // Should work both with and without slash.
+		{"ndt/2019/01/01/obj", 2, 0}, // Should work with a prefix that isn't a directory.
 	}
 
 	for _, tt := range tests {
