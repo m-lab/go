@@ -65,6 +65,29 @@ func PrettyPrint(schema bigquery.Schema, simplify bool) (string, error) {
 	return output.String(), nil
 }
 
+// CustomizeAppend recursively traverses a schema, appending the
+// bigquery.FieldSchema to existing fields matching a name in the provided map.
+func CustomizeAppend(schema bigquery.Schema, additions map[string]*bigquery.FieldSchema) bigquery.Schema {
+	// We have to copy the schema, to avoid corrupting the bigquery fieldCache.
+	custom := make(bigquery.Schema, len(schema))
+	for i := range schema {
+		custom[i] = &bigquery.FieldSchema{}
+		*custom[i] = *schema[i]
+		fs := custom[i]
+		s, ok := additions[fs.Name]
+		if ok {
+			fs.Schema = append(fs.Schema, s)
+
+		} else {
+			if fs.Type == bigquery.RecordFieldType {
+				fs.Schema = CustomizeAppend(fs.Schema, additions)
+			}
+		}
+
+	}
+	return custom
+}
+
 // Customize recursively traverses a schema, substituting any fields that have
 // a matching name in the provided map.
 func Customize(schema bigquery.Schema, subs map[string]bigquery.FieldSchema) bigquery.Schema {

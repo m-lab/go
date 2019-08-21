@@ -81,6 +81,25 @@ func TestCustomize(t *testing.T) {
 	expect(t, c, `"RECORD"`, 1)
 }
 
+func TestCustomizeAppend(t *testing.T) {
+	type inner struct {
+		Control Embedded
+	}
+	type outer struct {
+		Outer        inner
+		Timestamp    time.Time
+		IntTimestamp int64 // `bigquery:"-"`
+	}
+	s, err := bigquery.InferSchema(outer{})
+	rtx.Must(err, "")
+
+	subs := map[string]*bigquery.FieldSchema{
+		"Control": &bigquery.FieldSchema{Name: "AddedInteger", Description: "", Repeated: false, Required: true, Type: "INTEGER"},
+	}
+	c := bqx.CustomizeAppend(s, subs)  // Append AddedInterger to the inner Control field.
+	expect(t, c, `"Required":true`, 7) // The original struct has 6, and we add 1 more
+	expect(t, c, `"RECORD"`, 2)        // The Outer and Control fields are both RECORD types.
+}
 func TestPrettyPrint(t *testing.T) {
 	expected :=
 		`[
