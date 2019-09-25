@@ -49,28 +49,35 @@ func (c Config) waittime() time.Duration {
 // as time.Ticker. Every Ticker created must have its Stop() method called or it
 // will leak a goroutine.
 //
-// The inter-send time is actually random and will generate a memoryless
-// (Poisson) distribution of channel reads over time, ensuring that a
-// measurement scheme using this ticker has the PASTA property (Poisson Arrivals
-// See Time Averages). This statistical guarantee is subject to two caveats:
+// The inter-send time is a random variable governed by the exponential
+// distribution and will generate a memoryless (Poisson) distribution of channel
+// reads over time, ensuring that a measurement scheme using this ticker has the
+// PASTA property (Poisson Arrivals See Time Averages). This statistical
+// guarantee is subject to two caveats:
 //
 // Caveat 1 is that, in a nod to the realities of systems needing to have
 // guarantees, we allow the random wait time to be clamped both above and below.
-// This means that channel events should be at least c.Min and at most c.Max
-// apart in time. This clamping causes bias in the timing. For use of this
-// function to be statistically sensible, the clamping should not be too
-// extreme. The exact mathematical meaning of "too extreme" depends on your
-// situation, but a nice rule of thumb is config.Min should be at most 10% of
-// expected and config.Max should be at least 250% of expected. These values
-// mean that less than 10% of time you will be waiting config.Min and less than
-// 10% of the time you will be waiting config.Max.
+// This means that channel events will be at least config.Min and at most
+// config.Max apart in time. This clamping causes bias in the timing. For use of
+// Ticker to be statistically sensible, the clamping should not be too extreme.
+// The exact mathematical meaning of "too extreme" depends on your situation,
+// but a nice rule of thumb is config.Min should be at most 10% of expected and
+// config.Max should be at least 250% of expected. These values mean that less
+// than 10% of time you will be waiting config.Min and less than 10% of the time
+// you will be waiting config.Max.
 //
-// Caveat 2 is that this assumes that the measurements being performed take
-// negligible time to run when compared to the expected wait time. Technically,
-// memoryless events have the property that the times between successive event
-// starts has the exponential distribution, and this code will not send on the
-// channel if the other end is not ready to receive, which provides a lower
-// bound on wait times.
+// Caveat 2 is that this assumes that the actions performed between channel
+// reads take negligible time when compared to the expected wait time.
+// Memoryless sequences have the property that the times between successive
+// event starts has the exponential distribution, and the exponential
+// distribution can generate numbers arbitrarily close to zero (albeit
+// exponentially infrequently). This code will not send on the channel if the
+// other end is not ready to receive, which provides another lower bound on
+// inter-event times. The only other option if the other side of the channel is
+// not ready to receive would be queueing events in the channel, and that has
+// some pathological cases we would like to avoid. In particular, queuing can
+// cause long-term correlations if the queue gets big, which is the exact
+// opposite of what a memoryless system is trying to achieve.
 type Ticker struct {
 	C         <-chan time.Time // The channel on which the ticks are delivered.
 	config    Config
@@ -105,15 +112,17 @@ func (t *Ticker) runTicker(ctx context.Context) {
 		// are true, which case gets called is unspecified.
 		select {
 		case <-ctx.Done():
-			// Clean up the timer - not strictly required, but nice to do.
+			// Clean up the timer. The timer will expire on its own and be garbage
+			// collected if we don't explicitly stop it here, so this is not strictly
+			// required, but it is nice to do.
 			timer.Stop()
 			// Please don't put code here that assumes that this code path will
 			// definitely execute if the context is done. select {} doesn't promise that
 			// multiple channels will get selected with equal probability, which means
-			// that if the channel write takes long enough and c.Max is low enough, then
-			// it could be true that the timer is done AND the context is canceled, and
-			// we have no guarantee that in that case the canceled context case will be
-			// the one that is selected.
+			// that if the channel write takes long enough and config.Max is low enough,
+			// then it could be true that the timer is done AND the context is canceled,
+			// and we have no guarantee that in that case the canceled context case will
+			// be the one that is selected.
 		case <-timer.C:
 		}
 	}
@@ -147,7 +156,8 @@ func MakeTicker(ctx context.Context, config Config) (*Ticker, error) {
 }
 
 // Run calls the given function repeatedly, using a memoryless.Ticker to wait
-// between function calls.
+// between function calls. It is a convenience function for code that does not
+// want to use the channel interface.
 func Run(ctx context.Context, f func(), c Config) error {
 	ticker, err := MakeTicker(ctx, c)
 	if err != nil {
