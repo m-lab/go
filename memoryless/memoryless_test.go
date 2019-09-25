@@ -60,3 +60,18 @@ func TestRunForever(t *testing.T) {
 	// If this does not run forever, then f() was called at least 100 times and
 	// then the context was canceled.
 }
+
+func TestLongRunningFunctions(t *testing.T) {
+	wt := time.Duration(1 * time.Microsecond)
+	ticker, err := memoryless.MakeTicker(context.Background(), memoryless.Config{Expected: wt, Min: wt, Max: wt})
+	rtx.Must(err, "Could not make ticker")
+	time.Sleep(time.Millisecond)
+	ticker.Stop()
+	count := 0
+	for range ticker.C {
+		count++
+	}
+	if count > 0 {
+		t.Errorf("There should have been nothing in the channel, but instead there were %d items", count)
+	}
+}
