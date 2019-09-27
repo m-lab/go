@@ -10,14 +10,12 @@ import (
 
 func verifyPassThrough(anon anonymize.IPAnonymizer, t *testing.T) {
 	ip := net.ParseIP("10.10.4.3")
-	anonymizedIP := anon.IP(ip)
-	if ip.String() != "10.10.4.3" && anonymizedIP.String() != "10.10.4.3" {
-		t.Errorf("ip (%s) and anonymizedIP (%s) should both be 10.10.4.3", ip.String(), anonymizedIP.String())
+	anon.IP(ip)
+	if ip.String() != "10.10.4.3" {
+		t.Errorf("anonymizedIP (%s) should be 10.10.4.3", ip.String())
 	}
 
-	if anon.IP(nil) != nil {
-		t.Error("nil is not handled correctly")
-	}
+	anon.IP(nil) // No crash = success.
 }
 
 func TestNoAnon(t *testing.T) {
@@ -33,14 +31,9 @@ func TestBadAnonName(t *testing.T) {
 func TestNetblockAnon(t *testing.T) {
 	*anonymize.IPAnonymization = "netblock"
 	anon := anonymize.New()
-	log.Println(anon)
 
-	if anon.IP(nil) != nil {
-		t.Error("nil is not handled correctly")
-	}
-	if anon.IP(net.IP([]byte{1, 2})) != nil {
-		t.Error("strange length IPs are not handled correctly")
-	}
+	anon.IP(nil)                  // No crash = success
+	anon.IP(net.IP([]byte{1, 2})) // No crash = success
 
 	tests := []struct {
 		ip   string
@@ -54,8 +47,10 @@ func TestNetblockAnon(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.ip, func(t *testing.T) {
-			if got := anon.IP(net.ParseIP(tt.ip)); got.String() != tt.want {
-				t.Errorf("netblockAnonymizer.IP() = %q, want %q", got, tt.want)
+			ip := net.ParseIP(tt.ip)
+			anon.IP(ip)
+			if ip.String() != tt.want {
+				t.Errorf("netblockAnonymizer.IP() = %q, want %q", ip.String(), tt.want)
 			}
 		})
 	}
@@ -64,6 +59,6 @@ func TestNetblockAnon(t *testing.T) {
 func Example() {
 	ip := net.ParseIP("10.10.4.3")
 	anon := anonymize.New()
-	anonymizedIP := anon.IP(ip)
-	log.Println(anonymizedIP) // Should be "10.10.4.0" if the command-line flag was passed.
+	anon.IP(ip)
+	log.Println(ip) // Should be "10.10.4.0" if the --anonymize.ip=netblock command-line flag was passed.
 }

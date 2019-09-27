@@ -16,9 +16,11 @@ var (
 
 // IPAnonymizer is the generic interface for all systems that try and ensure IP
 // addresses are not human identifiers. It is a problem with many potential
-// subtleties, so we permit multiple implementations.
+// subtleties, so we permit multiple implementations. We anonymize the address
+// in-place. If you don't want the address to be modified, then make a copy
+// before you pass it in.
 type IPAnonymizer interface {
-	IP(ip net.IP) net.IP
+	IP(ip net.IP)
 }
 
 // New is an IP anonymization factory function that respects the
@@ -43,31 +45,30 @@ func New() IPAnonymizer {
 	}
 }
 
+// nullIPAnonymizer does nothing.
 type nullIPAnonymizer struct{}
 
-func (nullIPAnonymizer) IP(ip net.IP) net.IP {
-	return ip
-}
+func (nullIPAnonymizer) IP(ip net.IP) {}
 
+// netblockIPAnonymizer restricts v4 addresses to a /24 and v6 addresses to a /64
 type netblockAnonymizer struct{}
 
-func (netblockAnonymizer) IP(ip net.IP) net.IP {
+func (netblockAnonymizer) IP(ip net.IP) {
 	if ip == nil {
-		return nil
+		return
 	}
-	if ip4 := ip.To4(); ip4 != nil {
-		// Only copy the first three octets to anonymize a IPv4 address to its containing /24
-		return net.IPv4(ip4[0], ip4[1], ip4[2], 0)
+	if ip.To4() != nil {
+		// Zero out the last byte.  That's ip[3] in the 4-byte v4 representation and ip[15] in the v4-in-v6 representation.
+		ip[len(ip)-1] = 0
+		return
 	}
-	if ip16 := ip.To16(); ip16 != nil {
+	if ip.To16() != nil {
 		// Anonymize IPv6 addresses to the containing /64
-		return net.IP{
-			ip16[0], ip16[1], ip16[2], ip16[3],
-			ip16[4], ip16[5], ip16[6], ip16[7],
-			0, 0, 0, 0,
-			0, 0, 0, 0,
+		for i := 8; i < 16; i++ {
+			ip[i] = 0
 		}
+		return
 	}
 	log.Println("The passed in IP address was neither a v4 nor a v6 address:", ip)
-	return nil
+	return
 }
