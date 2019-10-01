@@ -13,6 +13,8 @@ var (
 	// between different anonymization schemes. It is not exported to make changing
 	// its value difficult.
 	ipAnonymization = flag.String("anonymize.ip", "none", "Valid values are \"none\" and \"netblock\".")
+
+	logFatalf = log.Fatalf
 )
 
 // IPAnonymizer is the generic interface for all systems that try and ensure IP
@@ -45,8 +47,8 @@ func New() IPAnonymizer {
 	case "netblock":
 		return netblockAnonymizer{}
 	default:
-		log.Printf("Unknown anonymization method: %q, using \"none\".\n", *ipAnonymization)
-		return nullIPAnonymizer{}
+		logFatalf("Unknown anonymization method: %q, exiting to avoid accidentally leaking private data", *ipAnonymization)
+		panic("This line should only be reached during testing.")
 	}
 }
 

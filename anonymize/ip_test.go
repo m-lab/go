@@ -24,8 +24,22 @@ func TestNoAnon(t *testing.T) {
 }
 
 func TestBadAnonName(t *testing.T) {
+	calls := 0
+	revert := anonymize.SetLogFatalf(func(string, ...interface{}) {
+		calls++
+	})
+	defer revert()
+	defer func() {
+		r := recover()
+		if r == nil {
+			t.Error("A bad anonymization method should cause a panic, but it did not.")
+		}
+		if calls == 0 {
+			t.Error("calls should not be zero")
+		}
+	}()
 	anonymize.SetFlag("bad_anon_method")
-	verifyNoAnonymization(anonymize.New(), t)
+	anonymize.New()
 }
 
 func TestNetblockAnon(t *testing.T) {
