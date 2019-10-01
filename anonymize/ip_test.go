@@ -8,28 +8,28 @@ import (
 	"github.com/m-lab/go/anonymize"
 )
 
-func verifyPassThrough(anon anonymize.IPAnonymizer, t *testing.T) {
+func verifyNoAnonymization(doesNoAnon anonymize.IPAnonymizer, t *testing.T) {
 	ip := net.ParseIP("10.10.4.3")
-	anon.IP(ip)
+	doesNoAnon.IP(ip)
 	if ip.String() != "10.10.4.3" {
 		t.Errorf("anonymizedIP (%s) should be 10.10.4.3", ip.String())
 	}
 
-	anon.IP(nil) // No crash = success.
+	doesNoAnon.IP(nil) // No crash = success.
 }
 
 func TestNoAnon(t *testing.T) {
-	*anonymize.IPAnonymization = "none"
-	verifyPassThrough(anonymize.New(), t)
+	anonymize.SetFlag("none")
+	verifyNoAnonymization(anonymize.New(), t)
 }
 
 func TestBadAnonName(t *testing.T) {
-	*anonymize.IPAnonymization = "bad_anon_method"
-	verifyPassThrough(anonymize.New(), t)
+	anonymize.SetFlag("bad_anon_method")
+	verifyNoAnonymization(anonymize.New(), t)
 }
 
 func TestNetblockAnon(t *testing.T) {
-	*anonymize.IPAnonymization = "netblock"
+	anonymize.SetFlag("netblock")
 	anon := anonymize.New()
 
 	anon.IP(nil)                  // No crash = success

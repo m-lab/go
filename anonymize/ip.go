@@ -7,11 +7,12 @@ import (
 )
 
 var (
-	// IPAnonymization is a flag that determines whether IP anonymization is on or
+	// ipAnonymization is a flag that determines whether IP anonymization is on or
 	// off. Its value should be fixed for the duration of a program. This library
 	// is not guaranteeed to work properly if you keep switching back and forth
-	// between different anonymization schemes.
-	IPAnonymization = flag.String("anonymize.ip", "none", "Valid values are \"none\" and \"netblock\".")
+	// between different anonymization schemes. It is not exported to make changing
+	// its value difficult.
+	ipAnonymization = flag.String("anonymize.ip", "none", "Valid values are \"none\" and \"netblock\".")
 )
 
 // IPAnonymizer is the generic interface for all systems that try and ensure IP
@@ -31,16 +32,20 @@ type IPAnonymizer interface {
 // preventing the creation of hundreds of needless `if shouldAnonymize {...}`
 // code blocks.
 //
-// If anonymization is turned on, then IPv4 addresses will be anonymized up to
-// the /24 level and IPv6 addresses to the /64 level.
+// If the anonymization method is set to "netblock", then IPv4 addresses will be
+// anonymized up to the /24 level and IPv6 addresses to the /64 level. If it is
+// set to "none" then no anonymization will be performed. We can imagine future
+// anonymization techniques based on k-anonymity or that completely blot out the
+// IP. We leave room for those implementations here, but do not (yet) implement
+// them.
 func New() IPAnonymizer {
-	switch *IPAnonymization {
+	switch *ipAnonymization {
 	case "none":
 		return nullIPAnonymizer{}
 	case "netblock":
 		return netblockAnonymizer{}
 	default:
-		log.Printf("Unknown anonymization method: %q, using \"none\".\n", *IPAnonymization)
+		log.Printf("Unknown anonymization method: %q, using \"none\".\n", *ipAnonymization)
 		return nullIPAnonymizer{}
 	}
 }
