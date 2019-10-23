@@ -74,3 +74,17 @@ func TestArgsFromEnvWithBadEnv(t *testing.T) {
 		log.Printf("After an invalid Set() (err=%q), the flag is %d\n", err, *flagVal)
 	}
 }
+
+func TestArgsFromEnvIllegalCharsInFlag(t *testing.T) {
+	flagSet := flag.NewFlagSet("test_flags", flag.ContinueOnError)
+	flagVal := flagSet.String("2pusher:util-test.var1", "default", "")
+	revert := osx.MustSetenv("_2PUSHER_UTIL_TEST_VAR1", "value_from_env")
+	defer revert()
+	flagSet.Parse([]string{})
+	if err := flagx.ArgsFromEnv(flagSet); err != nil {
+		t.Error(err)
+	}
+	if *flagVal != "value_from_env" {
+		t.Error("Bad flag value", *flagVal)
+	}
+}
