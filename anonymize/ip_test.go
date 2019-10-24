@@ -5,7 +5,10 @@ import (
 	"net"
 	"testing"
 
+	"github.com/go-test/deep"
+
 	"github.com/m-lab/go/anonymize"
+	"github.com/m-lab/go/rtx"
 )
 
 func verifyNoAnonymization(doesNoAnon anonymize.IPAnonymizer, t *testing.T) {
@@ -19,8 +22,7 @@ func verifyNoAnonymization(doesNoAnon anonymize.IPAnonymizer, t *testing.T) {
 }
 
 func TestNoAnon(t *testing.T) {
-	anonymize.SetFlag("none")
-	verifyNoAnonymization(anonymize.New(), t)
+	verifyNoAnonymization(anonymize.New(anonymize.None), t)
 }
 
 func TestBadAnonName(t *testing.T) {
@@ -38,13 +40,11 @@ func TestBadAnonName(t *testing.T) {
 			t.Error("calls should not be zero")
 		}
 	}()
-	anonymize.SetFlag("bad_anon_method")
-	anonymize.New()
+	anonymize.New(anonymize.Method("bad_anon_method"))
 }
 
 func TestNetblockAnon(t *testing.T) {
-	anonymize.SetFlag("netblock")
-	anon := anonymize.New()
+	anon := anonymize.New(anonymize.Netblock)
 
 	anon.IP(nil)                  // No crash = success
 	anon.IP(net.IP([]byte{1, 2})) // No crash = success
@@ -70,9 +70,31 @@ func TestNetblockAnon(t *testing.T) {
 	}
 }
 
+func TestMethodFlagMethods(t *testing.T) {
+	var m anonymize.Method
+	rtx.Must(m.Set("none"), "Could not set to none")
+	if diff := deep.Equal(anonymize.None, m.Get()); diff != nil {
+		t.Error(diff)
+	}
+	if diff := deep.Equal("none", m.String()); diff != nil {
+		t.Error(diff)
+	}
+	rtx.Must(m.Set("netblock"), "Could not set to netblock")
+	if m.Set("badmethod") == nil {
+		t.Error("Should have had an error")
+	}
+	if diff := deep.Equal(anonymize.Netblock, m.Get()); diff != nil {
+		t.Error(diff)
+	}
+	if diff := deep.Equal("netblock", m.String()); diff != nil {
+		t.Error(diff)
+	}
+	log.Println(m)
+}
+
 func Example() {
 	ip := net.ParseIP("10.10.4.3")
-	anon := anonymize.New()
+	anon := anonymize.New(anonymize.IPAnonymizationFlag)
 	anon.IP(ip)
 	log.Println(ip) // Should be "10.10.4.0" if the --anonymize.ip=netblock command-line flag was passed.
 }
