@@ -2,20 +2,66 @@ package anonymize
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"net"
 )
 
 var (
-	// ipAnonymization is a flag that determines whether IP anonymization is on or
-	// off. Its value should be fixed for the duration of a program. This library
-	// is not guaranteeed to work properly if you keep switching back and forth
-	// between different anonymization schemes. It is not exported to make changing
-	// its value difficult.
-	ipAnonymization = flag.String("anonymize.ip", "none", "Valid values are \"none\" and \"netblock\".")
+	// Netblock causes IPv4 addresses to be anonymized up to the
+	// /24 level and IPv6 addresses to the /64 level.
+	Netblock = Method("netblock")
 
+	// None performs no anonymization. By creating an anonymizer that performs
+	// no anonymization, we make it possible to always have the anonymizer code
+	// path be used, whether anonymization is actually needed or not, preventing
+	// the creation of hundreds of needless `if shouldAnonymize {...}` code
+	// blocks.
+	None = Method("none")
+
+	// IPAnonymizationFlag is a flag that determines whether IP anonymization is
+	// on or off. Its value should be fixed for the duration of a program. This
+	// library is not guaranteeed to work properly if you keep switching back
+	// and forth between different anonymization schemes. The default is no
+	// anonymization.
+	IPAnonymizationFlag = None
+
+	// An injected log.Fatal to aid in testing.
 	logFatalf = log.Fatalf
 )
+
+// Method is an enum suitable for using as a command-line flag. It
+// allows only a finite set of values. We can imagine future anonymization
+// techniques based on k-anonymity or that completely blot out the IP. We leave
+// room for those implementations here, but do not (yet) implement them.
+type Method string
+
+// Get is required for all flag.Flag values.
+func (m Method) Get() interface{} {
+	return m
+}
+
+// Set is required for all flag.Flag values.
+func (m *Method) Set(s string) error {
+	switch Method(s) {
+	case Netblock:
+		*m = Netblock
+	case None:
+		*m = None
+	default:
+		return fmt.Errorf("Uknown anonymization method: %q", s)
+	}
+	return nil
+}
+
+// String is required for all flag.Flag values.
+func (m Method) String() string {
+	return string(m)
+}
+
+func init() {
+	flag.Var(&IPAnonymizationFlag, "anonymize.ip", "Valid values are \"none\" and \"netblock\".")
+}
 
 // IPAnonymizer is the generic interface for all systems that try and ensure IP
 // addresses are not human identifiers. It is a problem with many potential
@@ -26,13 +72,9 @@ type IPAnonymizer interface {
 	IP(ip net.IP)
 }
 
-// New is an IP anonymization factory function that respects the
-// `--anonymize.ip` command-line flag. If the flag is set to false, then it will
-// return the null anonymizer, which actually performs no anonymization at all.
-// Through this technique, we make it possible to always have the anonymizer
-// code path be used, whether anonymization is actually needed or not,
-// preventing the creation of hundreds of needless `if shouldAnonymize {...}`
-// code blocks.
+// New is an IP anonymization factory function that expects you to pass in
+// anonymize.IPAnonymizationFlag, which contains the contents of the
+// `--anonymize.ip` command-line flag.
 //
 // If the anonymization method is set to "netblock", then IPv4 addresses will be
 // anonymized up to the /24 level and IPv6 addresses to the /64 level. If it is
@@ -40,14 +82,19 @@ type IPAnonymizer interface {
 // anonymization techniques based on k-anonymity or that completely blot out the
 // IP. We leave room for those implementations here, but do not (yet) implement
 // them.
-func New() IPAnonymizer {
-	switch *ipAnonymization {
-	case "none":
+//
+// A program attempting to perform IP anonymization should only ever create one
+// IPAnonymizer and use that one anonymizer for all connections. Otherwise, the
+// created IPAnonymizer will lack the necessary context to correctly perform
+// k-anonymization.
+func New(method Method) IPAnonymizer {
+	switch method {
+	case None:
 		return nullIPAnonymizer{}
-	case "netblock":
+	case Netblock:
 		return netblockAnonymizer{}
 	default:
-		logFatalf("Unknown anonymization method: %q, exiting to avoid accidentally leaking private data", *ipAnonymization)
+		logFatalf("Unknown anonymization method: %q, exiting to avoid accidentally leaking private data", method)
 		panic("This line should only be reached during testing.")
 	}
 }
