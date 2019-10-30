@@ -17,10 +17,10 @@ import (
 	"time"
 
 	"cloud.google.com/go/bigquery"
+	"github.com/kr/pretty"
 	"github.com/m-lab/go/bqx"
 	"github.com/m-lab/go/rtx"
 	"google.golang.org/api/googleapi"
-	"src/github.com/kr/pretty"
 )
 
 func init() {
