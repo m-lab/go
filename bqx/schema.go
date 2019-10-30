@@ -275,13 +275,13 @@ func UpdateSchemaDescription(schema bigquery.Schema, docs SchemaDoc) error {
 		schema, func(prefix []string, field *bigquery.FieldSchema) error {
 			var ok bool
 			var d map[string]string
-			// Starting with the longest prefix, stop looking or descriptions on first match.
-			for window := len(prefix); window != 0 && !ok; window-- {
-				path := strings.Join(prefix[len(prefix)-window:], ".")
+			// Starting with the longest prefix, stop looking for descriptions on first match.
+			for start := 0; start < len(prefix) && !ok; start++ {
+				path := strings.Join(prefix[start:], ".")
 				d, ok = docs[path]
 			}
 			if !ok {
-				// This is not an error, the field simply doen't have extra description.
+				// This is not an error, the field simply doesn't have extra description.
 				return nil
 			}
 			if field.Description != "" {
