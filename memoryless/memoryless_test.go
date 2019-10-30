@@ -62,11 +62,15 @@ func TestRunForever(t *testing.T) {
 }
 
 func TestLongRunningFunctions(t *testing.T) {
+	// Make a ticker that fires many many times.
 	wt := time.Duration(1 * time.Microsecond)
 	ticker, err := memoryless.MakeTicker(context.Background(), memoryless.Config{Expected: wt, Min: wt, Max: wt})
 	rtx.Must(err, "Could not make ticker")
 	time.Sleep(time.Millisecond)
 	ticker.Stop()
+	// Once ticker.Stop is called, lose all races.
+	time.Sleep(100 * time.Millisecond)
+	// Verify that no events are queued.
 	count := 0
 	for range ticker.C {
 		count++

@@ -4,8 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"math/rand"
+	"os"
+	"reflect"
 	"runtime"
 	"strconv"
 	"strings"
@@ -13,11 +16,11 @@ import (
 	"testing"
 	"time"
 
+	"cloud.google.com/go/bigquery"
+	"github.com/kr/pretty"
 	"github.com/m-lab/go/bqx"
 	"github.com/m-lab/go/rtx"
 	"google.golang.org/api/googleapi"
-
-	"cloud.google.com/go/bigquery"
 )
 
 func init() {
@@ -292,5 +295,97 @@ func TestCreateAndUpdate(t *testing.T) {
 	err = deleteDatasetAndContents(ctx, client, pdt)
 	if err != nil {
 		t.Error(err)
+	}
+}
+
+var schemaDocYaml = `
+Field1:
+  Description: Field1 description without prefix path
+Inner.bigqueryField2:
+  Description: Field2 description using full prefix path
+test_id:
+  Description: Filename of measurement data.
+log_time:
+  Description: Collection time of measurement data.
+`
+
+type localInnerStruct struct {
+	Field1 string // Should map to 'Field1' in doc.
+	Field2 string `bigquery:"bigqueryField2"` // Should map to Inner.bigqueryField2 in doc.
+}
+
+type localOuterStruct struct {
+	TestID  string           `bigquery:"test_id"`  // Should map to test_id in doc.
+	LogTime int64            `bigquery:"log_time"` // Should map to log_time in doc.
+	Inner   localInnerStruct // Should use default (empty) description.
+}
+
+func TestUpdateSchemaDescription(t *testing.T) {
+	schema, err := bigquery.InferSchema(localOuterStruct{})
+	rtx.Must(err, "Failed to get schema from localOuterStruct")
+	tmpfile, err := ioutil.TempFile("", "update-schema")
+	rtx.Must(err, "Failed to create temporary file name")
+	err = ioutil.WriteFile(tmpfile.Name(), []byte(schemaDocYaml), 0644)
+	rtx.Must(err, "Failed to write schema doc")
+	defer os.Remove(tmpfile.Name())
+
+	expected := bigquery.Schema{
+		&bigquery.FieldSchema{
+			Name:        "test_id",
+			Description: "Filename of measurement data.",
+			Required:    true,
+			Type:        "STRING",
+		},
+		&bigquery.FieldSchema{
+			Name:        "log_time",
+			Description: "Collection time of measurement data.",
+			Required:    true,
+			Type:        "INTEGER",
+		},
+		&bigquery.FieldSchema{
+			Name:        "Inner",
+			Description: "",
+			Required:    true,
+			Type:        "RECORD",
+			Schema: bigquery.Schema{
+				&bigquery.FieldSchema{
+					Name:        "Field1",
+					Description: "Field1 description without prefix path",
+					Required:    true,
+					Type:        "STRING",
+				},
+				&bigquery.FieldSchema{
+					Name:        "bigqueryField2",
+					Description: "Field2 description using full prefix path",
+					Required:    true,
+					Type:        "STRING",
+				},
+			},
+		},
+	}
+
+	sd := bqx.ReadSchemaDoc(tmpfile.Name())
+	tests := []struct {
+		name    string
+		schema  bigquery.Schema
+		docs    bqx.SchemaDoc
+		want    bigquery.Schema
+		wantErr bool
+	}{
+		{
+			name:   "success",
+			schema: schema,
+			docs:   sd,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := bqx.UpdateSchemaDescription(tt.schema, tt.docs); (err != nil) != tt.wantErr {
+				t.Errorf("UpdateSchemaDescription() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if !reflect.DeepEqual(tt.schema, expected) {
+				t.Errorf("UpdateSchemaDescription() failed to match expected schema %q", pretty.Sprint(expected))
+			}
+		})
 	}
 }

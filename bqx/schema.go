@@ -6,11 +6,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"regexp"
 	"strings"
 
 	"cloud.google.com/go/bigquery"
+	"github.com/m-lab/go/rtx"
+	"gopkg.in/yaml.v2"
 )
 
 // PrettyPrint generates a formatted json representation of a Schema.
@@ -248,5 +251,67 @@ func (pdt PDT) CreateTable(ctx context.Context, client *bigquery.Client, schema 
 		return err
 	}
 
+	return nil
+}
+
+// SchemaDoc contains bigquery.Schema field Descriptions as read from an auxiliary source, such as YAML.
+type SchemaDoc map[string]map[string]string
+
+// ReadSchemaDoc reads the given file and attempts to parse it as a SchemaDoc. Errors are fatal.
+func ReadSchemaDoc(file string) SchemaDoc {
+	docs, err := ioutil.ReadFile(file)
+	rtx.Must(err, "Failed to read: %q", file)
+
+	sd := SchemaDoc{}
+	err = yaml.Unmarshal([]byte(docs), &sd)
+	rtx.Must(err, "Failed to unmarshal: %q", file)
+	return sd
+}
+
+// UpdateSchemaDescription walks each field in the given schema and assigns the
+// Description field in place using values found in the given SchemaDoc.
+func UpdateSchemaDescription(schema bigquery.Schema, docs SchemaDoc) error {
+	WalkSchema(
+		schema, func(prefix []string, field *bigquery.FieldSchema) error {
+			var ok bool
+			var d map[string]string
+			// Starting with the longest prefix, stop looking for descriptions on first match.
+			for start := 0; start < len(prefix) && !ok; start++ {
+				path := strings.Join(prefix[start:], ".")
+				d, ok = docs[path]
+			}
+			if !ok {
+				// This is not an error, the field simply doesn't have extra description.
+				return nil
+			}
+			if field.Description != "" {
+				log.Printf("WARNING: Overwriting existing description for %q: %q",
+					field.Name, field.Description)
+			}
+			field.Description = d["Description"]
+			return nil
+		},
+	)
+	return nil
+}
+
+// WalkSchema visits every FieldSchema object in the given schema by calling the visit function.
+// The prefix is a path of field names from the top level to the current Field.
+func WalkSchema(schema bigquery.Schema, visit func(prefix []string, field *bigquery.FieldSchema) error) error {
+	return walkSchema([]string{}, schema, visit)
+}
+
+func walkSchema(prefix []string, schema bigquery.Schema, visit func(prefix []string, field *bigquery.FieldSchema) error) error {
+	fields := ([]*bigquery.FieldSchema)(schema)
+	for _, field := range fields {
+		path := append(prefix, field.Name)
+		err := visit(path, field)
+		if err != nil {
+			return err
+		}
+		if field.Type == bigquery.RecordFieldType {
+			walkSchema(path, field.Schema, visit)
+		}
+	}
 	return nil
 }

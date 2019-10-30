@@ -52,13 +52,14 @@ func TestDryRunClient(t *testing.T) {
 
 func TestNewClientErr(t *testing.T) {
 	ctx := context.Background()
+	// opts := []option.ClientOption{option.WithAPIKey("asdf"), option.WithoutAuthentication()}
 	opts := []option.ClientOption{option.WithAPIKey("asdf"), option.WithoutAuthentication()}
 	c, err := bqfake.NewClient(ctx, "fakeProject", opts...)
 	if err == nil {
 		c.Close()
-		t.Fatal("Should return dial error")
-	} else if !strings.Contains(err.Error(), "dialing") {
-		t.Fatal("Should return dial error:", err.Error())
+		t.Fatal("Should return constructing client")
+	} else if !strings.Contains(err.Error(), "constructing client") {
+		t.Fatal("Should return constructing client:", err.Error())
 	}
 }
 
