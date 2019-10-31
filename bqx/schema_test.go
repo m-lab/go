@@ -364,7 +364,7 @@ func TestUpdateSchemaDescription(t *testing.T) {
 		},
 	}
 
-	sd := bqx.ReadSchemaDoc(tmpfile.Name())
+	sd := bqx.NewSchemaDoc([]byte(schemaDocYaml))
 	tests := []struct {
 		name    string
 		schema  bigquery.Schema

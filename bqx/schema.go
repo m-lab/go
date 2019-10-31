@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"regexp"
 	"strings"
@@ -257,14 +256,11 @@ func (pdt PDT) CreateTable(ctx context.Context, client *bigquery.Client, schema 
 // SchemaDoc contains bigquery.Schema field Descriptions as read from an auxiliary source, such as YAML.
 type SchemaDoc map[string]map[string]string
 
-// ReadSchemaDoc reads the given file and attempts to parse it as a SchemaDoc. Errors are fatal.
-func ReadSchemaDoc(file string) SchemaDoc {
-	docs, err := ioutil.ReadFile(file)
-	rtx.Must(err, "Failed to read: %q", file)
-
+// NewSchemaDoc reads the given file and attempts to parse it as a SchemaDoc. Errors are fatal.
+func NewSchemaDoc(docs []byte) SchemaDoc {
 	sd := SchemaDoc{}
-	err = yaml.Unmarshal([]byte(docs), &sd)
-	rtx.Must(err, "Failed to unmarshal: %q", file)
+	err := yaml.Unmarshal(docs, &sd)
+	rtx.Must(err, "Failed to unmarshal schema doc")
 	return sd
 }
 
