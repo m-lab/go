@@ -268,10 +268,14 @@ func NewSchemaDoc(docs []byte) SchemaDoc {
 // Description field in place using values found in the given SchemaDoc.
 func UpdateSchemaDescription(schema bigquery.Schema, docs SchemaDoc) error {
 	WalkSchema(
-		schema, func(prefix []string, field *bigquery.FieldSchema) error {
+		schema, func(fields []*bigquery.FieldSchema) error {
 			var ok bool
 			var d map[string]string
 			// Starting with the longest prefix, stop looking for descriptions on first match.
+			prefix := []string{}
+			for i := range fields {
+				prefix = append(prefix, fields[i].Name)
+			}
 			for start := 0; start < len(prefix) && !ok; start++ {
 				path := strings.Join(prefix[start:], ".")
 				d, ok = docs[path]
@@ -280,6 +284,7 @@ func UpdateSchemaDescription(schema bigquery.Schema, docs SchemaDoc) error {
 				// This is not an error, the field simply doesn't have extra description.
 				return nil
 			}
+			field := fields[len(fields)-1]
 			if field.Description != "" {
 				log.Printf("WARNING: Overwriting existing description for %q: %q",
 					field.Name, field.Description)
@@ -293,20 +298,25 @@ func UpdateSchemaDescription(schema bigquery.Schema, docs SchemaDoc) error {
 
 // WalkSchema visits every FieldSchema object in the given schema by calling the visit function.
 // The prefix is a path of field names from the top level to the current Field.
-func WalkSchema(schema bigquery.Schema, visit func(prefix []string, field *bigquery.FieldSchema) error) error {
-	return walkSchema([]string{}, schema, visit)
+func WalkSchema(schema bigquery.Schema, visit func(fields []*bigquery.FieldSchema) error) error {
+	return walkSchema([]*bigquery.FieldSchema{}, schema, visit)
 }
 
-func walkSchema(prefix []string, schema bigquery.Schema, visit func(prefix []string, field *bigquery.FieldSchema) error) error {
+func walkSchema(
+	prefix []*bigquery.FieldSchema, schema bigquery.Schema,
+	visit func(fields []*bigquery.FieldSchema) error) error {
 	fields := ([]*bigquery.FieldSchema)(schema)
 	for _, field := range fields {
-		path := append(prefix, field.Name)
-		err := visit(path, field)
+		path := append(prefix, field)
+		err := visit(path)
 		if err != nil {
 			return err
 		}
 		if field.Type == bigquery.RecordFieldType {
-			walkSchema(path, field.Schema, visit)
+			err := walkSchema(path, field.Schema, visit)
+			if err != nil {
+				return err
+			}
 		}
 	}
 	return nil

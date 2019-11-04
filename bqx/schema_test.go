@@ -384,7 +384,8 @@ func TestUpdateSchemaDescription(t *testing.T) {
 				t.Errorf("UpdateSchemaDescription() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			if !reflect.DeepEqual(tt.schema, expected) {
-				t.Errorf("UpdateSchemaDescription() failed to match expected schema %q", pretty.Sprint(expected))
+				t.Errorf("UpdateSchemaDescription() failed to match expected schema %s", pretty.Sprint(expected))
+				t.Errorf("UpdateSchemaDescription() failed to match expected schema %s", pretty.Sprint(tt.schema))
 			}
 		})
 	}
