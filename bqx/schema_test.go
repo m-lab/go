@@ -309,20 +309,20 @@ log_time:
   Description: Collection time of measurement data.
 `
 
-type localInnerStruct struct {
+type localTwoFieldStruct struct {
 	Field1 string // Should map to 'Field1' in doc.
 	Field2 string `bigquery:"bigqueryField2"` // Should map to Inner.bigqueryField2 in doc.
 }
 
-type localOuterStruct struct {
-	TestID  string           `bigquery:"test_id"`  // Should map to test_id in doc.
-	LogTime int64            `bigquery:"log_time"` // Should map to log_time in doc.
-	Inner   localInnerStruct // Should use default (empty) description.
+type localFiveFieldStruct struct {
+	TestID  string              `bigquery:"test_id"`  // Should map to test_id in doc.
+	LogTime int64               `bigquery:"log_time"` // Should map to log_time in doc.
+	Inner   localTwoFieldStruct // Should use default (empty) description.
 }
 
 func TestUpdateSchemaDescription(t *testing.T) {
-	schema, err := bigquery.InferSchema(localOuterStruct{})
-	rtx.Must(err, "Failed to get schema from localOuterStruct")
+	schema, err := bigquery.InferSchema(localFiveFieldStruct{})
+	rtx.Must(err, "Failed to get schema from localFiveFieldStruct")
 	tmpfile, err := ioutil.TempFile("", "update-schema")
 	rtx.Must(err, "Failed to create temporary file name")
 	err = ioutil.WriteFile(tmpfile.Name(), []byte(schemaDocYaml), 0644)
@@ -365,27 +365,37 @@ func TestUpdateSchemaDescription(t *testing.T) {
 	}
 
 	sd := bqx.NewSchemaDoc([]byte(schemaDocYaml))
-	tests := []struct {
-		name    string
-		schema  bigquery.Schema
-		docs    bqx.SchemaDoc
-		want    bigquery.Schema
-		wantErr bool
-	}{
-		{
-			name:   "success",
-			schema: schema,
-			docs:   sd,
-		},
+	// Apply once.
+	if err := bqx.UpdateSchemaDescription(schema, sd); err != nil {
+		t.Errorf("UpdateSchemaDescription() error = %v, want nil", err)
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if err := bqx.UpdateSchemaDescription(tt.schema, tt.docs); (err != nil) != tt.wantErr {
-				t.Errorf("UpdateSchemaDescription() error = %v, wantErr %v", err, tt.wantErr)
-			}
-			if !reflect.DeepEqual(tt.schema, expected) {
-				t.Errorf("UpdateSchemaDescription() failed to match expected schema %q", pretty.Sprint(expected))
-			}
-		})
+	if !reflect.DeepEqual(schema, expected) {
+		t.Errorf("UpdateSchemaDescription() schema mismatch; got %s, want %s",
+			pretty.Sprint(schema), pretty.Sprint(expected))
+	}
+	// Apply twice. NOTE: applying the same docs to the same schema a second time
+	// should produce the identical result. But, there should also be warnings
+	// about the existing Description fields being over written.
+	if err := bqx.UpdateSchemaDescription(schema, sd); err != nil {
+		t.Errorf("UpdateSchemaDescription() error = %v, want nil", err)
+	}
+	if !reflect.DeepEqual(schema, expected) {
+		t.Errorf("UpdateSchemaDescription() schema mismatch; got %s, want %s",
+			pretty.Sprint(schema), pretty.Sprint(expected))
+	}
+}
+
+func TestWalkSchema(t *testing.T) {
+	schema, err := bigquery.InferSchema(localFiveFieldStruct{})
+	rtx.Must(err, "Failed to infer schema for localFiveFieldStruct")
+
+	err = bqx.WalkSchema(schema, func(prefix []string, field *bigquery.FieldSchema) error {
+		if len(prefix) > 1 {
+			return fmt.Errorf("Fake failure while walking schema")
+		}
+		return nil
+	})
+	if err == nil {
+		t.Errorf("WalkSchema() did not return error")
 	}
 }
