@@ -298,15 +298,17 @@ func WalkSchema(schema bigquery.Schema, visit func(prefix []string, field *bigqu
 }
 
 func walkSchema(prefix []string, schema bigquery.Schema, visit func(prefix []string, field *bigquery.FieldSchema) error) error {
-	fields := ([]*bigquery.FieldSchema)(schema)
-	for _, field := range fields {
+	for _, field := range schema {
 		path := append(prefix, field.Name)
 		err := visit(path, field)
 		if err != nil {
 			return err
 		}
 		if field.Type == bigquery.RecordFieldType {
-			walkSchema(path, field.Schema, visit)
+			err = walkSchema(path, field.Schema, visit)
+			if err != nil {
+				return err
+			}
 		}
 	}
 	return nil
