@@ -71,7 +71,7 @@ func TestLogEvery_Println(t *testing.T) {
 	if len(lines) > 12 {
 		t.Error("Too many logs", len(lines))
 	}
-	if len(lines) < 9 {
+	if len(lines) == 0 {
 		t.Error("Too few logs", len(lines))
 	}
 }
@@ -95,7 +95,7 @@ func TestLogEvery_Printf(t *testing.T) {
 	if len(lines) > 12 {
 		t.Error("Too many logs", len(lines))
 	}
-	if len(lines) < 9 {
+	if len(lines) == 0 {
 		t.Error("Too few logs", len(lines))
 	}
 
@@ -117,7 +117,7 @@ func TestLogEvery_Printf(t *testing.T) {
 	if len(lines) > 12 {
 		t.Error("Too many logs", len(lines))
 	}
-	if len(lines) < 9 {
+	if len(lines) == 0 {
 		t.Error("Too few logs", len(lines))
 	}
 }
