@@ -100,7 +100,8 @@ func (ds Dataset) Table(name string) bqiface.Table {
 // unit tests.
 type Query struct {
 	bqiface.Query
-	//JobIDConfig() *bigquery.JobIDConfig
+	readErr error
+	rows    []map[string]bigquery.Value
 }
 
 func (q Query) SetQueryConfig(bqiface.QueryConfig) {
@@ -113,22 +114,16 @@ func (q Query) Run(context.Context) (bqiface.Job, error) {
 }
 
 func (q Query) Read(context.Context) (bqiface.RowIterator, error) {
-	log.Println("Read not implemented")
-	return RowIterator{}, nil
+	if q.readErr != nil {
+		return nil, q.readErr
+	}
+	return &RowIterator{rows: q.rows}, nil
 }
 
 // Job implements parts of bqiface.Job to allow some very basic
 // unit tests.
 type Job struct {
 	bqiface.Job
-
-	//ID() string
-	//Location() string
-	//Config() (bigquery.JobConfig, error)
-	//Status(context.Context) (*bigquery.JobStatus, error)
-	//LastStatus() *bigquery.JobStatus
-	//Cancel(context.Context) error
-	//Read(context.Context) (RowIterator, error)
 }
 
 func (j Job) Wait(context.Context) (*bigquery.JobStatus, error) {
@@ -138,14 +133,16 @@ func (j Job) Wait(context.Context) (*bigquery.JobStatus, error) {
 
 type RowIterator struct {
 	bqiface.RowIterator
-	//SetStartIndex(uint64)
-	//Schema() bigquery.Schema
-	//TotalRows() uint64
-	//Next(interface{}) error
-	//PageInfo() *iterator.PageInfo
+	index int
+	rows  []map[string]bigquery.Value
 }
 
-func (r RowIterator) Next(interface{}) error {
-	log.Println("Next not implemented")
-	return iterator.Done
+func (r *RowIterator) Next(dst interface{}) error {
+	if r.index >= len(r.rows) {
+		return iterator.Done
+	}
+	v := dst.(*map[string]bigquery.Value)
+	*v = r.rows[r.index]
+	r.index++
+	return nil
 }

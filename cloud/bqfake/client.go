@@ -68,7 +68,9 @@ func DryRunClient() (*http.Client, *CountingTransport) {
 // Client implements a fake client.
 type Client struct {
 	bqiface.Client
-	ctx context.Context // Just for checking expiration/cancelation
+	ctx     context.Context // Just for checking expiration/cancelation
+	rows    []map[string]bigquery.Value
+	readErr error
 }
 
 // NewClient creates a new Client implementing bqiface.Client, with a dry run HTTPClient.
@@ -79,7 +81,7 @@ func NewClient(ctx context.Context, project string, opts ...option.ClientOption)
 	if err != nil {
 		return nil, err
 	}
-	return &Client{bqiface.AdaptClient(c), ctx}, nil
+	return &Client{Client: bqiface.AdaptClient(c), ctx: ctx}, nil
 }
 
 // Dataset creates a Dataset.
@@ -90,5 +92,17 @@ func (client Client) Dataset(ds string) bqiface.Dataset {
 }
 
 func (client Client) Query(string) bqiface.Query {
-	return Query{}
+	return Query{
+		rows:    client.rows,
+		readErr: client.readErr,
+	}
+}
+
+func NewQueryReadClient(rows []map[string]bigquery.Value, readErr error) *Client {
+	// NOTE: if all needed functions are implemented by the fake, then a real
+	// client unnecessary.
+	return &Client{
+		rows:    rows,
+		readErr: readErr,
+	}
 }
