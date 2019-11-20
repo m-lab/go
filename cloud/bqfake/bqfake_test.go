@@ -222,6 +222,7 @@ func TestNewQueryReadClient(t *testing.T) {
 		{
 			name:    "read-error",
 			readErr: fmt.Errorf("Fake read error"),
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
