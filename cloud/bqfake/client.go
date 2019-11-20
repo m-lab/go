@@ -100,7 +100,7 @@ func (client Client) Query(string) bqiface.Query {
 
 func NewQueryReadClient(rows []map[string]bigquery.Value, readErr error) *Client {
 	// NOTE: if all needed functions are implemented by the fake, then a real
-	// client unnecessary.
+	// client is unnecessary.
 	return &Client{
 		rows:    rows,
 		readErr: readErr,
