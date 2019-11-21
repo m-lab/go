@@ -2,9 +2,10 @@ package bqfake_test
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
-	"strings"
+	"reflect"
 	"testing"
 	"time"
 
@@ -52,14 +53,12 @@ func TestDryRunClient(t *testing.T) {
 
 func TestNewClientErr(t *testing.T) {
 	ctx := context.Background()
-	// opts := []option.ClientOption{option.WithAPIKey("asdf"), option.WithoutAuthentication()}
+	// These options are incompatible with one another and generate an error from bigquery.NewClient.
 	opts := []option.ClientOption{option.WithAPIKey("asdf"), option.WithoutAuthentication()}
 	c, err := bqfake.NewClient(ctx, "fakeProject", opts...)
 	if err == nil {
 		c.Close()
-		t.Fatal("Should return constructing client")
-	} else if !strings.Contains(err.Error(), "constructing client") {
-		t.Fatal("Should return constructing client:", err.Error())
+		t.Fatal("Should return constructing client error")
 	}
 }
 
@@ -204,5 +203,51 @@ func TestQuery(t *testing.T) {
 	err = it.Next(struct{}{})
 	if err != iterator.Done {
 		t.Fatal("Expected iterator.Done, got", err)
+	}
+}
+
+func TestNewQueryReadClient(t *testing.T) {
+	tests := []struct {
+		name    string
+		rows    []map[string]bigquery.Value
+		readErr error
+		wantErr bool
+	}{
+		{
+			name: "success",
+			rows: []map[string]bigquery.Value{
+				{"okay": 1.234},
+			},
+		},
+		{
+			name:    "read-error",
+			readErr: fmt.Errorf("Fake read error"),
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			c := bqfake.NewQueryReadClient(tt.rows, tt.readErr)
+			q := c.Query("SELECT 'fake-query-string'")
+			it, err := q.Read(context.Background())
+			if err != nil && !tt.wantErr {
+				t.Errorf("Query().Read() error = %v", err)
+			}
+			if it == nil {
+				return
+			}
+			var row map[string]bigquery.Value
+			i := 0
+			for err := it.Next(&row); err != iterator.Done; err = it.Next(&row) {
+				if err != nil {
+					t.Errorf("Next() error = %v", err)
+					return
+				}
+				if !reflect.DeepEqual(row, tt.rows[i]) {
+					t.Errorf("UpdateSchemaDescription() schema mismatch; got %#v, want %#v", row, tt.rows[i])
+				}
+				i++
+			}
+		})
 	}
 }
