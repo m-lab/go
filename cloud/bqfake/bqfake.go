@@ -96,12 +96,28 @@ func (ds Dataset) Table(name string) bqiface.Table {
 	return t
 }
 
+// ClientConfig contains configuration for injecting result and error values.
+type ClientConfig struct {
+	QueryConfig
+}
+
+// QueryConfig contains configuration for injecting query results and error values.
+type QueryConfig struct {
+	ReadErr error
+	RowIteratorConfig
+}
+
+// RowIteratorConfig contains configuration for injecting row iteration results and error values.
+type RowIteratorConfig struct {
+	IterErr error
+	Rows    []map[string]bigquery.Value
+}
+
 // Query implements parts of bqiface.Query to allow some very basic
 // unit tests.
 type Query struct {
 	bqiface.Query
-	readErr error
-	rows    []map[string]bigquery.Value
+	config QueryConfig
 }
 
 func (q Query) SetQueryConfig(bqiface.QueryConfig) {
@@ -114,10 +130,10 @@ func (q Query) Run(context.Context) (bqiface.Job, error) {
 }
 
 func (q Query) Read(context.Context) (bqiface.RowIterator, error) {
-	if q.readErr != nil {
-		return nil, q.readErr
+	if q.config.ReadErr != nil {
+		return nil, q.config.ReadErr
 	}
-	return &RowIterator{rows: q.rows}, nil
+	return &RowIterator{config: q.config.RowIteratorConfig}, nil
 }
 
 // Job implements parts of bqiface.Job to allow some very basic
@@ -133,16 +149,21 @@ func (j Job) Wait(context.Context) (*bigquery.JobStatus, error) {
 
 type RowIterator struct {
 	bqiface.RowIterator
-	index int
-	rows  []map[string]bigquery.Value
+	config RowIteratorConfig
+	index  int
 }
 
 func (r *RowIterator) Next(dst interface{}) error {
-	if r.index >= len(r.rows) {
+	// Check config for an error.
+	if r.config.IterErr != nil {
+		return r.config.IterErr
+	}
+	// Allow an empty config to return Done.
+	if r.index >= len(r.config.Rows) {
 		return iterator.Done
 	}
 	v := dst.(*map[string]bigquery.Value)
-	*v = r.rows[r.index]
+	*v = r.config.Rows[r.index]
 	r.index++
 	return nil
 }
