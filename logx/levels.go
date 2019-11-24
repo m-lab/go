@@ -20,8 +20,8 @@ var (
 // Loggers for supported log levels.
 var (
 	DefaultFlags = log.Ldate | log.Ltime | log.Lmicroseconds | log.Lshortfile
-	Warn         = log.New(ioutil.Discard, "WARN : ", DefaultFlags)
-	Info         = log.New(ioutil.Discard, "INFO : ", DefaultFlags)
+	Warn         = log.New(ioutil.Discard, "WARN: ", DefaultFlags)
+	Info         = log.New(ioutil.Discard, "INFO: ", DefaultFlags)
 	Debug        = log.New(ioutil.Discard, "DEBUG: ", DefaultFlags)
 )
 
