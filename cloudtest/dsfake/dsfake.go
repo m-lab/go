@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"flag"
+	"fmt"
 	"log"
 	"reflect"
 	"sync"
@@ -81,7 +82,7 @@ func (c *Client) Get(ctx context.Context, key *datastore.Key, dst interface{}) (
 	if !ok {
 		return datastore.ErrNoSuchEntity
 	}
-	v.Elem().Set(o)
+	reflect.Indirect(v).Set(o)
 	return nil
 }
 
@@ -99,12 +100,16 @@ func (c *Client) Put(ctx context.Context, key *datastore.Key, src interface{}) (
 }
 
 // DumpKeys lists all keys saved in the fake client.
-func (c *Client) DumpKeys() {
+func (c *Client) DumpKeys() []datastore.Key {
 	c.lock.Lock()
 	defer c.lock.Unlock()
-	log.Println(len(c.objects), "keys")
-	for k := range c.objects {
-		log.Println("Key:", k)
+	keys := make([]datastore.Key, len(c.objects))
+	i := 0
+	for k, v := range c.objects {
+		keys[i] = k
+		i++
+		log.Output(2, fmt.Sprint(k, v))
 	}
 
+	return keys
 }
