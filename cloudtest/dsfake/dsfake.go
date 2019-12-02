@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"errors"
 	"flag"
-	"fmt"
 	"log"
 	"reflect"
 	"sync"
@@ -101,16 +100,15 @@ func (c *Client) Put(ctx context.Context, key *datastore.Key, src interface{}) (
 	return key, nil
 }
 
-// DumpKeys lists all keys saved in the fake client.
-func (c *Client) DumpKeys() []datastore.Key {
+// GetKeys lists all keys saved in the fake client.
+func (c *Client) GetKeys() []datastore.Key {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	keys := make([]datastore.Key, len(c.objects))
 	i := 0
-	for k, v := range c.objects {
+	for k := range c.objects {
 		keys[i] = k
 		i++
-		log.Output(2, fmt.Sprint(k, string(v)))
 	}
 
 	return keys

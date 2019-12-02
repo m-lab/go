@@ -60,7 +60,6 @@ func TestDSFake(t *testing.T) {
 		t.Fatal("Apparent object collision", o1b, o1)
 	}
 
-	client.DumpKeys()
 	o2.Value = "local-o2"
 	// Check that changing original object doesn't change the stored value.
 	var o2a Object
@@ -69,8 +68,7 @@ func TestDSFake(t *testing.T) {
 		t.Error("Changing local modifies persisted value", o2a.Value, "!=", "o2")
 	}
 
-	// test DumpKeys()
-	keys := client.DumpKeys()
+	keys := client.GetKeys()
 	if len(keys) != 2 {
 		t.Fatal("Should be 2 keys")
 	}
