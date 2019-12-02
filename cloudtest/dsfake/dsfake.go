@@ -5,6 +5,7 @@ package dsfake
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
@@ -38,7 +39,7 @@ var ErrNotImplemented = errors.New("Not implemented")
 type Client struct {
 	dsiface.Client // For unimplemented methods
 	lock           sync.Mutex
-	objects        map[datastore.Key]reflect.Value
+	objects        map[datastore.Key][]byte
 }
 
 // NewClient returns a fake client that satisfies dsiface.Client.
@@ -46,7 +47,7 @@ func NewClient() *Client {
 	if flag.Lookup("test.v") == nil {
 		log.Fatal("DSFakeClient should only be used in tests")
 	}
-	return &Client{objects: make(map[datastore.Key]reflect.Value, 10)}
+	return &Client{objects: make(map[datastore.Key][]byte, 10)}
 }
 
 // Close implements dsiface.Client.Close
@@ -77,13 +78,11 @@ func (c *Client) Get(ctx context.Context, key *datastore.Key, dst interface{}) (
 	}
 	c.lock.Lock()
 	defer c.lock.Unlock()
-	v := reflect.ValueOf(dst)
 	o, ok := c.objects[*key]
 	if !ok {
 		return datastore.ErrNoSuchEntity
 	}
-	reflect.Indirect(v).Set(o)
-	return nil
+	return json.Unmarshal(o, dst)
 }
 
 // Put mplements dsiface.Client.Put
@@ -92,10 +91,13 @@ func (c *Client) Put(ctx context.Context, key *datastore.Key, src interface{}) (
 	if err != nil {
 		return nil, err
 	}
+	js, err := json.Marshal(src)
+	if err != nil {
+		return nil, err
+	}
 	c.lock.Lock()
 	defer c.lock.Unlock()
-	v := reflect.ValueOf(src)
-	c.objects[*key] = reflect.Indirect(v)
+	c.objects[*key] = js
 	return key, nil
 }
 
@@ -108,7 +110,7 @@ func (c *Client) DumpKeys() []datastore.Key {
 	for k, v := range c.objects {
 		keys[i] = k
 		i++
-		log.Output(2, fmt.Sprint(k, v))
+		log.Output(2, fmt.Sprint(k, string(v)))
 	}
 
 	return keys
