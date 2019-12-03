@@ -1,48 +1,46 @@
 package logx
 
 import (
+	"bytes"
+	"log"
 	"testing"
 )
 
 func TestSetup(t *testing.T) {
 	tests := []struct {
-		name    string
-		value   string
-		wantErr bool
+		name     string
+		enable   bool
+		msg      string
+		expected string
+		wantErr  bool
 	}{
 		{
-			name:  "success",
-			value: "debug",
+			name:     "success-setup-enable",
+			msg:      "this is a test message",
+			expected: "DEBUG: this is a test message\n",
+			enable:   true,
 		},
 		{
-			name:  "success-empty-value",
-			value: "",
-		},
-		{
-			name:    "error-unsupported-option",
-			value:   "not-an-option",
-			wantErr: true,
+			name:   "success-setup-disabled",
+			enable: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			LogxLevel.Value = tt.value
+			buf := &bytes.Buffer{}
+			log.SetFlags(0)
+			log.SetOutput(buf)
+
+			LogxDebug = tt.enable
 			if err := Setup(); (err != nil) != tt.wantErr {
 				t.Errorf("Setup() error = %v, wantErr %v", err, tt.wantErr)
 			}
-		})
-	}
-}
 
-func TestLoggers(t *testing.T) {
-	debug, info, warn := Loggers()
-	if debug != Debug {
-		t.Errorf("Loggers() debug = %v, want %v", debug, Debug)
-	}
-	if info != Info {
-		t.Errorf("Loggers() info = %v, want %v", info, Info)
-	}
-	if warn != Warn {
-		t.Errorf("Loggers() warn = %v, want %v", warn, Warn)
+			Debug.Print(tt.msg)
+			got := string(buf.Bytes())
+			if got != tt.expected {
+				t.Errorf("Setup did not verify; got %q, want %q", got, tt.expected)
+			}
+		})
 	}
 }
