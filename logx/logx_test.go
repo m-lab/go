@@ -11,12 +11,9 @@ import (
 	"github.com/m-lab/go/rtx"
 )
 
-func init() {
+func TestCaptureLog(t *testing.T) {
 	// Always prepend the filename and line number.
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
-}
-
-func TestCaptureLog(t *testing.T) {
 	out, err := logx.CaptureLog(nil, func() {
 		logger := logx.NewLogEvery(nil, time.Millisecond)
 		start := time.Now()
