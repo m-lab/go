@@ -2,25 +2,28 @@ package logx
 
 import (
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"log"
+	"strconv"
 )
 
 var (
-	// LogxDebug controls whether the debug logger is enabled or not.
-	LogxDebug = false
+	// LogxDebug controls whether the debug logger is enabled or not. In almost all cases
+	// you should rely on the flag to change this value. If critical, you may change the
+	// value using LogxDebug.Set("true") or LogxDebug.Set("false").
+	LogxDebug = logxDebug(false)
 )
 
-// Debug is the package logger for debug messages. Before calling Setup(), debug messages are discarded.
+// Debug is the package logger for debug messages. Debug messages are discarded if LogxDebug is set false.
 var Debug = log.New(ioutil.Discard, "DEBUG: ", 0)
 
 func init() {
-	flag.BoolVar(&LogxDebug, "logx.debug", false, "Enable logx debug logging.")
+	flag.Var(&LogxDebug, "logx.debug", "Enable logx debug logging.")
 }
 
-// Setup should be called after flag.Parse(). If debug logging is enabled, Setup
-// configures the package loggers based on the LogxLevel value.
-func Setup() error {
+// setup configures the Debug logger output based on the LogxLevel value.
+func setup() error {
 	if LogxDebug {
 		// Set output of the debug logger to a debug writer that uses the log package.
 		Debug.SetOutput(&debugWriter{})
@@ -28,6 +31,24 @@ func Setup() error {
 		Debug.SetOutput(ioutil.Discard)
 	}
 	return nil
+}
+
+// logxDebug is a bool flag that runs `setup` when the value is set.
+type logxDebug bool
+
+func (d logxDebug) Get() bool {
+	return bool(d)
+}
+
+func (d *logxDebug) Set(s string) error {
+	v, err := strconv.ParseBool(s)
+	*d = logxDebug(v)
+	setup()
+	return err
+}
+
+func (d logxDebug) String() string {
+	return fmt.Sprintf("%t", d)
 }
 
 // debugWriter implements the io.Writer interface.

@@ -9,7 +9,7 @@ import (
 func TestSetup(t *testing.T) {
 	tests := []struct {
 		name     string
-		enable   bool
+		enable   string
 		msg      string
 		expected string
 		wantErr  bool
@@ -18,11 +18,11 @@ func TestSetup(t *testing.T) {
 			name:     "success-setup-enable",
 			msg:      "this is a test message",
 			expected: "DEBUG: this is a test message\n",
-			enable:   true,
+			enable:   "true",
 		},
 		{
 			name:   "success-setup-disabled",
-			enable: false,
+			enable: "false",
 		},
 	}
 	for _, tt := range tests {
@@ -31,10 +31,7 @@ func TestSetup(t *testing.T) {
 			log.SetFlags(0)
 			log.SetOutput(buf)
 
-			LogxDebug = tt.enable
-			if err := Setup(); (err != nil) != tt.wantErr {
-				t.Errorf("Setup() error = %v, wantErr %v", err, tt.wantErr)
-			}
+			LogxDebug.Set(tt.enable)
 
 			Debug.Print(tt.msg)
 			got := string(buf.Bytes())
