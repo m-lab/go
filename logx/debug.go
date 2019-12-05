@@ -23,14 +23,13 @@ func init() {
 }
 
 // setup configures the Debug logger output based on the LogxLevel value.
-func setup() error {
+func setup() {
 	if LogxDebug {
 		// Set output of the debug logger to a debug writer that uses the log package.
 		Debug.SetOutput(&debugWriter{})
 	} else {
 		Debug.SetOutput(ioutil.Discard)
 	}
-	return nil
 }
 
 // logxDebug is a bool flag that runs `setup` when the value is set.
