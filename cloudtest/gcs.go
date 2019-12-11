@@ -62,7 +62,6 @@ func (bh BucketHandle) Attrs(ctx context.Context) (*storage.BucketAttrs, error) 
 
 // Objects implements stiface.BucketHandle.Objects
 func (bh BucketHandle) Objects(ctx context.Context, q *storage.Query) stiface.ObjectIterator {
-	// TODO - should check if ctx has expired?
 	obj := make([]*storage.ObjectAttrs, 0, len(bh.ObjAttrs))
 	dir := ""
 	for i := range bh.ObjAttrs {
@@ -83,11 +82,12 @@ func (bh BucketHandle) Objects(ctx context.Context, q *storage.Query) stiface.Ob
 		obj = append(obj, bh.ObjAttrs[i])
 	}
 	n := 0
-	return objIt{next: &n, objects: obj}
+	return objIt{ctx: ctx, next: &n, objects: obj}
 }
 
 // objIt provides a fake stiface.ObjectIterator
 type objIt struct {
+	ctx context.Context
 	stiface.ObjectIterator
 	objects []*storage.ObjectAttrs
 	next    *int
@@ -95,6 +95,9 @@ type objIt struct {
 
 // Next implements stiface.ObjectIterator.Next
 func (it objIt) Next() (*storage.ObjectAttrs, error) {
+	if it.ctx.Err() != nil {
+		return nil, it.ctx.Err()
+	}
 	if *it.next >= len(it.objects) {
 		return nil, iterator.Done
 	}
