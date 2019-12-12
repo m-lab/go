@@ -32,7 +32,7 @@ func TestDateTime_Set(t *testing.T) {
 			wantFormat: "2019-03-30T12:34:56",
 		},
 		{
-			name:       "success-datetime-seconds",
+			name:       "success-datetime-milliseconds",
 			arg:        "1553949296001",
 			wantTime:   time.Date(2019, 3, 30, 12, 34, 56, 1000000, time.UTC),
 			wantFormat: "1553949296001",
