@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/araddon/dateparse"
-	"src/github.com/m-lab/go/rtx"
+	"github.com/m-lab/go/rtx"
 )
 
 // ErrBadTimeFormat is returned when failing to parse a Time value.
