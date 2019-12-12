@@ -17,22 +17,21 @@ var timeFormat = "15:04:05"
 // DateTime is a flag type for accepting date parameters.
 type DateTime struct {
 	time.Time
-	Raw string // The original string parameter.
 }
 
-// Get retrieves the current date value contained in the flag as a string.
+// Get retrieves the current date value as a string.
 func (t DateTime) Get() string {
-	return t.Raw
+	return t.Time.String()
 }
 
 // Set parses and assigns the DateTime value. DateTime accepts all formats
 // supported by the "github.com/araddon/dateparse" package.
 func (t *DateTime) Set(s string) error {
-	(*t).Raw = s
 	_, err := dateparse.ParseStrict(s)
 	if err != nil {
 		return err
 	}
+	// Enforce UTC times.
 	f, err := dateparse.ParseIn(s, time.UTC)
 	// If ParseStrict succeeds, then ParseIn is always expected to succeed.
 	rtx.Must(err, "Failed to infer format from %q", s)
@@ -40,11 +39,7 @@ func (t *DateTime) Set(s string) error {
 	return nil
 }
 
-// String reports the Raw value used to derive the DateTime value. The raw value
-// is provided because not all formats supported by parsedate are supported by
-// time.Format (e.g. unix timestamps). The DateTime type relies on
-// dateparse.ParseStrict errors to enforce equivalence between the .Raw and
-// .Time values.
+// String reports the parsed time as a string using time.Time.String().
 func (t DateTime) String() string {
 	return t.Get()
 }

@@ -17,25 +17,25 @@ func TestDateTime_Set(t *testing.T) {
 			name:       "success-date",
 			arg:        "2019-03-30",
 			wantTime:   time.Date(2019, 3, 30, 0, 0, 0, 0, time.UTC),
-			wantFormat: "2019-03-30",
+			wantFormat: "2019-03-30 00:00:00 +0000 UTC",
 		},
 		{
 			name:       "success-date-ambiguous",
 			arg:        "2019-03-01",
 			wantTime:   time.Date(2019, 3, 1, 0, 0, 0, 0, time.UTC),
-			wantFormat: "2019-03-01",
+			wantFormat: "2019-03-01 00:00:00 +0000 UTC",
 		},
 		{
 			name:       "success-datetime",
 			arg:        "2019-03-30T12:34:56",
 			wantTime:   time.Date(2019, 3, 30, 12, 34, 56, 0, time.UTC),
-			wantFormat: "2019-03-30T12:34:56",
+			wantFormat: "2019-03-30 12:34:56 +0000 UTC",
 		},
 		{
 			name:       "success-datetime-milliseconds",
 			arg:        "1553949296001",
 			wantTime:   time.Date(2019, 3, 30, 12, 34, 56, 1000000, time.UTC),
-			wantFormat: "1553949296001",
+			wantFormat: "2019-03-30 12:34:56.001 +0000 UTC",
 		},
 		{
 			name:    "error-bad-date",
@@ -63,6 +63,15 @@ func TestDateTime_Set(t *testing.T) {
 			}
 			if f.String() != tt.wantFormat {
 				t.Errorf("DateTime.String() format not equal; got = %q, want %q", f.String(), tt.wantFormat)
+			}
+			// Verify that the formatted string can be parsed an equals the original.
+			f2 := &DateTime{}
+			err := f2.Set(f.String())
+			if err != nil {
+				t.Errorf("DateTime.Set() with formatted time failed; got = %q, want nil", err)
+			}
+			if !f2.Time.Equal(f.Time) {
+				t.Errorf("DateTime.Set() with formatted time got different time! got = %q, want %q", f2.Time, f.Time)
 			}
 		})
 	}
