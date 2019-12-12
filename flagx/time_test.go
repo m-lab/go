@@ -1,7 +1,6 @@
 package flagx
 
 import (
-	"fmt"
 	"testing"
 	"time"
 )
@@ -65,9 +64,6 @@ func TestDateTime_Set(t *testing.T) {
 			if f.String() != tt.wantFormat {
 				t.Errorf("DateTime.String() format not equal; got = %q, want %q", f.String(), tt.wantFormat)
 			}
-			f2 := &DateTime{}
-			f2.Set(f.String())
-			fmt.Println(f2.String())
 		})
 	}
 }
