@@ -66,13 +66,27 @@ func newTimer(c Config) *time.Timer {
 // NewTimer constructs a single-shot time.Timer that, if repeatedly used to
 // construct a series of timers, will ensure that the resulting events conform
 // to the memoryless distribution. For more on how this could and should be
-// used, see the comments to Ticker.
+// used, see the comments to Ticker. It is intended to be a drop-in replacement
+// for time.NewTimer.
 func NewTimer(c Config) (*time.Timer, error) {
 	if err := c.Errors(); err != nil {
 		return nil, err
 	}
 
 	return newTimer(c), nil
+}
+
+// AfterFunc constructs a single-shot time.Timer that, if repeatedly used to
+// construct a series of timers, will ensure that the resulting events conform
+// to the memoryless distribution. For more on how this could and should be
+// used, see the comments to Ticker. It is intended to be a drop-in replacement
+// for time.AfterFunc.
+func AfterFunc(c Config, f func()) (*time.Timer, error) {
+	if err := c.Errors(); err != nil {
+		return nil, err
+	}
+
+	return time.AfterFunc(c.waittime(), f), nil
 }
 
 // Ticker is a struct that waits a config.Expected amount of time on average
