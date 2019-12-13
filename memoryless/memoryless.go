@@ -177,9 +177,6 @@ func (t *Ticker) Stop() {
 	t.cancel()
 }
 
-// MakeTicker is a deprecated alias for NewTicker
-var MakeTicker = NewTicker
-
 // NewTicker creates a new memoryless ticker. The returned struct is compatible
 // with the time.Ticker struct interface, and everywhere you use a time.Ticker,
 // you can use a memoryless.Ticker.
@@ -203,7 +200,7 @@ func NewTicker(ctx context.Context, config Config) (*Ticker, error) {
 // between function calls. It is a convenience function for code that does not
 // want to use the channel interface.
 func Run(ctx context.Context, f func(), c Config) error {
-	ticker, err := MakeTicker(ctx, c)
+	ticker, err := NewTicker(ctx, c)
 	if err != nil {
 		return err
 	}
