@@ -44,10 +44,9 @@ func (c Config) waittime() time.Duration {
 	return wt
 }
 
-// Errors is used to check whether the config contrains sensible values. It
-// return an error if the config makes no mathematical sense, and nil if
-// everything is okay.
-func (c Config) Errors() error {
+// Check whether the config contrains sensible values. It return an error if the
+// config makes no mathematical sense, and nil if everything is okay.
+func (c Config) Check() error {
 	if !(0 <= c.Min && c.Min <= c.Expected && (c.Max == 0 || c.Expected <= c.Max)) {
 		return fmt.Errorf(
 			"The arguments to Run make no sense. It should be true that Min <= Expected <= Max (or Min <= Expected and Max is 0), "+
@@ -69,7 +68,7 @@ func newTimer(c Config) *time.Timer {
 // used, see the comments to Ticker. It is intended to be a drop-in replacement
 // for time.NewTimer.
 func NewTimer(c Config) (*time.Timer, error) {
-	if err := c.Errors(); err != nil {
+	if err := c.Check(); err != nil {
 		return nil, err
 	}
 
@@ -82,7 +81,7 @@ func NewTimer(c Config) (*time.Timer, error) {
 // used, see the comments to Ticker. It is intended to be a drop-in replacement
 // for time.AfterFunc.
 func AfterFunc(c Config, f func()) (*time.Timer, error) {
-	if err := c.Errors(); err != nil {
+	if err := c.Check(); err != nil {
 		return nil, err
 	}
 
@@ -185,7 +184,7 @@ var MakeTicker = NewTicker
 // with the time.Ticker struct interface, and everywhere you use a time.Ticker,
 // you can use a memoryless.Ticker.
 func NewTicker(ctx context.Context, config Config) (*Ticker, error) {
-	if err := config.Errors(); err != nil {
+	if err := config.Check(); err != nil {
 		return nil, err
 	}
 	c := make(chan time.Time)

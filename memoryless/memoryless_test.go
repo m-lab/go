@@ -22,7 +22,7 @@ func TestBadArgs(t *testing.T) {
 		{Expected: 2, Max: 1},
 		{Min: 2, Expected: 1},
 	} {
-		err := c.Errors()
+		err := c.Check()
 		if err == nil {
 			t.Errorf("Should have had an error with config %+v", c)
 		}
