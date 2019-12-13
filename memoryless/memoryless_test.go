@@ -2,6 +2,7 @@ package memoryless_test
 
 import (
 	"context"
+	"sync"
 	"testing"
 	"time"
 
@@ -9,7 +10,7 @@ import (
 	"github.com/m-lab/go/rtx"
 )
 
-func TestRunWithBadArgs(t *testing.T) {
+func TestBadArgs(t *testing.T) {
 	f := func() { panic("should not be called") }
 	for _, c := range []memoryless.Config{
 		{Expected: -1},
@@ -21,9 +22,25 @@ func TestRunWithBadArgs(t *testing.T) {
 		{Expected: 2, Max: 1},
 		{Min: 2, Expected: 1},
 	} {
-		err := memoryless.Run(context.Background(), f, c)
+		err := c.Check()
 		if err == nil {
-			t.Errorf("Should have had an error running config %v", c)
+			t.Errorf("Should have had an error with config %+v", c)
+		}
+		err = memoryless.Run(context.Background(), f, c)
+		if err == nil {
+			t.Errorf("Should have had an error running config %+v", c)
+		}
+		_, err = memoryless.NewTicker(context.Background(), c)
+		if err == nil {
+			t.Errorf("Should have had an error running config %+v", c)
+		}
+		_, err = memoryless.NewTimer(c)
+		if err == nil {
+			t.Errorf("Should have had an error running config %+v", c)
+		}
+		_, err = memoryless.AfterFunc(c, func() {})
+		if err == nil {
+			t.Errorf("Should have had an error running config %+v", c)
 		}
 	}
 }
@@ -64,7 +81,7 @@ func TestRunForever(t *testing.T) {
 func TestLongRunningFunctions(t *testing.T) {
 	// Make a ticker that fires many many times.
 	wt := time.Duration(1 * time.Microsecond)
-	ticker, err := memoryless.MakeTicker(context.Background(), memoryless.Config{Expected: wt, Min: wt, Max: wt})
+	ticker, err := memoryless.NewTicker(context.Background(), memoryless.Config{Expected: wt, Min: wt, Max: wt})
 	rtx.Must(err, "Could not make ticker")
 	time.Sleep(time.Millisecond)
 	ticker.Stop()
@@ -77,5 +94,60 @@ func TestLongRunningFunctions(t *testing.T) {
 	}
 	if count > 0 {
 		t.Errorf("There should have been nothing in the channel, but instead there were %d items", count)
+	}
+}
+
+func TestNewTimer(t *testing.T) {
+	wt := time.Duration(1 * time.Millisecond)
+	start := time.Now()
+	timer, err := memoryless.NewTimer(memoryless.Config{Expected: wt, Min: wt, Max: wt})
+	rtx.Must(err, "Could not make timer")
+	waitedTime := <-timer.C
+	end := time.Now()
+	diff := end.Sub(start)
+	if diff < 1*time.Millisecond {
+		t.Error("Did not wait at least 1ms:", diff)
+	}
+	if diff > 1*time.Second {
+		// This check is potentially flaky if a cloud machine turns a 1ms sleep
+		// into a 1s sleep for some reason. This seems unlikely, but every other
+		// check in this function is a mathematical guarantee, so noting the
+		// distant potential for flakiness with this check is a good idea.
+		t.Error("Waited WAY more than 1ms:", diff)
+	}
+	if start.After(waitedTime) || end.Before(waitedTime) {
+		t.Error("It should be:", start, "<=", waitedTime, "<=", end)
+	}
+}
+
+func TestAfterFunc(t *testing.T) {
+	wt := time.Duration(1 * time.Millisecond)
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+	start := time.Now()
+	var funcTime time.Time
+	_, err := memoryless.AfterFunc(
+		memoryless.Config{Expected: wt, Min: wt, Max: wt},
+		func() {
+			funcTime = time.Now()
+			wg.Done()
+		},
+	)
+	rtx.Must(err, "Could not make timer")
+	wg.Wait()
+	end := time.Now()
+	diff := end.Sub(start)
+	if diff < 1*time.Millisecond {
+		t.Error("Did not wait at least 1ms:", diff)
+	}
+	if diff > 1*time.Second {
+		// This check is potentially flaky if a cloud machine turns a 1ms sleep
+		// into a 1s sleep for some reason. This seems unlikely, but every other
+		// check in this function is a mathematical guarantee, so noting the
+		// distant potential for flakiness with this check is a good idea.
+		t.Error("Waited WAY more than 1ms:", diff)
+	}
+	if start.After(funcTime) || end.Before(funcTime) {
+		t.Error("It should be:", start, "<=", funcTime, "<=", end)
 	}
 }
