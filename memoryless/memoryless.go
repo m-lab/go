@@ -44,6 +44,37 @@ func (c Config) waittime() time.Duration {
 	return wt
 }
 
+// Errors is used to check whether the config contrains sensible values. It
+// return an error if the config makes no mathematical sense, and nil if
+// everything is okay.
+func (c Config) Errors() error {
+	if !(0 <= c.Min && c.Min <= c.Expected && (c.Max == 0 || c.Expected <= c.Max)) {
+		return fmt.Errorf(
+			"The arguments to Run make no sense. It should be true that Min <= Expected <= Max (or Min <= Expected and Max is 0), "+
+				"but that is not true for Min(%v) Expected(%v) Max(%v).",
+			c.Min, c.Expected, c.Max)
+	}
+	return nil
+}
+
+// newTimer constructs and returns a timer. This function assumes that the
+// config has no errors.
+func newTimer(c Config) *time.Timer {
+	return time.NewTimer(c.waittime())
+}
+
+// NewTimer constructs a single-shot time.Timer that, if repeatedly used to
+// construct a series of timers, will ensure that the resulting events conform
+// to the memoryless distribution. For more on how this could and should be
+// used, see the comments to Ticker.
+func NewTimer(c Config) (*time.Timer, error) {
+	if err := c.Errors(); err != nil {
+		return nil, err
+	}
+
+	return newTimer(c), nil
+}
+
 // Ticker is a struct that waits a config.Expected amount of time on average
 // between sends down the channel C. It has the same interface and requirements
 // as time.Ticker. Every Ticker created must have its Stop() method called or it
@@ -85,13 +116,38 @@ type Ticker struct {
 	cancel    func()
 }
 
+func (t *Ticker) singleIteration(ctx context.Context) {
+	timer := newTimer(t.config)
+	defer timer.Stop()
+	// Wait until the timer is done or the context is canceled. If both conditions
+	// are true, which case gets called is unspecified.
+	select {
+	case <-ctx.Done():
+		// Please don't put code here that assumes that this code path will
+		// definitely execute if the context is done. select {} doesn't promise that
+		// multiple channels will get selected with equal probability, which means
+		// that it could be true that the timer is done AND the context is canceled,
+		// and we have no guarantee that in that case the canceled context case will
+		// be the one that is selected.
+	case <-timer.C:
+	}
+	// Just like time.Ticker, writes to the channel are non-blocking. If a user of
+	// this module can't keep up with the timer they set, that's on them. There
+	// are some potential pathological cases associated with queueing events in
+	// the channel, and we want to avoid them.
+	select {
+	case t.writeChan <- time.Now():
+	default:
+	}
+}
+
 func (t *Ticker) runTicker(ctx context.Context) {
 	// No matter what, when this function exits the channel should never be written to again.
 	defer close(t.writeChan)
 
 	if t.config.Once {
 		if ctx.Err() == nil {
-			t.writeChan <- time.Now()
+			t.singleIteration(ctx)
 		}
 		return
 	}
@@ -99,32 +155,7 @@ func (t *Ticker) runTicker(ctx context.Context) {
 	// When Done() is not closed and the Deadline has not been exceeded, the error
 	// is nil.
 	for ctx.Err() == nil {
-		timer := time.NewTimer(t.config.waittime())
-		// Just like time.Ticker, writes to the channel are non-blocking. If a user of
-		// this module can't keep up with the timer they set, that's on them. There
-		// are some potential pathological cases associated with queueing events in
-		// the channel, and we want to avoid them.
-		select {
-		case t.writeChan <- time.Now():
-		default:
-		}
-		// Wait until the timer is done or the context is canceled. If both conditions
-		// are true, which case gets called is unspecified.
-		select {
-		case <-ctx.Done():
-			// Clean up the timer. The timer will expire on its own and be garbage
-			// collected if we don't explicitly stop it here, so this is not strictly
-			// required, but it is nice to do.
-			timer.Stop()
-			// Please don't put code here that assumes that this code path will
-			// definitely execute if the context is done. select {} doesn't promise that
-			// multiple channels will get selected with equal probability, which means
-			// that if the channel write takes long enough and config.Max is low enough,
-			// then it could be true that the timer is done AND the context is canceled,
-			// and we have no guarantee that in that case the canceled context case will
-			// be the one that is selected.
-		case <-timer.C:
-		}
+		t.singleIteration(ctx)
 	}
 }
 
@@ -133,15 +164,15 @@ func (t *Ticker) Stop() {
 	t.cancel()
 }
 
-// MakeTicker creates a new memoryless ticker. The returned struct is compatible
+// MakeTicker is a deprecated alias for NewTicker
+var MakeTicker = NewTicker
+
+// NewTicker creates a new memoryless ticker. The returned struct is compatible
 // with the time.Ticker struct interface, and everywhere you use a time.Ticker,
 // you can use a memoryless.Ticker.
-func MakeTicker(ctx context.Context, config Config) (*Ticker, error) {
-	if !(0 <= config.Min && config.Min <= config.Expected && (config.Max == 0 || config.Expected <= config.Max)) {
-		return nil, fmt.Errorf(
-			"The arguments to Run make no sense. It should be true that Min <= Expected <= Max (or Min <= Expected and Max is 0), "+
-				"but that is not true for Min(%v) Expected(%v) Max(%v).",
-			config.Min, config.Expected, config.Max)
+func NewTicker(ctx context.Context, config Config) (*Ticker, error) {
+	if err := config.Errors(); err != nil {
+		return nil, err
 	}
 	c := make(chan time.Time)
 	ctx, cancel := context.WithCancel(ctx)
