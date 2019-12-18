@@ -22,11 +22,11 @@ func TestPretty(t *testing.T) {
 		ignored: func() error { return nil },
 	}
 	expected := `{
-    "I": 100,
-    "S": "test",
-    "M": {
-        "a": "b"
-    }
+  "I": 100,
+  "S": "test",
+  "M": {
+    "a": "b"
+  }
 }`
 	Print(s)
 	v := Sprint(s)
