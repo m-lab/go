@@ -12,7 +12,7 @@ func Print(v interface{}) (int, error) {
 
 // Sprint formats v and returns a string.
 func Sprint(v interface{}) string {
-	d, err := json.MarshalIndent(v, "", "    ")
+	d, err := json.MarshalIndent(v, "", "  ")
 	if err != nil {
 		return err.Error()
 	}
