@@ -7,15 +7,56 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"reflect"
 	"testing"
 	"time"
 
 	"cloud.google.com/go/storage"
 	"github.com/m-lab/go/rtx"
+	"google.golang.org/api/iterator"
 )
 
 func init() {
 	log.SetOutput(ioutil.Discard)
+}
+
+type fakeIter interface {
+	itNext(it *storage.ObjectIterator) (*storage.ObjectAttrs, error)
+}
+
+type errIter struct {
+	i int
+}
+
+func (e *errIter) itNext(it *storage.ObjectIterator) (*storage.ObjectAttrs, error) {
+	if e.i > 0 {
+		return nil, fmt.Errorf("Fake error")
+	}
+	e.i++
+	return it.Next()
+}
+
+type iterDone struct {
+	i      int
+	prefix string
+}
+
+type anyIter struct{}
+
+func (a *anyIter) itNext(it *storage.ObjectIterator) (*storage.ObjectAttrs, error) {
+	return it.Next()
+}
+
+func (d *iterDone) itNext(it *storage.ObjectIterator) (*storage.ObjectAttrs, error) {
+	if d.i > 0 {
+		return nil, iterator.Done
+	}
+	d.i++
+	attr := &storage.ObjectAttrs{
+		Name:   "",
+		Prefix: d.prefix,
+	}
+	return attr, nil
 }
 
 func TestBucket_Walk(t *testing.T) {
@@ -27,18 +68,10 @@ func TestBucket_Walk(t *testing.T) {
 		return nil
 	}
 
-	i := 0
-	itNextErr := func(it *storage.ObjectIterator) (*storage.ObjectAttrs, error) {
-		if i > 0 {
-			return nil, fmt.Errorf("Fake error")
-		}
-		i = i + 1
-		return it.Next()
-	}
-
 	tests := []struct {
 		name    string
 		prefix  string
+		iter    fakeIter
 		wantErr bool
 	}{
 		{
@@ -48,6 +81,7 @@ func TestBucket_Walk(t *testing.T) {
 		{
 			name:    "okay-err",
 			prefix:  "t1",
+			iter:    &errIter{},
 			wantErr: true,
 		},
 	}
@@ -56,8 +90,8 @@ func TestBucket_Walk(t *testing.T) {
 		defer cancel()
 		bucket := NewBucket(client.Bucket("m-lab-go-storagex-mlab-testing"))
 		t.Run(tt.name, func(t *testing.T) {
-			if tt.wantErr {
-				itNext = itNextErr
+			if tt.iter != nil {
+				bucket.itNext = tt.iter.itNext
 			}
 			if err := bucket.Walk(ctx, tt.prefix, visit); (err != nil) != tt.wantErr {
 				t.Errorf("walk() error = %v, wantErr %v", err, tt.wantErr)
@@ -72,7 +106,7 @@ func (f *errorWriter) Write(p []byte) (n int, err error) {
 	return 0, fmt.Errorf("Fake write error")
 }
 
-func TestObjectImpl_Copy(t *testing.T) {
+func TestObject_Copy(t *testing.T) {
 	ctx := context.Background()
 	client, err := storage.NewClient(ctx)
 	rtx.Must(err, "Failed to create client")
@@ -124,7 +158,7 @@ func TestObjectImpl_Copy(t *testing.T) {
 	}
 }
 
-func TestObjectImpl_LocalName(t *testing.T) {
+func TestObject_LocalName(t *testing.T) {
 	// An empty client is sufficient, since we make no network operations.
 	client := storage.Client{}
 
@@ -155,6 +189,50 @@ func TestObjectImpl_LocalName(t *testing.T) {
 			}
 			if got := o.LocalName(); got != tt.want {
 				t.Errorf("Object.LocalName() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestBucket_Dirs(t *testing.T) {
+	ctx := context.Background()
+	client, err := storage.NewClient(ctx)
+	rtx.Must(err, "Failed to create client")
+	tests := []struct {
+		name    string
+		b       *storage.BucketHandle
+		iter    fakeIter
+		want    []string
+		wantErr bool
+	}{
+		{
+			name: "success",
+			iter: &iterDone{prefix: "foo/"},
+			b:    client.Bucket("m-lab-go-storagex-mlab-testing"),
+			want: []string{"foo/"},
+		},
+		{
+			name:    "error-x",
+			b:       client.Bucket("m-lab-go-storagex-mlab-testing"),
+			iter:    &errIter{},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			b := &Bucket{
+				BucketHandle: tt.b,
+				itNext:       tt.iter.itNext,
+			}
+			ctx := context.Background()
+			got, err := b.Dirs(ctx, "")
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Bucket.Dirs() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Bucket.Dirs() = %v, want %v", got, tt.want)
 			}
 		})
 	}
