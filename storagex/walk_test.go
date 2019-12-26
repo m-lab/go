@@ -20,10 +20,12 @@ func init() {
 	log.SetOutput(ioutil.Discard)
 }
 
+// fakeIter is the common interface for the implemented iter types below.
 type fakeIter interface {
 	itNext(it *storage.ObjectIterator) (*storage.ObjectAttrs, error)
 }
 
+// errIter allows injecting iteration errors.
 type errIter struct {
 	i int
 }
@@ -36,15 +38,10 @@ func (e *errIter) itNext(it *storage.ObjectIterator) (*storage.ObjectAttrs, erro
 	return it.Next()
 }
 
+// iterDone allows injecting a single synthetic "directory" object.
 type iterDone struct {
 	i      int
 	prefix string
-}
-
-type anyIter struct{}
-
-func (a *anyIter) itNext(it *storage.ObjectIterator) (*storage.ObjectAttrs, error) {
-	return it.Next()
 }
 
 func (d *iterDone) itNext(it *storage.ObjectIterator) (*storage.ObjectAttrs, error) {
@@ -207,8 +204,8 @@ func TestBucket_Dirs(t *testing.T) {
 	}{
 		{
 			name: "success",
-			iter: &iterDone{prefix: "foo/"},
 			b:    client.Bucket("m-lab-go-storagex-mlab-testing"),
+			iter: &iterDone{prefix: "foo/"},
 			want: []string{"foo/"},
 		},
 		{
