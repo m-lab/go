@@ -280,9 +280,9 @@ func UpdateSchemaDescription(schema bigquery.Schema, docs SchemaDoc) error {
 				// This is not an error, the field simply doesn't have extra description.
 				return nil
 			}
-			if field.Description != "" {
-				log.Printf("WARNING: Overwriting existing description for %q: %q",
-					field.Name, field.Description)
+			if field.Description != "" && field.Description != d["Description"] {
+				log.Printf("WARNING: Overwriting existing description for %q: %q vs %q",
+					field.Name, field.Description, d["Description"])
 			}
 			field.Description = d["Description"]
 			return nil
