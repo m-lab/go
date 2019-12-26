@@ -3,11 +3,9 @@ package storagex
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"log"
 	"path"
-	"regexp"
 	"strings"
 
 	"cloud.google.com/go/storage"
@@ -66,44 +64,8 @@ func (b *Bucket) Walk(ctx context.Context, pathPrefix string, visit func(o *Obje
 	return walk(ctx, b, pathPrefix, pathPrefix, visit)
 }
 
-// WalkIf visits each GCS path object under pathRegex and calls visit with each.
-func (b *Bucket) WalkIf(ctx context.Context, pathRegex string, visit func(o *Object) error) error {
-	return walkIf(ctx, b, pathRegex, "", visit)
-}
-
 var itNext = func(it *storage.ObjectIterator) (*storage.ObjectAttrs, error) {
 	return it.Next()
-}
-
-func walkIf(ctx context.Context, bucket *Bucket, pathRegex, rootPrefix string, visit func(o *Object) error) error {
-	it := bucket.Objects(ctx, &storage.Query{Prefix: rootPrefix, Delimiter: "/"})
-	for {
-		attr, err := itNext(it)
-		if err == iterator.Done {
-			return nil
-		}
-		if err != nil {
-			log.Println("failed to list bucket:", err)
-			return err
-		}
-		fmt.Println("prefix", attr.Prefix)
-		m, err := regexp.MatchString(pathRegex, attr.Prefix)
-		if m {
-			// We found an object.
-			fmt.Println("no name", attr.Name, attr.Prefix)
-			visit(&Object{ObjectHandle: bucket.Object(attr.Prefix), prefix: rootPrefix})
-			err = walkIf(ctx, bucket, pathRegex, attr.Prefix, visit)
-			if err != nil {
-				return err
-			}
-		} // else if !strings.HasSuffix(attr.Name, "/") {
-		// Pseudo-directory entries have no name.
-		// fmt.Println("no suffix", attr.Name, attr.Prefix)
-		// visit(&Object{ObjectHandle: bucket.Object(attr.Prefix), prefix: rootPrefix})
-		// } else {
-		// fmt.Println("else", attr.Name, attr.Prefix)
-		// }
-	}
 }
 
 // walk recursively iterates over every GCS Object in the given bucket whose
@@ -132,6 +94,7 @@ func walk(ctx context.Context, bucket *Bucket, prefix, rootPrefix string, visit 
 	}
 }
 
+// ListDirs returns a slice of strings naming directories found at rootPrefix.
 func ListDirs(ctx context.Context, bucket *Bucket, rootPrefix string) ([]string, error) {
 	var ret []string
 	it := bucket.Objects(ctx, &storage.Query{Prefix: rootPrefix, Delimiter: "/"})
