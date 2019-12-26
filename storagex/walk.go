@@ -51,11 +51,19 @@ func (o *Object) Copy(ctx context.Context, w io.Writer) error {
 // Bucket extends storage.BucketHandle operations.
 type Bucket struct {
 	*storage.BucketHandle
+
+	// itNext allows iterator injection for unit tests.
+	itNext func(it *storage.ObjectIterator) (*storage.ObjectAttrs, error)
 }
 
 // NewBucket creates a new Bucket.
 func NewBucket(b *storage.BucketHandle) *Bucket {
-	return &Bucket{BucketHandle: b}
+	return &Bucket{
+		BucketHandle: b,
+		itNext: func(it *storage.ObjectIterator) (*storage.ObjectAttrs, error) {
+			return it.Next()
+		},
+	}
 }
 
 // Walk visits each GCS object under pathPrefix and calls visit with every object. The given
@@ -64,16 +72,12 @@ func (b *Bucket) Walk(ctx context.Context, pathPrefix string, visit func(o *Obje
 	return walk(ctx, b, pathPrefix, pathPrefix, visit)
 }
 
-var itNext = func(it *storage.ObjectIterator) (*storage.ObjectAttrs, error) {
-	return it.Next()
-}
-
 // walk recursively iterates over every GCS Object in the given bucket whose
 // names begin with prefix. Each Object is passed to `visit`.
 func walk(ctx context.Context, bucket *Bucket, prefix, rootPrefix string, visit func(o *Object) error) error {
 	it := bucket.Objects(ctx, &storage.Query{Prefix: prefix, Delimiter: "/"})
 	for {
-		attr, err := itNext(it)
+		attr, err := bucket.itNext(it)
 		if err == iterator.Done {
 			return nil
 		}
@@ -94,12 +98,13 @@ func walk(ctx context.Context, bucket *Bucket, prefix, rootPrefix string, visit 
 	}
 }
 
-// ListDirs returns a slice of strings naming directories found at rootPrefix.
-func ListDirs(ctx context.Context, bucket *Bucket, rootPrefix string) ([]string, error) {
+// Dirs returns a slice of strings naming directories found at Prefix. Note: the
+// root starts at "" (empty string) not "/".
+func (b *Bucket) Dirs(ctx context.Context, prefix string) ([]string, error) {
 	var ret []string
-	it := bucket.Objects(ctx, &storage.Query{Prefix: rootPrefix, Delimiter: "/"})
+	it := b.Objects(ctx, &storage.Query{Prefix: prefix, Delimiter: "/"})
 	for {
-		attr, err := itNext(it)
+		attr, err := b.itNext(it)
 		if err == iterator.Done {
 			return ret, nil
 		}
@@ -107,7 +112,7 @@ func ListDirs(ctx context.Context, bucket *Bucket, rootPrefix string) ([]string,
 			log.Println("failed to list bucket:", err)
 			return nil, err
 		}
-		if strings.HasSuffix(attr.Prefix, "/") {
+		if attr.Name == "" && strings.HasSuffix(attr.Prefix, "/") {
 			ret = append(ret, attr.Prefix)
 		}
 	}
