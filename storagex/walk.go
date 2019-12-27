@@ -16,6 +16,7 @@ import (
 // generated during a Bucket.Walk.
 type Object struct {
 	*storage.ObjectHandle
+	*storage.ObjectAttrs
 	prefix string
 }
 
@@ -93,7 +94,11 @@ func walk(ctx context.Context, bucket *Bucket, prefix, rootPrefix string, visit 
 			}
 		} else if !strings.HasSuffix(attr.Name, "/") {
 			// We found an object.
-			visit(&Object{ObjectHandle: bucket.Object(attr.Name), prefix: rootPrefix})
+			visit(&Object{
+				ObjectHandle: bucket.Object(attr.Name),
+				ObjectAttrs:  attr,
+				prefix:       rootPrefix,
+			})
 		}
 	}
 }
