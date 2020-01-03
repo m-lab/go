@@ -100,6 +100,7 @@ func TestGetTableStatsMock(t *testing.T) {
 	json.Unmarshal([]byte(wantTableMetadata), &want)
 
 	stats.ETag = "" // Ignore this field for comparison.
+	stats.Location = ""
 	if diff := deep.Equal(*stats, want); diff != nil {
 		t.Error(diff)
 	}
