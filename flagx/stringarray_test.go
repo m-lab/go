@@ -4,6 +4,7 @@ import (
 	"flag"
 	"testing"
 
+	"github.com/go-test/deep"
 	"github.com/m-lab/go/flagx"
 )
 
@@ -11,16 +12,25 @@ func TestStringArray(t *testing.T) {
 	tests := []struct {
 		name string
 		args []string
+		expt flagx.StringArray
 		repr string
 	}{
 		{
 			name: "okay",
 			args: []string{"a", "b"},
+			expt: flagx.StringArray{"a", "b"},
 			repr: `[]string{"a", "b"}`,
+		},
+		{
+			name: "okay-split-commas",
+			args: []string{"a", "b", "c,d"},
+			expt: flagx.StringArray{"a", "b", "c", "d"},
+			repr: `[]string{"a", "b", "c", "d"}`,
 		},
 		{
 			name: "empty",
 			args: []string{},
+			expt: flagx.StringArray{},
 			repr: `[]string{}`,
 		},
 	}
@@ -33,11 +43,8 @@ func TestStringArray(t *testing.T) {
 				}
 			}
 			v := (sa.Get().(flagx.StringArray))
-			for i := range v {
-				if v[i] != tt.args[i] {
-					t.Errorf("StringArray.Get() want[%d] = %q, got[%d] %q",
-						i, tt.args[i], i, v[i])
-				}
+			if diff := deep.Equal(v, tt.expt); diff != nil {
+				t.Errorf("StringArray.Get() unexpected differences %v", diff)
 			}
 			if tt.repr != sa.String() {
 				t.Errorf("StringArray.String() want = %q, got %q", tt.repr, sa.String())
