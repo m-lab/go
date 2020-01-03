@@ -30,3 +30,13 @@ func (sa *StringArray) Set(s string) error {
 func (sa StringArray) String() string {
 	return fmt.Sprintf("%#v", []string(sa))
 }
+
+// Contains returns true when the given value equals one of the StringArray values.
+func (sa StringArray) Contains(value string) bool {
+	for _, v := range sa {
+		if v == value {
+			return true
+		}
+	}
+	return false
+}

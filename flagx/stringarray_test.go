@@ -10,28 +10,34 @@ import (
 
 func TestStringArray(t *testing.T) {
 	tests := []struct {
-		name string
-		args []string
-		expt flagx.StringArray
-		repr string
+		name     string
+		args     []string
+		expt     flagx.StringArray
+		repr     string
+		contains string
+		wantErr  bool
 	}{
 		{
-			name: "okay",
-			args: []string{"a", "b"},
-			expt: flagx.StringArray{"a", "b"},
-			repr: `[]string{"a", "b"}`,
+			name:     "okay",
+			args:     []string{"a", "b"},
+			expt:     flagx.StringArray{"a", "b"},
+			repr:     `[]string{"a", "b"}`,
+			contains: "b",
 		},
 		{
-			name: "okay-split-commas",
-			args: []string{"a", "b", "c,d"},
-			expt: flagx.StringArray{"a", "b", "c", "d"},
-			repr: `[]string{"a", "b", "c", "d"}`,
+			name:     "okay-split-commas",
+			args:     []string{"a", "b", "c,d"},
+			expt:     flagx.StringArray{"a", "b", "c", "d"},
+			repr:     `[]string{"a", "b", "c", "d"}`,
+			contains: "d",
 		},
 		{
-			name: "empty",
-			args: []string{},
-			expt: flagx.StringArray{},
-			repr: `[]string{}`,
+			name:     "empty",
+			args:     []string{},
+			expt:     flagx.StringArray{},
+			repr:     `[]string{}`,
+			contains: "a",
+			wantErr:  true,
 		},
 	}
 	for _, tt := range tests {
@@ -48,6 +54,9 @@ func TestStringArray(t *testing.T) {
 			}
 			if tt.repr != sa.String() {
 				t.Errorf("StringArray.String() want = %q, got %q", tt.repr, sa.String())
+			}
+			if sa.Contains(tt.contains) == tt.wantErr {
+				t.Errorf("StringArray.Contains() want = %q, got %t", tt.repr, sa.Contains(tt.contains))
 			}
 		})
 	}
