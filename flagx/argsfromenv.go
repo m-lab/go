@@ -22,17 +22,26 @@ func illegalToUnderscore(r rune) rune {
 	}
 }
 
-// makeShellVariableName makes every passed-in string match the regexp
+// MakeShellVariableName makes every passed-in string match the regexp
 // [A-Z_][A-Z0-9_]* Characters in shell variable names should be part of the
 // portable character set (defined to be [A-Z0-9_] in
 // https://pubs.opengroup.org/onlinepubs/000095399/basedefs/xbd_chap08.html) and
 // may not begin with a digit.
-func makeShellVariableName(flagName string) string {
+func MakeShellVariableName(flagName string) string {
 	newName := strings.Map(illegalToUnderscore, strings.ToUpper(flagName))
 	if len(newName) > 0 && newName[0] >= '0' && newName[0] <= '9' {
 		newName = "_" + newName
 	}
 	return newName
+}
+
+// AssignedFlags returns a map[string]struct{} where every key in the map is the
+// name of a flag in the passed-in FlagSet that was explicitly set on the
+// command-line.
+func AssignedFlags(flagSet *flag.FlagSet) map[string]struct{} {
+	specifiedFlags := make(map[string]struct{})
+	flagSet.Visit(func(f *flag.Flag) { specifiedFlags[f.Name] = struct{}{} })
+	return specifiedFlags
 }
 
 // ArgsFromEnv will expand command-line argument parsing to include setting the
@@ -46,14 +55,13 @@ func makeShellVariableName(flagName string) string {
 func ArgsFromEnv(flagSet *flag.FlagSet) error {
 	// Allow environment variables to be used for unspecified commandline flags.
 	// Track what flags were explicitly set so that we won't override those flags.
-	specifiedFlags := make(map[string]struct{})
-	flagSet.Visit(func(f *flag.Flag) { specifiedFlags[f.Name] = struct{}{} })
+	specifiedFlags := AssignedFlags(flagSet)
 
 	// All flags that were not explicitly set but do have a corresponding evironment variable should be set to that env value.
 	// Visit every flag and don't override explicitly set commandline args.
 	var err error
 	flagSet.VisitAll(func(f *flag.Flag) {
-		envVarName := makeShellVariableName(f.Name)
+		envVarName := MakeShellVariableName(f.Name)
 		if val, ok := os.LookupEnv(envVarName); ok {
 			if _, specified := specifiedFlags[f.Name]; specified {
 				log.Printf("WARNING: Not overriding flag -%s=%q with evironment variable %s=%q\n", f.Name, f.Value, envVarName, val)
