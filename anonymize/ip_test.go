@@ -49,11 +49,13 @@ func TestNetblockAnon(t *testing.T) {
 	anon.IP(nil)                  // No crash = success
 	anon.IP(net.IP([]byte{1, 2})) // No crash = success
 
+	anonymize.IgnoredIPs = []net.IP{net.ParseIP("127.0.0.1")}
+
 	tests := []struct {
 		ip   string
 		want string
 	}{
-		{"127.0.0.1", "127.0.0.0"},
+		{"127.0.0.1", "127.0.0.1"}, // Localhost should be ignored.
 		{"10.1.2.3", "10.1.2.0"},
 		{"255.255.255.255", "255.255.255.0"},
 		{"0:1:2:3:4:5:6:7", "0:1:2:3::"},

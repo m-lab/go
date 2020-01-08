@@ -26,6 +26,11 @@ var (
 	// anonymization.
 	IPAnonymizationFlag = None
 
+	// IgnoredIPs is a set of flags that should be ignored and not anonymized.
+	// By default it is the set of local IP addresses. This set should be small,
+	// so it is represented as an array.
+	IgnoredIPs = []net.IP{}
+
 	// An injected log.Fatal to aid in testing.
 	logFatalf = log.Fatalf
 )
@@ -61,6 +66,17 @@ func (m Method) String() string {
 
 func init() {
 	flag.Var(&IPAnonymizationFlag, "anonymize.ip", "Valid values are \"none\" and \"netblock\".")
+
+	// Set up the local IP addresses to be ignored by the anonymization system.
+	// We want to anonymize our users but not ourselves.
+	localAddrs, err := net.InterfaceAddrs()
+	if err == nil {
+		for _, addr := range localAddrs {
+			if ipnet, ok := addr.(*net.IPNet); ok {
+				IgnoredIPs = append(IgnoredIPs, ipnet.IP)
+			}
+		}
+	}
 }
 
 // IPAnonymizer is the generic interface for all systems that try and ensure IP
@@ -110,6 +126,11 @@ type netblockAnonymizer struct{}
 func (netblockAnonymizer) IP(ip net.IP) {
 	if ip == nil {
 		return
+	}
+	for i := range IgnoredIPs {
+		if IgnoredIPs[i].Equal(ip) {
+			return
+		}
 	}
 	if ip.To4() != nil {
 		// Zero out the last byte.  That's ip[3] in the 4-byte v4 representation and ip[15] in the v4-in-v6 representation.
