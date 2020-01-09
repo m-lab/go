@@ -26,9 +26,32 @@ var (
 	// anonymization.
 	IPAnonymizationFlag = None
 
-	// IgnoredIPs is a set of flags that should be ignored and not anonymized.
-	// By default it is the set of local IP addresses. This set should be small,
-	// so it is represented as an array.
+	// IgnoredIPs is a set of IPs that should be ignored and not anonymized. By
+	// default it is the set of local IP addresses. This set should be small, so
+	// it is represented as an array because net.IP objects can't be used as map
+	// keys.
+	//
+	// If runtime profiling indicates this causes too much of a slowdown in
+	// practice, then the other design that is "near at hand" with Go primitives
+	// is to use map[string]struct{} where the string is the IP converted to a
+	// string. If that design also causes too much of a slowdown in practice,
+	// then we will have to fall back on our algorithms knowledge and build a
+	// clever data structure. The 3 main options are:
+	//  1. a bloom filter in front of a set object,
+	//  2. a 256-ary tree using each successive byte of the IP for each
+	//     successive level, or
+	//  3. a map[int32]struct{} for v4 addresses and a
+	//     map[int64](map[int64]struct{}) for v6 addresses.
+	// Likely the last option will be the fastest; ceteris paribus, native ints
+	// and language builtins tend to have the best performance.
+	//
+	// Big-O analysis doesn't buy us much here. There are a small number of
+	// local IPs and each one is of length 4 or 16. This means that taking the
+	// limit as N goes to infinity doesn't tell us much, because all of the
+	// quantities we might call "N" are 16 or less in all realistic scenarios,
+	// and 16 is a poor approximation of infinity. Therefore, any claims about
+	// relative speed of implementation need to be backed up by experimental
+	// evidence.
 	IgnoredIPs = []net.IP{}
 
 	// An injected log.Fatal to aid in testing.
