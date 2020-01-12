@@ -12,7 +12,7 @@ import (
 	"google.golang.org/api/option"
 
 	"cloud.google.com/go/bigquery"
-	"github.com/GoogleCloudPlatform/google-cloud-go-testing/bigquery/bqiface"
+	"github.com/googleapis/google-cloud-go-testing/bigquery/bqiface"
 	"github.com/m-lab/go/cloud/bqfake"
 	"google.golang.org/api/iterator"
 )

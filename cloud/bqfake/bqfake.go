@@ -14,7 +14,7 @@ import (
 	"log"
 
 	"cloud.google.com/go/bigquery"
-	"github.com/GoogleCloudPlatform/google-cloud-go-testing/bigquery/bqiface"
+	"github.com/googleapis/google-cloud-go-testing/bigquery/bqiface"
 	"google.golang.org/api/iterator"
 )
 
