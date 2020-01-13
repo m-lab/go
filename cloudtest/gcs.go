@@ -21,7 +21,7 @@ import (
 	"strings"
 
 	"cloud.google.com/go/storage"
-	"github.com/GoogleCloudPlatform/google-cloud-go-testing/storage/stiface"
+	"github.com/googleapis/google-cloud-go-testing/storage/stiface"
 	"google.golang.org/api/iterator"
 )
 

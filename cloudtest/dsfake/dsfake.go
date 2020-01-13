@@ -13,7 +13,7 @@ import (
 	"sync"
 
 	"cloud.google.com/go/datastore"
-	"github.com/GoogleCloudPlatform/google-cloud-go-testing/datastore/dsiface"
+	"github.com/googleapis/google-cloud-go-testing/datastore/dsiface"
 )
 
 // NOTE: This is over-restrictive, but fine for current purposes.

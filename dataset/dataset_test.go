@@ -101,7 +101,9 @@ func TestGetTableStatsMock(t *testing.T) {
 	json.Unmarshal([]byte(wantTableMetadata), &want)
 
 	stats.ETag = "" // Ignore this field for comparison.
-	stats.Location = ""
+	// Location was introduced after bigquery v1.3.0, and may result in flaky tests
+	// if included in the next release.
+	// stats.Location = ""
 	if diff := deep.Equal(*stats, want); diff != nil {
 		t.Error(diff)
 	}
