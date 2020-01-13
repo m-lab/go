@@ -13,7 +13,7 @@
 #
 language: go
 go:
-- "1.12"
+- "1.13"
 
 dist: xenial
 
