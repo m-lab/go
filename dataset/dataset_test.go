@@ -55,11 +55,11 @@ const injectedResponseBody = `
 	"tableReference": { "projectId": "mlab-testing", "datasetId": "go", "tableId": "TestGetTableStats" },
 	"schema": { "fields": [
 	  { "name": "test_id", "type": "STRING", "mode": "NULLABLE" } ] },
-	"timePartitioning": { "type": "DAY" }, "numBytes": "7", "numLongTermBytes": "0", "numRows": "1",
+	"timePartitioning": { "type": "DAY" }, "numBytes": "7", "numLongTermBytes": "7", "numRows": "1",
 	"creationTime": "1512580756218", "lastModifiedTime": "1512580756218", "type": "TABLE", "location": "US" }`
 
 // This is the expected TableMetadata, json encoded, with the ETag deleted.
-const wantTableMetadata = `{"Name":"","Description":"","Schema":[{"Name":"test_id","Description":"","Repeated":false,"Required":false,"Type":"STRING","Schema":null}],"ViewQuery":"","UseLegacySQL":false,"UseStandardSQL":false,"TimePartitioning":{"Expiration":0},"ExpirationTime":"0001-01-01T00:00:00Z","Labels":null,"ExternalDataConfig":null,"FullID":"mlab-testing:go.TestGetTableStats","Type":"TABLE","CreationTime":"2017-12-06T12:19:16.218-05:00","LastModifiedTime":"2017-12-06T12:19:16.218-05:00","NumBytes":7,"NumRows":1,"StreamingBuffer":null}`
+const wantTableMetadata = `{"Schema":[{"Name":"test_id","Type":"STRING"}],"TimePartitioning":{},"FullID":"mlab-testing:go.TestGetTableStats","Type":"TABLE","CreationTime":"2017-12-06T12:19:16.218-05:00","LastModifiedTime":"2017-12-06T12:19:16.218-05:00","NumBytes":7,"NumLongTermBytes":7,"NumRows":1}`
 
 // Client that returns canned response from metadata request.
 // Pretty ugly implementation.  Will need to improve this before using
