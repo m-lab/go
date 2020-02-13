@@ -158,9 +158,9 @@ var (
 
 // PDT contains a bigquery project, dataset, and table name.
 type PDT struct {
-	Project string
-	Dataset string
-	Table   string
+	Project string `json:",omitempty"`
+	Dataset string `json:",omitempty"`
+	Table   string `json:",omitempty"`
 }
 
 // ParsePDT parses and validates a fully qualified bigquery table name of the
