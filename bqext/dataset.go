@@ -35,7 +35,6 @@ import (
 // Dataset provides extensions to the bigquery Dataset and Dataset
 // objects to streamline common actions.
 // It encapsulates the Client and Dataset to simplify methods.
-// DEPRECATED - use bqiface version in go/dataset
 type Dataset struct {
 	*bigquery.Dataset // Exposes Dataset API directly.
 	BqClient          *bigquery.Client
@@ -46,7 +45,6 @@ type Dataset struct {
 // if httpClient is nil, a suitable default client is used.
 // Additional bigquery ClientOptions may be optionally passed as final
 //   clientOpts argument.  This is useful for testing credentials.
-// DEPRECATED - use bqiface version in go/dataset
 func NewDataset(project, dataset string, clientOpts ...option.ClientOption) (Dataset, error) {
 	ctx := context.Background()
 	var bqClient *bigquery.Client
@@ -63,7 +61,6 @@ func NewDataset(project, dataset string, clientOpts ...option.ClientOption) (Dat
 // ResultQuery constructs a query with common QueryConfig settings for
 // writing results to a table.
 // Generally, may need to change WriteDisposition.
-// DEPRECATED - use bqiface version in go/dataset
 func (dsExt *Dataset) ResultQuery(query string, dryRun bool) *bigquery.Query {
 	q := dsExt.BqClient.Query(query)
 	q.QueryConfig.DryRun = dryRun
@@ -85,7 +82,6 @@ func (dsExt *Dataset) ResultQuery(query string, dryRun bool) *bigquery.Query {
 // The caller must pass in the *address* of an appropriate struct.
 // TODO - extend this to also handle multirow results, by passing
 // slice of structs.
-// DEPRECATED - use bqiface version in go/dataset
 func (dsExt *Dataset) QueryAndParse(q string, structPtr interface{}) error {
 	typeInfo := reflect.ValueOf(structPtr)
 
@@ -117,7 +113,6 @@ func (dsExt *Dataset) QueryAndParse(q string, structPtr interface{}) error {
 }
 
 // PartitionInfo provides basic information about a partition.
-// DEPRECATED - use bqiface version in go/dataset
 type PartitionInfo struct {
 	PartitionID  string
 	CreationTime time.Time
@@ -125,7 +120,6 @@ type PartitionInfo struct {
 }
 
 // GetPartitionInfo provides basic information about a partition.
-// DEPRECATED - use bqiface version in go/dataset
 func (dsExt Dataset) GetPartitionInfo(table string, partition string) (PartitionInfo, error) {
 	// This uses legacy, because PARTITION_SUMMARY is not supported in standard.
 	queryString := fmt.Sprintf(
@@ -151,7 +145,6 @@ func (dsExt Dataset) GetPartitionInfo(table string, partition string) (Partition
 // writing results to a table.
 // If dest is nil, then this will create a DryRun query.
 // TODO - should disposition be an opts... field instead?
-// DEPRECATED - use bqiface version in go/dataset
 func (dsExt *Dataset) DestQuery(query string, dest *bigquery.Table, disposition bigquery.TableWriteDisposition) *bigquery.Query {
 	q := dsExt.BqClient.Query(query)
 	if dest != nil {
