@@ -12,9 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package dataset extends bqiface.Dataset with useful abstractions for simplifying
+// Package x_dataset extends bqiface.Dataset with useful abstractions for simplifying
 // interactions with bigquery.
-package dataset
+// This package is intended to replace bqext.
+// It is currently untested and buggy!!
+package x_dataset
 
 import (
 	"errors"
