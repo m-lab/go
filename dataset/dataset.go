@@ -16,7 +16,7 @@
 // interactions with bigquery.
 // This package is intended to replace bqext.
 // It is currently untested and buggy!!
-package x_dataset
+package dataset
 
 import (
 	"errors"
