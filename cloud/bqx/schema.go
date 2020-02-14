@@ -1,5 +1,4 @@
 // Package bqx provides utilities and extensions for working with bigquery.
-// DEPRECATED - please use cloud/bqx instead.
 package bqx
 
 import (
@@ -21,7 +20,6 @@ import (
 // It simplifies the schema by removing zero valued fields, and compacting
 // each field record onto a single line.
 // Intended for diagnostics and debugging.  Not suitable for production use.
-// DEPRECATED - please use cloud/bqx instead.
 func PrettyPrint(schema bigquery.Schema, simplify bool) (string, error) {
 	jsonBytes, err := json.MarshalIndent(schema, "", "  ")
 	if err != nil {
@@ -72,7 +70,6 @@ func PrettyPrint(schema bigquery.Schema, simplify bool) (string, error) {
 
 // CustomizeAppend recursively traverses a schema, appending the
 // bigquery.FieldSchema to existing fields matching a name in the provided map.
-// DEPRECATED - please use cloud/bqx instead.
 func CustomizeAppend(schema bigquery.Schema, additions map[string]*bigquery.FieldSchema) bigquery.Schema {
 	// We have to copy the schema, to avoid corrupting the bigquery fieldCache.
 	custom := make(bigquery.Schema, len(schema))
@@ -96,7 +93,6 @@ func CustomizeAppend(schema bigquery.Schema, additions map[string]*bigquery.Fiel
 
 // Customize recursively traverses a schema, substituting any fields that have
 // a matching name in the provided map.
-// DEPRECATED - please use cloud/bqx instead.
 func Customize(schema bigquery.Schema, subs map[string]bigquery.FieldSchema) bigquery.Schema {
 	// We have to copy the schema, to avoid corrupting the bigquery fieldCache.
 	out := make(bigquery.Schema, len(schema))
@@ -120,7 +116,6 @@ func Customize(schema bigquery.Schema, subs map[string]bigquery.FieldSchema) big
 
 // RemoveRequired recursively traverses a schema, setting Required to false in
 // all fields that are not fundamentally required by BigQuery.
-// DEPRECATED - please use cloud/bqx instead.
 func RemoveRequired(schema bigquery.Schema) bigquery.Schema {
 	// We have to copy the schema, to avoid corrupting the bigquery fieldCache.
 	out := make(bigquery.Schema, len(schema))
@@ -162,7 +157,6 @@ var (
 )
 
 // PDT contains a bigquery project, dataset, and table name.
-// DEPRECATED - please use cloud/bqx instead.
 type PDT struct {
 	Project string `json:",omitempty"`
 	Dataset string `json:",omitempty"`
