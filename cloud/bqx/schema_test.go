@@ -18,9 +18,10 @@ import (
 
 	"cloud.google.com/go/bigquery"
 	"github.com/kr/pretty"
-	"github.com/m-lab/go/bqx"
-	"github.com/m-lab/go/rtx"
 	"google.golang.org/api/googleapi"
+
+	"github.com/m-lab/go/cloud/bqx"
+	"github.com/m-lab/go/rtx"
 )
 
 func init() {
