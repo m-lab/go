@@ -14,11 +14,11 @@
 
 // +build integration
 
-package dataset_test
+package bqx_test
 
 // This file contains integration tests, which should be run
 // infrequently, with appropriate credentials.  These tests depend
-// on the state of mlab-testing bigquery tables, so they may start failing
+// on the state of our bigquery tables, so they may start failing
 // if the tables are changed.
 
 // TODO (issue #8) tests that use bq tables should create them from scratch.
@@ -31,11 +31,13 @@ import (
 	"testing"
 	"time"
 
-	"cloud.google.com/go/bigquery"
 	"github.com/go-test/deep"
-	"github.com/m-lab/go/bqext"
 	"golang.org/x/net/context"
 	"google.golang.org/api/option"
+
+	"cloud.google.com/go/bigquery"
+
+	"github.com/m-lab/go/cloud/bqx"
 )
 
 func init() {
@@ -52,7 +54,7 @@ func TestGetTableStats(t *testing.T) {
 		authOpt := option.WithCredentialsFile("../travis-testing.key")
 		opts = append(opts, authOpt)
 	}
-	tExt, err := bqext.NewDataset("mlab-testing", "go", opts...)
+	tExt, err := bqx.NewDataset("mlab-testing", "go", opts...)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -99,7 +101,7 @@ func TestQueryAndParse(t *testing.T) {
 		authOpt := option.WithCredentialsFile("../travis-testing.key")
 		opts = append(opts, authOpt)
 	}
-	tExt, err := bqext.NewDataset("mlab-testing", "go", opts...)
+	tExt, err := bqx.NewDataset("mlab-testing", "go", opts...)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -146,10 +148,8 @@ func clientOpts() []option.ClientOption {
 	return opts
 }
 
-// TODO - should build the test tables from scratch.  See https://github.com/m-lab/go/issues/8
-
 func TestPartitionInfo(t *testing.T) {
-	util, err := bqext.NewDataset("mlab-testing", "go", clientOpts()...)
+	util, err := bqx.NewDataset("mlab-testing", "go", clientOpts()...)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package dataset_test
+package bqx_test
 
 import (
 	"bytes"
@@ -22,13 +22,16 @@ import (
 	"net/http"
 	"testing"
 
-	"cloud.google.com/go/bigquery"
-	"github.com/go-test/deep"
-	"github.com/m-lab/go/bqext"
-	"github.com/m-lab/go/cloudtest"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
+
+	"github.com/go-test/deep"
+
+	"cloud.google.com/go/bigquery"
+
+	"github.com/m-lab/go/cloud/bqx"
+	"github.com/m-lab/go/cloudtest"
 )
 
 type nopCloser struct {
@@ -81,10 +84,9 @@ func getOKClient() *http.Client {
 // and comparing against actual stats from a table in mlab-testing.
 // That test runs as an integration test, and the logged response body
 // can be found it that test's output.
-// TODO - update to use bqiface fake instead of getOKClient
 func TestGetTableStatsMock(t *testing.T) {
 	opts := []option.ClientOption{option.WithHTTPClient(getOKClient())}
-	dsExt, err := bqext.NewDataset("mock", "mock", opts...)
+	dsExt, err := bqx.NewDataset("mock", "mock", opts...)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -104,6 +106,7 @@ func TestGetTableStatsMock(t *testing.T) {
 	// Location was introduced after bigquery v1.3.0, and may result in flaky tests
 	// if included in the next release.
 	// stats.Location = ""
+
 	if diff := deep.Equal(*stats, want); diff != nil {
 		t.Error(diff)
 	}
@@ -111,11 +114,10 @@ func TestGetTableStatsMock(t *testing.T) {
 
 // This test only check very basic stuff.  Intended mostly just to
 // improve coverage metrics.
-// TODO - update to use bqiface fake instead of getOKClient
 func TestResultQuery(t *testing.T) {
 	// Create a dummy client.
 	opts := []option.ClientOption{option.WithHTTPClient(getOKClient())}
-	dsExt, err := bqext.NewDataset("mock", "mock", opts...)
+	dsExt, err := bqx.NewDataset("mock", "mock", opts...)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -135,11 +137,10 @@ func TestResultQuery(t *testing.T) {
 
 // This test only check very basic stuff.  Intended mostly just to
 // improve coverage metrics.
-// TODO - update to use bqiface fake instead of getOKClient
 func TestDestQuery(t *testing.T) {
 	// Create a dummy client.
 	opts := []option.ClientOption{option.WithHTTPClient(getOKClient())}
-	dsExt, err := bqext.NewDataset("mock", "mock", opts...)
+	dsExt, err := bqx.NewDataset("mock", "mock", opts...)
 	if err != nil {
 		t.Fatal(err)
 	}
