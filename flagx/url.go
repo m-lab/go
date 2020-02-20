@@ -38,5 +38,8 @@ func (u *URL) Set(s string) error {
 
 // String formats the underlying URL as a string.
 func (u *URL) String() string {
+	if u.URL == nil {
+		return ""
+	}
 	return u.URL.String()
 }
