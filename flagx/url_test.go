@@ -1,6 +1,7 @@
 package flagx_test
 
 import (
+	"flag"
 	"net/url"
 	"testing"
 
@@ -74,4 +75,9 @@ func TestURL(t *testing.T) {
 			}
 		})
 	}
+}
+
+// Verify that flagx.URL implements the flag.Value interface.
+func assertFlagValueURL(b flagx.URL) {
+	func(in flag.Value) {}(&b)
 }
