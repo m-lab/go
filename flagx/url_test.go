@@ -8,7 +8,7 @@ import (
 	"github.com/m-lab/go/flagx"
 )
 
-func TestURL_Set(t *testing.T) {
+func TestURL(t *testing.T) {
 	tests := []struct {
 		name    string
 		s       string
