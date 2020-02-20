@@ -39,11 +39,19 @@ func TestURL(t *testing.T) {
 			s:       "://this-is-not-a-url",
 			wantErr: true,
 		},
+		{
+			name: "error-empty-url",
+			s:    "",
+			want: &url.URL{},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Attempt to set the URL.
 			u := flagx.URL{}
+			if u.String() != "" {
+				t.Errorf("URL.String() empty URL flag returned a value %q", u.String())
+			}
 			if err := u.Set(tt.s); (err != nil) != tt.wantErr {
 				t.Errorf("URL.Set() error = %v, wantErr %v", err, tt.wantErr)
 			}
