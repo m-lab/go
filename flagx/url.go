@@ -6,13 +6,14 @@ import (
 	"github.com/m-lab/go/rtx"
 )
 
-// URL is a flag type that parses the given URL string, handling errors during
-// flag parsing. See MustNewURL() to set a default value.
+// URL is a flag type for parses URL strings and handling errors during flag
+// parsing. Use MustNewURL() to specify a default value.
 type URL struct {
 	*url.URL
 }
 
-// MustNewURL creates a new URL flag initalized with the given value. For example:
+// MustNewURL creates a new flagx.URL initalized with the given value. Failure
+// to parse is fatal. For example:
 //   f := flagx.MustNewURL("http://example.com")
 func MustNewURL(s string) URL {
 	u := URL{}
@@ -20,12 +21,12 @@ func MustNewURL(s string) URL {
 	return u
 }
 
-// Get retrieves the inner URL.
-func (u URL) Get() *url.URL {
+// Get returns the inner *url.URL type.
+func (u *URL) Get() *url.URL {
 	return u.URL
 }
 
-// Set accepts a URL, parses it, and stores the result.
+// Set parses a URL string and stores the result.
 func (u *URL) Set(s string) error {
 	var err error
 	(*u).URL, err = url.Parse(s)
@@ -36,6 +37,6 @@ func (u *URL) Set(s string) error {
 }
 
 // String formats the underlying URL as a string.
-func (u URL) String() string {
+func (u *URL) String() string {
 	return u.URL.String()
 }
