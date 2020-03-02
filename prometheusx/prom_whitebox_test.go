@@ -54,6 +54,7 @@ func TestSetCommit(t *testing.T) {
 		{"a", 10},
 		{"A", 10},
 		{"bad value", 0},
+		{"624b332dirty", 0},
 	}
 	for _, tt := range tests {
 		t.Run(tt.commit, func(t *testing.T) {
