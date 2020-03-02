@@ -22,7 +22,7 @@ metric. It is recommended that the string be set as part of the build/link
 process, as follows:
 
 ```bash
-  go build -ldflags "-X prometheusx.GitShortCommit=$(git log -1 --format=%h)" ./...
+  go build -ldflags "-X prometheusx.GitShortCommit=$(git log -1 --format=%h)$(git diff --quiet || echo dirty)" ./...
 ```
 
 This metric should be useful when determining whether code on various
