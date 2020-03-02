@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package dataset_test
+package bqx_test
 
 import (
 	"bytes"
@@ -22,13 +22,16 @@ import (
 	"net/http"
 	"testing"
 
-	"cloud.google.com/go/bigquery"
-	"github.com/go-test/deep"
-	"github.com/m-lab/go/bqext"
-	"github.com/m-lab/go/cloudtest"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
+
+	"github.com/go-test/deep"
+
+	"cloud.google.com/go/bigquery"
+
+	"github.com/m-lab/go/cloud/bqx"
+	"github.com/m-lab/go/cloudtest"
 )
 
 type nopCloser struct {
@@ -55,11 +58,11 @@ const injectedResponseBody = `
 	"tableReference": { "projectId": "mlab-testing", "datasetId": "go", "tableId": "TestGetTableStats" },
 	"schema": { "fields": [
 	  { "name": "test_id", "type": "STRING", "mode": "NULLABLE" } ] },
-	"timePartitioning": { "type": "DAY" }, "numBytes": "7", "numLongTermBytes": "0", "numRows": "1",
+	"timePartitioning": { "type": "DAY" }, "numBytes": "7", "numLongTermBytes": "7", "numRows": "1",
 	"creationTime": "1512580756218", "lastModifiedTime": "1512580756218", "type": "TABLE", "location": "US" }`
 
 // This is the expected TableMetadata, json encoded, with the ETag deleted.
-const wantTableMetadata = `{"Name":"","Description":"","Schema":[{"Name":"test_id","Description":"","Repeated":false,"Required":false,"Type":"STRING","Schema":null}],"ViewQuery":"","UseLegacySQL":false,"UseStandardSQL":false,"TimePartitioning":{"Expiration":0},"ExpirationTime":"0001-01-01T00:00:00Z","Labels":null,"ExternalDataConfig":null,"FullID":"mlab-testing:go.TestGetTableStats","Type":"TABLE","CreationTime":"2017-12-06T12:19:16.218-05:00","LastModifiedTime":"2017-12-06T12:19:16.218-05:00","NumBytes":7,"NumRows":1,"StreamingBuffer":null}`
+const wantTableMetadata = `{"Schema":[{"Name":"test_id","Type":"STRING"}],"TimePartitioning":{},"FullID":"mlab-testing:go.TestGetTableStats","Type":"TABLE","CreationTime":"2017-12-06T12:19:16.218-05:00","LastModifiedTime":"2017-12-06T12:19:16.218-05:00","NumBytes":7,"NumLongTermBytes":7,"NumRows":1}`
 
 // Client that returns canned response from metadata request.
 // Pretty ugly implementation.  Will need to improve this before using
@@ -81,10 +84,9 @@ func getOKClient() *http.Client {
 // and comparing against actual stats from a table in mlab-testing.
 // That test runs as an integration test, and the logged response body
 // can be found it that test's output.
-// TODO - update to use bqiface fake instead of getOKClient
 func TestGetTableStatsMock(t *testing.T) {
 	opts := []option.ClientOption{option.WithHTTPClient(getOKClient())}
-	dsExt, err := bqext.NewDataset("mock", "mock", opts...)
+	dsExt, err := bqx.NewDataset("mock", "mock", opts...)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -104,6 +106,7 @@ func TestGetTableStatsMock(t *testing.T) {
 	// Location was introduced after bigquery v1.3.0, and may result in flaky tests
 	// if included in the next release.
 	// stats.Location = ""
+
 	if diff := deep.Equal(*stats, want); diff != nil {
 		t.Error(diff)
 	}
@@ -111,11 +114,10 @@ func TestGetTableStatsMock(t *testing.T) {
 
 // This test only check very basic stuff.  Intended mostly just to
 // improve coverage metrics.
-// TODO - update to use bqiface fake instead of getOKClient
 func TestResultQuery(t *testing.T) {
 	// Create a dummy client.
 	opts := []option.ClientOption{option.WithHTTPClient(getOKClient())}
-	dsExt, err := bqext.NewDataset("mock", "mock", opts...)
+	dsExt, err := bqx.NewDataset("mock", "mock", opts...)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -135,11 +137,10 @@ func TestResultQuery(t *testing.T) {
 
 // This test only check very basic stuff.  Intended mostly just to
 // improve coverage metrics.
-// TODO - update to use bqiface fake instead of getOKClient
 func TestDestQuery(t *testing.T) {
 	// Create a dummy client.
 	opts := []option.ClientOption{option.WithHTTPClient(getOKClient())}
-	dsExt, err := bqext.NewDataset("mock", "mock", opts...)
+	dsExt, err := bqx.NewDataset("mock", "mock", opts...)
 	if err != nil {
 		t.Fatal(err)
 	}
