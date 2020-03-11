@@ -60,8 +60,8 @@ func TestLogEvery_Println(t *testing.T) {
 	})
 	rtx.Must(err, "Error capturing log")
 
-	if !strings.Contains(out, "logx.go:") {
-		t.Error("Missing short filename")
+	if !strings.Contains(out, "logx_test.go:") {
+		t.Error("Missing short filename", out)
 	}
 	lines := strings.Split(out, "\n")
 	// Should be 10 or 11.  Error if more than 12.
@@ -84,7 +84,7 @@ func TestLogEvery_Printf(t *testing.T) {
 	})
 	rtx.Must(err, "Error capturing log")
 
-	if !strings.Contains(out, "logx.go:") {
+	if !strings.Contains(out, "logx_test.go:") {
 		t.Error("Missing short filename")
 	}
 	lines := strings.Split(out, "\n")
@@ -106,7 +106,7 @@ func TestLogEvery_Printf(t *testing.T) {
 	})
 	rtx.Must(err, "Error capturing log")
 
-	if !strings.Contains(out, "logx.go:") {
+	if !strings.Contains(out, "logx_test.go:") {
 		t.Error("Missing short filename")
 	}
 	lines = strings.Split(out, "\n")
