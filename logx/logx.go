@@ -16,6 +16,7 @@ substantial portions of the Software.
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"log"
 	"os"
@@ -93,21 +94,20 @@ func (le *logEvery) ok() bool {
 func (le *logEvery) Println(v ...interface{}) {
 	if le.ok() {
 		if le.logger != nil {
-			le.logger.Println(v...)
+			le.logger.Output(2, fmt.Sprintln(v...))
 		} else {
-			log.Println(v...)
+			log.Output(2, fmt.Sprintln(v...))
 		}
 	}
 }
 
 // LogEvery takes an interval and pointer to a time.Time, and determines whether to produce the log or not.
-func (le *logEvery) Printf(fmt string, v ...interface{}) {
+func (le *logEvery) Printf(format string, v ...interface{}) {
 	if le.ok() {
 		if le.logger != nil {
-			le.logger.Printf(fmt, v...)
+			le.logger.Output(2, fmt.Sprintf(format, v...))
 		} else {
-			log.Printf(fmt, v...)
-
+			log.Output(2, fmt.Sprintf(format, v...))
 		}
 	}
 }
