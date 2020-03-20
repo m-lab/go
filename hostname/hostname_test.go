@@ -46,11 +46,35 @@ func TestHostname(t *testing.T) {
 			wantErr: true,
 		},
 		{
+			name: "invalid-v1-too-few-parts",
+			want: Hostname{
+				hostname: "lol01.measurement-lab.org",
+				machine:  "",
+				site:     "lol01",
+				project:  "",
+				domain:   "measurement-lab.org",
+				version:  "v1",
+			},
+			wantErr: true,
+		},
+		{
 			name: "invalid-v2-dotted-host",
 			want: Hostname{
 				hostname: "mlab1.lol01.mlab-staging.measurement-lab.org",
 				machine:  "mlab1",
 				site:     "lol01",
+				project:  "mlab-staging",
+				domain:   "measurement-lab.org",
+				version:  "v2",
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid-v2-too-many-parts",
+			want: Hostname{
+				hostname: "mlab1-lol01-rofl.mlab-staging.measurement-lab.org",
+				machine:  "mlab1",
+				site:     "lol01-rofl",
 				project:  "mlab-staging",
 				domain:   "measurement-lab.org",
 				version:  "v2",
