@@ -37,50 +37,26 @@ func TestName(t *testing.T) {
 		{
 			name:     "invalid-v1-bad-separator",
 			hostname: "mlab1=lol01.measurement-lab.org",
-			want: Name{
-				Machine: "",
-				Site:    "",
-				Project: "",
-				Domain:  "",
-				Version: "",
-			},
-			wantErr: true,
+			want:     Name{},
+			wantErr:  true,
 		},
 		{
 			name:     "invalid-v1-too-few-parts",
 			hostname: "lol01.measurement-lab.org",
-			want: Name{
-				Machine: "",
-				Site:    "",
-				Project: "",
-				Domain:  "",
-				Version: "",
-			},
-			wantErr: true,
+			want:     Name{},
+			wantErr:  true,
 		},
 		{
 			name:     "invalid-v2-dotted-host",
 			hostname: "mlab1.lol01.mlab-staging.measurement-lab.org",
-			want: Name{
-				Machine: "",
-				Site:    "",
-				Project: "",
-				Domain:  "",
-				Version: "",
-			},
-			wantErr: true,
+			want:     Name{},
+			wantErr:  true,
 		},
 		{
 			name:     "invalid-v2-too-many-parts",
 			hostname: "mlab1-lol01-rofl.mlab-staging.measurement-lab.org",
-			want: Name{
-				Machine: "",
-				Site:    "",
-				Project: "",
-				Domain:  "",
-				Version: "",
-			},
-			wantErr: true,
+			want:     Name{},
+			wantErr:  true,
 		},
 	}
 
