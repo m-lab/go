@@ -10,12 +10,12 @@ import (
 
 // Name represents an M-Lab hostname and all of its constituent parts.
 type Name struct {
-	hostname string
-	machine  string
-	site     string
-	project  string
-	domain   string
-	version  string
+	Hostname string
+	Machine  string
+	Site     string
+	Project  string
+	Domain   string
+	Version  string
 }
 
 // Parse parses an M-Lab hostname and breaks it into its constituent parts.
@@ -38,12 +38,12 @@ func Parse(name string) (Name, error) {
 			return parts, fmt.Errorf("Invalid v2 hostname: %s", name)
 		}
 		parts = Name{
-			hostname: mV2[0][0],
-			machine:  mV2[0][1],
-			site:     mV2[0][2],
-			project:  mV2[0][3],
-			domain:   mV2[0][4],
-			version:  "v2",
+			Hostname: mV2[0][0],
+			Machine:  mV2[0][1],
+			Site:     mV2[0][2],
+			Project:  mV2[0][3],
+			Domain:   mV2[0][4],
+			Version:  "v2",
 		}
 	case ".":
 		mV1 := reV1.FindAllStringSubmatch(name, -1)
@@ -51,12 +51,12 @@ func Parse(name string) (Name, error) {
 			return parts, fmt.Errorf("Invalid v1 hostname: %s", name)
 		}
 		parts = Name{
-			hostname: mV1[0][0],
-			machine:  mV1[0][1],
-			site:     mV1[0][2],
-			project:  "",
-			domain:   mV1[0][3],
-			version:  "v1",
+			Hostname: mV1[0][0],
+			Machine:  mV1[0][1],
+			Site:     mV1[0][2],
+			Project:  "",
+			Domain:   mV1[0][3],
+			Version:  "v1",
 		}
 	}
 
