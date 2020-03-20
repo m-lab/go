@@ -23,8 +23,8 @@ func Parse(name string) (Hostname, error) {
 	var parts Hostname
 
 	reInit := regexp.MustCompile(`^mlab[1-4]([.-])`)
-	reV1 := regexp.MustCompile(`^(mlab[1-4])\.([a-z]{3}[0-9tc]{2})\.(.*)$`)
-	reV2 := regexp.MustCompile(`^(mlab[1-4])-([a-z]{3}[0-9tc]{2})\.(.*?)\.(.*)$`)
+	reV1 := regexp.MustCompile(`^(mlab[1-4])\.([a-z]{3}[0-9tc]{2})\.(measurement-lab.org)$`)
+	reV2 := regexp.MustCompile(`^(mlab[1-4])-([a-z]{3}[0-9tc]{2})\.(.*?)\.(measurement-lab.org)$`)
 
 	mInit := reInit.FindAllStringSubmatch(name, -1)
 	if len(mInit) != 1 || len(mInit[0]) != 2 {

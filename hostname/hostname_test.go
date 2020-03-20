@@ -65,9 +65,9 @@ func TestHostname(t *testing.T) {
 		if (err != nil) != test.wantErr {
 			t.Errorf("hostname.Parse() error %v, wantErr %v", err, test.wantErr)
 		}
-		// If we wanted an err, stop this particulat test, since later tests will fail.
+		// If we wanted an err, go not further since later tests will fail.
 		if test.wantErr == true {
-			t.Skipf("wantErr == true: not continuing test: %s", test.name)
+			continue
 		}
 		if !reflect.DeepEqual(result, test.want) {
 			t.Errorf("\nUnexpected result. Got:\n%+v\nExpected:\n%+v", result, test.want)
