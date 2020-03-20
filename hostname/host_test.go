@@ -1,19 +1,19 @@
-package hostname
+package host
 
 import (
 	"reflect"
 	"testing"
 )
 
-func TestHostname(t *testing.T) {
+func TestName(t *testing.T) {
 	tests := []struct {
 		name    string
-		want    Hostname
+		want    Name
 		wantErr bool
 	}{
 		{
 			name: "valid-v1",
-			want: Hostname{
+			want: Name{
 				hostname: "mlab1.lol01.measurement-lab.org",
 				machine:  "mlab1",
 				site:     "lol01",
@@ -24,7 +24,7 @@ func TestHostname(t *testing.T) {
 		},
 		{
 			name: "valid-v2",
-			want: Hostname{
+			want: Name{
 				hostname: "mlab1-lol01.mlab-oti.measurement-lab.org",
 				machine:  "mlab1",
 				site:     "lol01",
@@ -35,7 +35,7 @@ func TestHostname(t *testing.T) {
 		},
 		{
 			name: "invalid-v1-bad-separator",
-			want: Hostname{
+			want: Name{
 				hostname: "mlab1=lol01.measurement-lab.org",
 				machine:  "mlab1",
 				site:     "lol01",
@@ -47,7 +47,7 @@ func TestHostname(t *testing.T) {
 		},
 		{
 			name: "invalid-v1-too-few-parts",
-			want: Hostname{
+			want: Name{
 				hostname: "lol01.measurement-lab.org",
 				machine:  "",
 				site:     "lol01",
@@ -59,7 +59,7 @@ func TestHostname(t *testing.T) {
 		},
 		{
 			name: "invalid-v2-dotted-host",
-			want: Hostname{
+			want: Name{
 				hostname: "mlab1.lol01.mlab-staging.measurement-lab.org",
 				machine:  "mlab1",
 				site:     "lol01",
@@ -71,7 +71,7 @@ func TestHostname(t *testing.T) {
 		},
 		{
 			name: "invalid-v2-too-many-parts",
-			want: Hostname{
+			want: Name{
 				hostname: "mlab1-lol01-rofl.mlab-staging.measurement-lab.org",
 				machine:  "mlab1",
 				site:     "lol01-rofl",

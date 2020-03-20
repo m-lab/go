@@ -1,15 +1,15 @@
-// Package hostname parses v1 and v2 hostnames into their constituent parts. It
+// Package host parses v1 and v2 hostnames into their constituent parts. It
 // is intended to help in the transition from v1 to v2 names on the platform.
 // M-Lab go programs that need to parse hostnames should use this package.
-package hostname
+package host
 
 import (
 	"fmt"
 	"regexp"
 )
 
-// Hostname represents an M-Lab hostname and all of its constituent parts.
-type Hostname struct {
+// Name represents an M-Lab hostname and all of its constituent parts.
+type Name struct {
 	hostname string
 	machine  string
 	site     string
@@ -19,8 +19,8 @@ type Hostname struct {
 }
 
 // Parse parses an M-Lab hostname and breaks it into its constituent parts.
-func Parse(name string) (Hostname, error) {
-	var parts Hostname
+func Parse(name string) (Name, error) {
+	var parts Name
 
 	reInit := regexp.MustCompile(`^mlab[1-4]([.-])`)
 	reV1 := regexp.MustCompile(`^(mlab[1-4])\.([a-z]{3}[0-9tc]{2})\.(measurement-lab.org)$`)
@@ -37,7 +37,7 @@ func Parse(name string) (Hostname, error) {
 		if len(mV2) != 1 || len(mV2[0]) != 5 {
 			return parts, fmt.Errorf("Invalid v2 hostname: %s", name)
 		}
-		parts = Hostname{
+		parts = Name{
 			hostname: mV2[0][0],
 			machine:  mV2[0][1],
 			site:     mV2[0][2],
@@ -50,7 +50,7 @@ func Parse(name string) (Hostname, error) {
 		if len(mV1) != 1 || len(mV1[0]) != 4 {
 			return parts, fmt.Errorf("Invalid v1 hostname: %s", name)
 		}
-		parts = Hostname{
+		parts = Name{
 			hostname: mV1[0][0],
 			machine:  mV1[0][1],
 			site:     mV1[0][2],
