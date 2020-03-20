@@ -38,11 +38,11 @@ func TestName(t *testing.T) {
 			name:     "invalid-v1-bad-separator",
 			hostname: "mlab1=lol01.measurement-lab.org",
 			want: Name{
-				Machine: "mlab1",
-				Site:    "lol01",
+				Machine: "",
+				Site:    "",
 				Project: "",
-				Domain:  "measurement-lab.org",
-				Version: "v1",
+				Domain:  "",
+				Version: "",
 			},
 			wantErr: true,
 		},
@@ -51,10 +51,10 @@ func TestName(t *testing.T) {
 			hostname: "lol01.measurement-lab.org",
 			want: Name{
 				Machine: "",
-				Site:    "lol01",
+				Site:    "",
 				Project: "",
-				Domain:  "measurement-lab.org",
-				Version: "v1",
+				Domain:  "",
+				Version: "",
 			},
 			wantErr: true,
 		},
@@ -62,11 +62,11 @@ func TestName(t *testing.T) {
 			name:     "invalid-v2-dotted-host",
 			hostname: "mlab1.lol01.mlab-staging.measurement-lab.org",
 			want: Name{
-				Machine: "mlab1",
-				Site:    "lol01",
-				Project: "mlab-staging",
-				Domain:  "measurement-lab.org",
-				Version: "v2",
+				Machine: "",
+				Site:    "",
+				Project: "",
+				Domain:  "",
+				Version: "",
 			},
 			wantErr: true,
 		},
@@ -74,11 +74,11 @@ func TestName(t *testing.T) {
 			name:     "invalid-v2-too-many-parts",
 			hostname: "mlab1-lol01-rofl.mlab-staging.measurement-lab.org",
 			want: Name{
-				Machine: "mlab1",
-				Site:    "lol01-rofl",
-				Project: "mlab-staging",
-				Domain:  "measurement-lab.org",
-				Version: "v2",
+				Machine: "",
+				Site:    "",
+				Project: "",
+				Domain:  "",
+				Version: "",
 			},
 			wantErr: true,
 		},
@@ -89,10 +89,6 @@ func TestName(t *testing.T) {
 		// If we wanted an err but didn't get one, or vice versa, then fail.
 		if (err != nil) != test.wantErr {
 			t.Errorf("host.Parse() error %v, wantErr %v", err, test.wantErr)
-		}
-		// If we wanted an err, go not further since later tests will fail.
-		if test.wantErr == true {
-			continue
 		}
 		if !reflect.DeepEqual(result, test.want) {
 			t.Errorf("\nUnexpected result. Got:\n%+v\nExpected:\n%+v", result, test.want)
