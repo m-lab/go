@@ -1,6 +1,6 @@
 // Package hostname parses v1 and v2 hostnames into their constituent parts. It
 // is intended to help in the transition from v1 to v2 names on the platform.
-// Other Go programs should not have to worry about how to parse hostnames.
+// M-Lab go programs that need to parse hostnames should use this package.
 package hostname
 
 import (
