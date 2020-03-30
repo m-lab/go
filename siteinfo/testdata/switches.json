@@ -1,0 +1,1442 @@
+{
+    "akl01": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "163.7.129.0/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "ams03": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "80.239.169.0/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "ams04": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "77.67.114.64/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "ams05": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "195.89.145.0/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "ams08": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "213.244.128.128/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "arn02": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "195.89.146.192/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "arn03": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "213.242.86.64/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "arn04": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "62.115.225.128/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "arn05": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "77.67.119.64/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "arn06": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "193.142.125.64/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "ath03": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "193.201.166.128/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "atl02": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "38.112.151.64/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "atl03": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "64.86.200.192/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "atl04": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "173.205.0.192/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "atl07": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "209.170.91.128/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "atl08": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "4.71.254.128/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "bcn01": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "91.213.30.192/26",
+       "rstp": "no",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "beg01": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "188.120.127.0/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "bog02": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "190.98.179.192/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "bom01": {
+       "auto_negotiation": "no",
+       "flow_control": "no",
+       "ipv4_prefix": "125.18.112.64/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "ge-0/0/47",
+       "uplink_speed": "1g"
+    },
+    "bom02": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "14.143.58.128/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "bru01": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "195.89.146.128/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "bru02": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "212.3.248.192/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "bru03": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "62.115.229.192/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "bru04": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "77.67.119.0/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "cpt01": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "154.114.19.64/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "del01": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "115.113.240.192/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "del02": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "61.246.223.0/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "den02": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "4.34.58.0/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "den04": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "128.177.109.64/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "den05": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "209.170.120.64/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "den06": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "208.116.164.0/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "dfw02": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "64.86.132.64/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "dfw03": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "4.15.35.128/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "dfw05": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "128.177.163.64/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "dfw07": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "209.170.119.128/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "dfw08": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "38.107.216.0/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "dub01": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "193.1.12.192/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "fln01": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "200.237.203.0/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "fra01": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "80.239.199.0/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "fra02": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "77.67.114.0/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "fra03": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "195.89.146.64/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "fra04": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "62.67.198.192/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "fra05": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "193.142.125.0/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "gig01": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "190.98.179.128/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "gru01": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "189.125.228.64/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "gru02": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "177.136.80.192/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "gru03": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "200.123.198.128/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "gru04": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "190.98.158.0/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "ham02": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "80.239.142.192/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "hkg01": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "183.178.65.0/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "hkg02": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "64.235.254.0/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "hnd01": {
+       "auto_negotiation": "no",
+       "flow_control": "no",
+       "ipv4_prefix": "203.178.130.192/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "ex4200",
+       "uplink_port": "ge-0/0/23",
+       "uplink_speed": "1g"
+    },
+    "hnd02": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "210.151.179.128/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "hnd03": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "111.109.1.64/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "hnd04": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "64.235.255.128/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "iad02": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "38.90.140.128/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "iad03": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "66.198.10.128/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "iad04": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "173.205.4.0/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "iad05": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "4.35.238.192/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "iad06": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "209.170.119.192/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "jnb01": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "196.24.45.128/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "lax02": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "63.243.240.64/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "lax03": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "173.205.3.64/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "lax04": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "4.15.166.0/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "lax05": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "128.177.109.192/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "lax06": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "38.98.51.0/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "lga03": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "64.86.148.128/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "lga04": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "173.205.4.64/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "lga05": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "4.35.94.0/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "lga06": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "128.177.119.192/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "lga08": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "38.106.70.128/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "lga0t": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "4.14.159.64/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "lga1t": {
+       "auto_negotiation": "no",
+       "flow_control": "no",
+       "ipv4_prefix": "4.14.3.0/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "ge-0/0/47",
+       "uplink_speed": "1g"
+    },
+    "lhr02": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "80.239.170.192/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "lhr03": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "77.67.114.192/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "lhr04": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "195.89.146.0/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "lhr05": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "212.113.31.0/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "lhr06": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "93.142.125.128/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "lhr07": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "162.213.96.0/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "lis01": {
+       "auto_negotiation": "no",
+       "flow_control": "no",
+       "ipv4_prefix": "213.242.96.192/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "ge-0/0/47",
+       "uplink_speed": "1g"
+    },
+    "lis02": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "195.89.147.128/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "lis03": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "162.213.98.0/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "lju01": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "91.239.96.64/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "ge-0/0/47",
+       "uplink_speed": "1g"
+    },
+    "maa01": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "121.242.229.64/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "maa02": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "61.95.154.64/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "mad02": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "213.242.96.128/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "mad03": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "80.239.229.128/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "mad04": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "77.67.115.64/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "mad05": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "93.142.125.192/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "mia02": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "38.109.21.0/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "mia03": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "66.110.73.0/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "mia04": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "173.205.3.128/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "mia05": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "128.177.109.0/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "mia06": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "4.71.210.192/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "mil02": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "80.239.222.0/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "mil03": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "77.67.115.0/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "mil04": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "213.242.77.128/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "mil05": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "195.89.147.0/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "mnl01": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "202.90.156.0/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "mrs01": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "212.73.211.64/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "mrs02": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "154.14.11.192/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "mrs03": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "212.73.211.64/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "nbo01": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "197.136.0.64/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "nuq02": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "149.20.5.64/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "nuq03": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "38.102.163.128/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "nuq04": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "66.110.32.64/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "nuq06": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "128.177.109.128/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "nuq07": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "209.170.110.192/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "ord02": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "38.65.210.192/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "ord03": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "66.198.24.64/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "ord04": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "173.205.3.192/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "ord05": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "128.177.163.0/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "ord06": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "4.71.251.128/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "par02": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "212.73.231.192/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "par03": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "80.239.222.64/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "par04": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "77.67.119.128/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "par05": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "195.89.147.192/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "prg02": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "195.122.159.128/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "prg03": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "80.239.156.128/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "prg04": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "77.67.114.128/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "prg05": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "195.89.147.64/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "sea02": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "63.243.224.0/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "sea03": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "173.205.3.0/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "sea04": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "4.71.157.128/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "sea07": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "209.170.110.128/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "sea08": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "38.102.0.64/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "sin01": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "180.87.97.64/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "svg01": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "81.167.39.0/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "syd02": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "175.45.79.0/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "syd03": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "203.5.76.128/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "tgd01": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "213.149.127.0/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "tnr01": {
+       "auto_negotiation": "no",
+       "flow_control": "no",
+       "ipv4_prefix": "41.188.12.64/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "ge-0/0/47",
+       "uplink_speed": "1g"
+    },
+    "tpe01": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "163.22.28.0/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "trn02": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "194.116.85.192/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "tun01": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "41.231.21.0/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "ge-0/0/47",
+       "uplink_speed": "1g"
+    },
+    "vie01": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "213.208.152.0/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "ge-0/0/47",
+       "uplink_speed": "1g"
+    },
+    "wlg02": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "163.7.129.64/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "xe-0/0/45",
+       "uplink_speed": "10g"
+    },
+    "yqm01": {
+       "auto_negotiation": "no",
+       "flow_control": "no",
+       "ipv4_prefix": "209.51.169.128/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "ge-0/0/47",
+       "uplink_speed": "1g"
+    },
+    "yul02": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "216.66.14.64/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "ge-0/0/47",
+       "uplink_speed": "1g"
+    },
+    "yvr01": {
+       "auto_negotiation": "no",
+       "flow_control": "no",
+       "ipv4_prefix": "184.105.70.192/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "ge-0/0/47",
+       "uplink_speed": "1g"
+    },
+    "ywg01": {
+       "auto_negotiation": "no",
+       "flow_control": "no",
+       "ipv4_prefix": "184.105.55.64/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "ge-0/0/47",
+       "uplink_speed": "1g"
+    },
+    "yyc02": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "65.49.72.192/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "ge-0/0/47",
+       "uplink_speed": "1g"
+    },
+    "yyz02": {
+       "auto_negotiation": "yes",
+       "flow_control": "no",
+       "ipv4_prefix": "216.66.68.128/26",
+       "rstp": "yes",
+       "switch_make": "juniper",
+       "switch_model": "qfx5100",
+       "uplink_port": "ge-0/0/47",
+       "uplink_speed": "1g"
+    }
+ }
