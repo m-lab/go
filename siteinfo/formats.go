@@ -1,7 +1,7 @@
 package siteinfo
 
-// This package contains the structs corresponding the siteinfo's v1 output
-// formats. (https://github.com/m-lab/siteinfo/tree/master/formats/v1)
+// Structs corresponding to entities in siteinfo's output formats.
+// (https://github.com/m-lab/siteinfo/tree/master/formats/v1/sites)
 
 // Switch is an entity in /v1/sites/switches.json.
 type Switch struct {
