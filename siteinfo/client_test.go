@@ -96,6 +96,10 @@ func TestClient_Switches(t *testing.T) {
 		t.Errorf("Switches(): wrong map len %d, expected %d", len(res), 144)
 	}
 
+	if _, ok := res["akl01"]; !ok {
+		t.Errorf("Switches() didn't return the expected result.")
+	}
+
 	// Make the HTTP client fail.
 	client.httpClient = &failingProvider{}
 	res, err = client.Switches()
