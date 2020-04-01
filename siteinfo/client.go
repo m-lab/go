@@ -1,13 +1,14 @@
 package siteinfo
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 )
 
 const (
-	baseURLFormat = "https://siteinfo.%s.measurementlab.net/v1/"
+	baseURLFormat = "https://siteinfo.%s.measurementlab.net/%s/"
 )
 
 // HTTPProvider is a data provider returning HTTP responses.
@@ -20,6 +21,7 @@ type HTTPProvider interface {
 type Client struct {
 	ProjectID  string
 	httpClient HTTPProvider
+	version    string
 }
 
 // New returns a new Siteinfo client wrapping the provided *http.Client.
@@ -30,9 +32,10 @@ func New(projectID string, httpClient HTTPProvider) *Client {
 	}
 }
 
-// Switches fetches the switches.json output format and returns its content.
-func (s Client) Switches() ([]byte, error) {
-	url := fmt.Sprintf(baseURLFormat+"sites/switches.json", s.ProjectID)
+// Switches fetches the sites/switches.json output format and returns its
+// content as a map[site]Switch.
+func (s Client) Switches() (map[string]Switch, error) {
+	url := s.makeBaseURL() + "sites/switches.json"
 
 	resp, err := s.httpClient.Get(url)
 	if err != nil {
@@ -45,5 +48,15 @@ func (s Client) Switches() ([]byte, error) {
 		return nil, err
 	}
 
-	return body, nil
+	res := make(map[string]Switch)
+	err = json.Unmarshal(body, &res)
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}
+
+func (s Client) makeBaseURL() string {
+	return fmt.Sprintf(baseURLFormat, s.ProjectID, s.version)
 }

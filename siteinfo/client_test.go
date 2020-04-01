@@ -12,6 +12,19 @@ import (
 
 const switchesPath = "testdata/switches.json"
 
+// string provider implements a HTTPProvider but the response's content is
+// a fixed string.
+type stringProvider struct {
+	response string
+}
+
+func (prov stringProvider) Get(string) (*http.Response, error) {
+	return &http.Response{
+		Body:       ioutil.NopCloser(bytes.NewBufferString(prov.response)),
+		StatusCode: http.StatusOK,
+	}, nil
+}
+
 // fileReaderProvider implements a HTTPProvider but the response's content
 // comes from a configurable file.
 type fileReaderProvider struct {
@@ -73,20 +86,14 @@ func TestClient_Switches(t *testing.T) {
 	}
 	client := New("test", prov)
 
-	testData, err := ioutil.ReadFile(switchesPath)
-	if err != nil {
-		t.Errorf("Cannot read test data from %v", switchesPath)
-	}
-
 	// This should return the content of the test file.
 	res, err := client.Switches()
 	if err != nil {
 		t.Errorf("Switches() returned err: %v", err)
 	}
 
-	if bytes.Compare(res, testData) != 0 {
-		t.Errorf("Switches(): expected: %v, got %v",
-			testData, res)
+	if len(res) != 144 {
+		t.Errorf("Switches(): wrong map len %d, expected %d", len(res), 144)
 	}
 
 	// Make the HTTP client fail.
@@ -98,6 +105,13 @@ func TestClient_Switches(t *testing.T) {
 
 	// Make reading the response body fail.
 	client.httpClient = &failingReadProvider{}
+	res, err = client.Switches()
+	if err == nil {
+		t.Errorf("Switches(): expected err, got nil.")
+	}
+
+	// Make the JSON unmarshalling fail.
+	client.httpClient = &stringProvider{"this will fail"}
 	res, err = client.Switches()
 	if err == nil {
 		t.Errorf("Switches(): expected err, got nil.")
