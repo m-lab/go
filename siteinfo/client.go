@@ -25,10 +25,11 @@ type Client struct {
 }
 
 // New returns a new Siteinfo client wrapping the provided *http.Client.
-func New(projectID string, httpClient HTTPProvider) *Client {
+func New(projectID, version string, httpClient HTTPProvider) *Client {
 	return &Client{
 		ProjectID:  projectID,
 		httpClient: httpClient,
+		version:    version,
 	}
 }
 
