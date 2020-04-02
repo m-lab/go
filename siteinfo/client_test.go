@@ -74,7 +74,7 @@ func (mockReadCloser) Close() error {
 //
 
 func TestNew(t *testing.T) {
-	client := New("project", http.DefaultClient)
+	client := New("project", "v1", http.DefaultClient)
 	if client == nil {
 		t.Errorf("New() returned nil.")
 	}
@@ -84,7 +84,7 @@ func TestClient_Switches(t *testing.T) {
 	prov := &fileReaderProvider{
 		path: "testdata/switches.json",
 	}
-	client := New("test", prov)
+	client := New("test", "v1", prov)
 
 	// This should return the content of the test file.
 	res, err := client.Switches()

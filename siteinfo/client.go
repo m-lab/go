@@ -20,15 +20,16 @@ type HTTPProvider interface {
 // Client is a Siteinfo client.
 type Client struct {
 	ProjectID  string
+	Version    string
 	httpClient HTTPProvider
-	version    string
 }
 
 // New returns a new Siteinfo client wrapping the provided *http.Client.
-func New(projectID string, httpClient HTTPProvider) *Client {
+func New(projectID, version string, httpClient HTTPProvider) *Client {
 	return &Client{
 		ProjectID:  projectID,
 		httpClient: httpClient,
+		Version:    version,
 	}
 }
 
@@ -58,5 +59,5 @@ func (s Client) Switches() (map[string]Switch, error) {
 }
 
 func (s Client) makeBaseURL() string {
-	return fmt.Sprintf(baseURLFormat, s.ProjectID, s.version)
+	return fmt.Sprintf(baseURLFormat, s.ProjectID, s.Version)
 }
