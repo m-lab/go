@@ -1,4 +1,4 @@
-package contentprovider
+package content
 
 import (
 	"bytes"
