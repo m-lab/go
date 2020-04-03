@@ -65,6 +65,10 @@ Extensions of the runtime package. *stable*
 
 TODO: decide whether to rename this to runtimex.
 
+### siteinfo
+
+Client to fetch siteinfo's output formats. *alpha*
+
 ### storagex
 
 Extensions of the cloud.google.com/go/storage package. *alpha*
