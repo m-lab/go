@@ -38,6 +38,10 @@ func TestFileFromURLThenGet(t *testing.T) {
 			url:  "file://" + tf.Name(),
 		},
 		{
+			name: "Good file (absolute pathname, just a single slash)",
+			url:  "file:" + tf.Name(),
+		},
+		{
 			name:       "Nonexistent file",
 			url:        "file:///this/file/does/not/exist",
 			wantGetErr: true,
