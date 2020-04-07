@@ -39,7 +39,7 @@ func TestFileFromURLThenGet(t *testing.T) {
 		},
 		{
 			name:       "Nonexistent file",
-			url:        "file://this/file/does/not/exist",
+			url:        "file:///this/file/does/not/exist",
 			wantGetErr: true,
 		},
 		{
