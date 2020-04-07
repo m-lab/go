@@ -5,9 +5,12 @@ import (
 	"context"
 	"errors"
 	"io"
+	"io/ioutil"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"os"
 	"reflect"
 	"testing"
 	"time"
@@ -18,14 +21,21 @@ import (
 )
 
 func TestFileFromURLThenGet(t *testing.T) {
+	tf, err := ioutil.TempFile("/tmp", "")
+	rtx.Must(err, "Could not create tempfile")
+	defer os.Remove(tf.Name())
 	tests := []struct {
 		name       string
 		url        string
 		wantGetErr bool
 	}{
 		{
-			name: "Good file",
+			name: "Good file (relative pathname)",
 			url:  "file:provider.go",
+		},
+		{
+			name: "Good file (absolute pathname)",
+			url:  "file://" + tf.Name(),
 		},
 		{
 			name:       "Nonexistent file",
@@ -40,6 +50,7 @@ func TestFileFromURLThenGet(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			log.Println(tt.url)
 			u, err := url.Parse(tt.url)
 			rtx.Must(err, "Could not parse URL")
 			provider, err := FromURL(context.Background(), u)
