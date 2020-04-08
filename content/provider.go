@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -75,7 +76,7 @@ type fileProvider struct {
 func (f *fileProvider) Get(ctx context.Context) ([]byte, error) {
 	s, err := os.Stat(f.filename)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Could not os.Stat(%q): %w", f.filename, err)
 	}
 	newtime := s.ModTime()
 	if newtime == f.mtime {
@@ -136,8 +137,13 @@ func FromURL(ctx context.Context, u *url.URL) (Provider, error) {
 			filename: filename,
 		}, err
 	case "file":
+		if u.Path == "" {
+			return &fileProvider{
+				filename: u.Opaque,
+			}, nil
+		}
 		return &fileProvider{
-			filename: u.Opaque,
+			filename: u.Path,
 		}, nil
 
 	case "https":
