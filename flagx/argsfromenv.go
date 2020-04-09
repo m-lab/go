@@ -53,6 +53,13 @@ func AssignedFlags(flagSet *flag.FlagSet) map[string]struct{} {
 // "-a" and "-A"), then the behavior of this function is unspecified and should
 // not be relied upon. Also, your flags should have more descriptive names.
 func ArgsFromEnv(flagSet *flag.FlagSet) error {
+	return ArgsFromEnvWithLog(flagSet, true)
+}
+
+// ArgsFromEnvWithLog operates as ArgsFromEnv with an additional option to
+// disable logging of all flag values. This is helpful for command line
+// applications that wish to disable extra argument logging.
+func ArgsFromEnvWithLog(flagSet *flag.FlagSet, logArgs bool) error {
 	// Allow environment variables to be used for unspecified commandline flags.
 	// Track what flags were explicitly set so that we won't override those flags.
 	specifiedFlags := AssignedFlags(flagSet)
@@ -71,7 +78,9 @@ func ArgsFromEnv(flagSet *flag.FlagSet) error {
 				}
 			}
 		}
-		log.Printf("Argument %s=%v\n", f.Name, f.Value)
+		if logArgs {
+			log.Printf("Argument %s=%v\n", f.Name, f.Value)
+		}
 	})
 	return err
 }
