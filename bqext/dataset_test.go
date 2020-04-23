@@ -59,7 +59,7 @@ const injectedResponseBody = `
 	"creationTime": "1512580756218", "lastModifiedTime": "1512580756218", "type": "TABLE", "location": "" }`
 
 // This is the expected TableMetadata, json encoded, with the ETag deleted.
-const wantTableMetadata = `{"Schema":[{"Name":"test_id","Type":"STRING"}],"TimePartitioning":{},"FullID":"mlab-testing:go.TestGetTableStats","Type":"TABLE","CreationTime":"2017-12-06T12:19:16.218-05:00","LastModifiedTime":"2017-12-06T12:19:16.218-05:00","NumBytes":7,"NumLongTermBytes":7,"NumRows":1}`
+const wantTableMetadata = `{"Schema":[{"Name":"test_id","Type":"STRING"}],"TimePartitioning":{},"FullID":"mlab-testing:go.TestGetTableStats","Type":"TABLE","CreationTime":"2017-12-06T12:19:16.218-05:00","LastModifiedTime":"2017-12-06T12:19:16.218-05:00","NumBytes":7,"NumLongTermBytes":7,"NumRows":1, "Location":""}`
 
 // Client that returns canned response from metadata request.
 // Pretty ugly implementation.  Will need to improve this before using
