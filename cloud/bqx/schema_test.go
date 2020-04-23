@@ -107,16 +107,16 @@ func TestCustomizeAppend(t *testing.T) {
 func TestPrettyPrint(t *testing.T) {
 	expected :=
 		`[
-  {"Name": "EmbeddedA", "Description": "", "Required": true, "Type": "INTEGER"},
-  {"Name": "EmbeddedB", "Description": "", "Required": true, "Type": "INTEGER"},
-  {"Name": "Inner", "Description": "", "Required": true, "Type": "RECORD", "Schema": [
-      {"Name": "Integer", "Description": "", "Required": true, "Type": "INTEGER"},
-      {"Name": "ByteSlice", "Description": "", "Required": true, "Type": "BYTES"},
-      {"Name": "ByteArray", "Description": "", "Repeated": true, "Type": "INTEGER"},
-      {"Name": "String", "Description": "", "Required": true, "Type": "STRING"}
+  {"Name": "EmbeddedA", "Description": "", "Required": true, "Type": "INTEGER", "PolicyTags": null},
+  {"Name": "EmbeddedB", "Description": "", "Required": true, "Type": "INTEGER", "PolicyTags": null},
+  {"Name": "Inner", "Description": "", "Required": true, "Type": "RECORD", "PolicyTags": null, "Schema": [
+      {"Name": "Integer", "Description": "", "Required": true, "Type": "INTEGER", "PolicyTags": null},
+      {"Name": "ByteSlice", "Description": "", "Required": true, "Type": "BYTES", "PolicyTags": null},
+      {"Name": "ByteArray", "Description": "", "Repeated": true, "Type": "INTEGER", "PolicyTags": null},
+      {"Name": "String", "Description": "", "Required": true, "Type": "STRING", "PolicyTags": null}
     ]},
-  {"Name": "Timestamp", "Description": "", "Required": true, "Type": "TIMESTAMP"},
-  {"Name": "IntTimestamp", "Description": "", "Required": true, "Type": "INTEGER"}
+  {"Name": "Timestamp", "Description": "", "Required": true, "Type": "TIMESTAMP", "PolicyTags": null},
+  {"Name": "IntTimestamp", "Description": "", "Required": true, "Type": "INTEGER", "PolicyTags": null}
 ]
 `
 

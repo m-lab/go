@@ -59,7 +59,7 @@ const injectedResponseBody = `
 	"schema": { "fields": [
 	  { "name": "test_id", "type": "STRING", "mode": "NULLABLE" } ] },
 	"timePartitioning": { "type": "DAY" }, "numBytes": "7", "numLongTermBytes": "7", "numRows": "1",
-	"creationTime": "1512580756218", "lastModifiedTime": "1512580756218", "type": "TABLE", "location": "US" }`
+	"creationTime": "1512580756218", "lastModifiedTime": "1512580756218", "type": "TABLE", "location": "" }`
 
 // This is the expected TableMetadata, json encoded, with the ETag deleted.
 const wantTableMetadata = `{"Schema":[{"Name":"test_id","Type":"STRING"}],"TimePartitioning":{},"FullID":"mlab-testing:go.TestGetTableStats","Type":"TABLE","CreationTime":"2017-12-06T12:19:16.218-05:00","LastModifiedTime":"2017-12-06T12:19:16.218-05:00","NumBytes":7,"NumLongTermBytes":7,"NumRows":1}`
