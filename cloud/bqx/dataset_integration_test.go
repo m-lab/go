@@ -45,6 +45,9 @@ func init() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 }
 
+// Looks like the Location field defaults to US.  Might be different if run in different locale.
+const wantTableMetadata2 = `{"Location":"US","Schema":[{"Name":"test_id","Type":"STRING"}],"TimePartitioning":{},"FullID":"mlab-testing:go.TestGetTableStats","Type":"TABLE","CreationTime":"2017-12-06T12:19:16.218-05:00","LastModifiedTime":"2017-12-06T12:19:16.218-05:00","NumBytes":7,"NumLongTermBytes":7,"NumRows":1}`
+
 // TestGetTableStats does a live test against a sandbox test table.
 func TestGetTableStats(t *testing.T) {
 	client, _ := LoggingCloudClient() // Use this for creating the ResponseBody.
@@ -68,7 +71,7 @@ func TestGetTableStats(t *testing.T) {
 
 	// This creates the metadata response we expect.
 	var want bigquery.TableMetadata
-	err = json.Unmarshal([]byte(wantTableMetadata), &want)
+	err = json.Unmarshal([]byte(wantTableMetadata2), &want)
 	if err != nil {
 		actual, _ := json.Marshal(stats)
 		log.Printf("Actual json:\n%s\n", string(actual))
@@ -78,7 +81,7 @@ func TestGetTableStats(t *testing.T) {
 	stats.ETag = "" // Ignore this field in comparison.
 	if diff := deep.Equal(*stats, want); diff != nil {
 		actual, _ := json.Marshal(stats)
-		log.Printf("Actual json:\n%s\n", string(actual))
+		t.Logf("Actual json:\n%s\n", string(actual))
 		t.Error(diff)
 	}
 }
