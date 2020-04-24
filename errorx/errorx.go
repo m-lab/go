@@ -1,3 +1,4 @@
+// Package errorx provides functions for working with go errors.
 package errorx
 
 import "errors"
