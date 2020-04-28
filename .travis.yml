@@ -47,8 +47,8 @@ script:
 - export GOOGLE_APPLICATION_CREDENTIALS=$TRAVIS_BUILD_DIR/travis-testing.json
 # Run every regular unit test.
 - go test -covermode=count -coverprofile=_coverage.cov -v ./...
-# bqext should also have its integration tests run.
-- go test -covermode=count -coverprofile=_bqext.cov -v ./bqext -tags=$TEST_TAGS
+# bqx should also have its integration tests run.
+- go test -covermode=count -coverprofile=_bqext.cov -v ./cloud/bqx -tags=$TEST_TAGS
 
 # Check we haven't broken any dependent projects
 # Many things are currently broken, so temporarily removing the vets.
