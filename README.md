@@ -20,55 +20,17 @@ This means that it will be somewhat disruptive to change APIs in these
 packages, as API changing PRs will break other repos, and require additional
 PRs to fix those repositories.
 
-## package tags
+## tags
+
+Please never tag this repo as v1.0 or above.  Each library within this repo
+exists independently, and the commitments required by Go module best practices
+can never be satisfied by this repo as a whole.  According to Go best practices,
+no whole-repo promises are made for tags of the form `v0.X.Y`, so we will
+restrict ourselves to version tags that start with a zero.
+
 Please mark packages in development as *alpha* or *beta*.  Use of these packages
-should be discouraged in other repositories, until they are *stable*.
-
-Once a packages API has stabilized, mark the package as *stable*.
-
-You can still add __new__ APIs to stable packages, but mark these new APIs
-as *alpha* or *beta* until they are regarded as stable and suitable for
-general use.
+should be discouraged in other repositories while those packages are under
+development.
 
 ## packages
-### bqext
-Utilities for interacting with BigQuery
-
-### bytecount
-Allows commandline flags to express quantities of Bytes like `--size=20MB` by
-creating a new type `bytecount` that can be used as a `flag.Value`.  *stable*
-
-### cloudtest
-Utilities for testing google cloud service abstractions.
-
-### flagx
-Extensions for the flag package. *stable*
-
-### httpx
-Extensions of the http package. *stable*
-
-### iox
-Extensions of the io package.
-
-### memoryless
-Tools to run a function as a memoryless poisson process.  Helps prevent spurious
-patterns. *stable*
-
-### osx
-Extensions of the os package. *stable*
-
-### prometheusx
-Helpful utilities for working with Prometheus. *alpha*
-
-### rtx
-Extensions of the runtime package. *stable*
-
-TODO: decide whether to rename this to runtimex.
-
-### siteinfo
-
-Client to fetch siteinfo's output formats. *alpha*
-
-### storagex
-
-Extensions of the cloud.google.com/go/storage package. *alpha*
+[link to go docs](https://pkg.go.dev/github.com/m-lab/go)

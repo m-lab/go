@@ -1,3 +1,4 @@
+// Package content provides a unified way of turning a URL into a struct that provides an array of bytes.
 package content
 
 import (

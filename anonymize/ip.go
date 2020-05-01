@@ -1,3 +1,4 @@
+// Package anonymize provides IP address anonymization tools.
 package anonymize
 
 import (
