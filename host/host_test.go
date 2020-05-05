@@ -3,6 +3,8 @@ package host
 import (
 	"reflect"
 	"testing"
+
+	"github.com/m-lab/go/rtx"
 )
 
 func TestName(t *testing.T) {
@@ -88,6 +90,18 @@ func TestName(t *testing.T) {
 			},
 		},
 		{
+			name:     "invalid-too-few-separators",
+			hostname: "mlab1-lol01-measurement-lab.org",
+			want:     Name{},
+			wantErr:  true,
+		},
+		{
+			name:     "invalid-v2-bad-domain",
+			hostname: "mlab1-lol01.mlab-sandbox.measurementlab.net",
+			want:     Name{},
+			wantErr:  true,
+		},
+		{
 			name:     "invalid-v1-bad-separator",
 			hostname: "mlab1=lol01.measurement-lab.org",
 			want:     Name{},
@@ -114,14 +128,36 @@ func TestName(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		result, err := Parse(test.hostname)
-		// If we wanted an err but didn't get one, or vice versa, then fail.
-		if (err != nil) != test.wantErr {
-			t.Errorf("host.Parse() error %v, wantErr %v", err, test.wantErr)
-		}
-		if !reflect.DeepEqual(result, test.want) {
-			t.Errorf("\nUnexpected result. Got:\n%+v\nExpected:\n%+v", result, test.want)
-		}
+		t.Run(test.name, func(t *testing.T) {
+			result, err := Parse(test.hostname)
+			// If we wanted an err but didn't get one, or vice versa, then fail.
+			if (err != nil) != test.wantErr {
+				t.Errorf("host.Parse() error %v, wantErr %v", err, test.wantErr)
+			}
+			if test.wantErr {
+				return
+			}
+			if !reflect.DeepEqual(result, test.want) {
+				t.Errorf("\nUnexpected result. Got:\n%+v\nExpected:\n%+v", result, test.want)
+			}
+		})
+	}
+}
 
+func TestName_String(t *testing.T) {
+	tests := []struct {
+		name string
+	}{
+		{name: "mlab1.foo01.measurement-lab.org"},
+		{name: "mlab1-foo01.mlab-sandbox.measurement-lab.org"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			n, err := Parse(tt.name)
+			rtx.Must(err, "Failed to parse: %s", tt.name)
+			if got := n.String(); got != tt.name {
+				t.Errorf("Name.String() = %v, want %v", got, tt.name)
+			}
+		})
 	}
 }
