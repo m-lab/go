@@ -46,6 +46,48 @@ func TestName(t *testing.T) {
 			},
 		},
 		{
+			name:     "valid-v1-with-ndt-flat",
+			hostname: "ndt-iupui-mlab1-lol01.measurement-lab.org",
+			want: Name{
+				Machine: "mlab1",
+				Site:    "lol01",
+				Domain:  "measurement-lab.org",
+				Version: "v1",
+			},
+		},
+		{
+			name:     "valid-v1-with-ndt-regular",
+			hostname: "ndt.iupui.mlab1.lol01.measurement-lab.org",
+			want: Name{
+				Machine: "mlab1",
+				Site:    "lol01",
+				Domain:  "measurement-lab.org",
+				Version: "v1",
+			},
+		},
+		{
+			name:     "valid-v2-with-ndt",
+			hostname: "ndt-iupui-mlab1-lol01.mlab-oti.measurement-lab.org",
+			want: Name{
+				Machine: "mlab1",
+				Site:    "lol01",
+				Project: "mlab-oti",
+				Domain:  "measurement-lab.org",
+				Version: "v2",
+			},
+		},
+		{
+			name:     "valid-v2-with-ndt-short",
+			hostname: "ndt-mlab1-lol01.mlab-oti.measurement-lab.org",
+			want: Name{
+				Machine: "mlab1",
+				Site:    "lol01",
+				Project: "mlab-oti",
+				Domain:  "measurement-lab.org",
+				Version: "v2",
+			},
+		},
+		{
 			name:     "invalid-v1-bad-separator",
 			hostname: "mlab1=lol01.measurement-lab.org",
 			want:     Name{},
