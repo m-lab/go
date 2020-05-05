@@ -21,9 +21,9 @@ type Name struct {
 func Parse(name string) (Name, error) {
 	var parts Name
 
-	reInit := regexp.MustCompile(`^mlab[1-4]([.-])`)
-	reV1 := regexp.MustCompile(`^(mlab[1-4])\.([a-z]{3}[0-9tc]{2})\.(measurement-lab.org)$`)
-	reV2 := regexp.MustCompile(`^(mlab[1-4])-([a-z]{3}[0-9tc]{2})\.(.*?)\.(measurement-lab.org)$`)
+	reInit := regexp.MustCompile(`^mlab[1-4]d?([.-])`)
+	reV1 := regexp.MustCompile(`^(mlab[1-4]d?)\.([a-z]{3}[0-9tc]{2})\.(measurement-lab.org)$`)
+	reV2 := regexp.MustCompile(`^(mlab[1-4]d?)-([a-z]{3}[0-9tc]{2})\.(.*?)\.(measurement-lab.org)$`)
 
 	mInit := reInit.FindAllStringSubmatch(name, -1)
 	if len(mInit) != 1 || len(mInit[0]) != 2 {
