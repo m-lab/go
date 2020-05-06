@@ -43,7 +43,7 @@ func Parse(name string) (Name, error) {
 
 	// v2 names always have four fields. And the first field will always
 	// be longer than a machine name e.g. "mlab1".
-	if len(fields) == 4 && len(fields[0]) > 5 {
+	if len(fields) == 4 && len(fields[0]) > 6 {
 		mV2 := reV2.FindAllStringSubmatch(name, -1)
 		if len(mV2) != 1 || len(mV2[0]) != 5 {
 			return parts, fmt.Errorf("Invalid v2 hostname: %s", name)

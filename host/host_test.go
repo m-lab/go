@@ -37,6 +37,16 @@ func TestName(t *testing.T) {
 			},
 		},
 		{
+			name:     "valid-v1-bmc",
+			hostname: "mlab1d.lol01.measurement-lab.org",
+			want: Name{
+				Machine: "mlab1d",
+				Site:    "lol01",
+				Domain:  "measurement-lab.org",
+				Version: "v1",
+			},
+		},
+		{
 			name:     "valid-v2-bmc",
 			hostname: "mlab1d-lol01.mlab-oti.measurement-lab.org",
 			want: Name{
