@@ -12,7 +12,7 @@ import (
 
 	"github.com/m-lab/go/prometheusx"
 	"github.com/m-lab/go/rtx"
-	"github.com/prometheus/prometheus/util/promlint"
+	"github.com/prometheus/client_golang/prometheus/testutil/promlint"
 )
 
 // LintMetrics will ensure that the names of the passed-in Promethus metrics
