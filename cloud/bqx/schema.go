@@ -128,13 +128,8 @@ func RemoveRequired(schema bigquery.Schema) bigquery.Schema {
 			fs.Required = false
 			fs.Schema = RemoveRequired(fs.Schema)
 
-		// These field types seem to be always required.
-		case bigquery.TimeFieldType:
-		case bigquery.TimestampFieldType:
-		case bigquery.DateFieldType:
-		case bigquery.DateTimeFieldType:
-
 		default:
+			// Mark all fields as nullable.
 			fs.Required = false
 		}
 	}
