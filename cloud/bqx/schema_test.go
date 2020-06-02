@@ -67,7 +67,7 @@ func TestRemoveRequired(t *testing.T) {
 	expect(t, s, `"Repeated":true`, 1) // From the ByteArray
 
 	c := bqx.RemoveRequired(s)
-	expect(t, c, `"Required":true`, 1)
+	expect(t, c, `"Required":true`, 0)
 }
 
 func TestCustomize(t *testing.T) {
