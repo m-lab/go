@@ -17,6 +17,10 @@ import (
 
 var logFatalf = log.Fatalf
 
+// DefaultTCPNetwork defines the TCP network used by ListenAndServeAsync and
+// ListenAndServeTLSAsync HTTP(S) servers. See https://golang.org/pkg/net/#Dial
+var DefaultTCPNetwork = "tcp"
+
 // The code here is adapted from https://golang.org/src/net/http/server.go?s=85391:85432#L2742
 
 // tcpKeepAliveListener sets TCP keep-alive timeouts on accepted
@@ -56,7 +60,7 @@ func serve(server *http.Server, listener net.Listener) {
 // contain the address and port which this server is listening on.
 func ListenAndServeAsync(server *http.Server) error {
 	// Start listening synchronously.
-	listener, err := net.Listen("tcp", server.Addr)
+	listener, err := net.Listen(DefaultTCPNetwork, server.Addr)
 	if err != nil {
 		return err
 	}
@@ -87,7 +91,7 @@ func serveTLS(server *http.Server, listener net.Listener, certFile, keyFile stri
 // fatal error if the server dies for a reason besides ErrServerClosed.
 func ListenAndServeTLSAsync(server *http.Server, certFile, keyFile string) error {
 	// Start listening synchronously.
-	listener, err := net.Listen("tcp", server.Addr)
+	listener, err := net.Listen(DefaultTCPNetwork, server.Addr)
 	if err != nil {
 		return err
 	}
