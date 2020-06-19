@@ -13,9 +13,23 @@ import (
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/m-lab/go/flagx"
 )
 
 var logFatalf = log.Fatalf
+
+// tcpNetwork defines the TCP network used by ListenAndServeAsync and
+// ListenAndServeTLSAsync HTTP(S) servers. See https://golang.org/pkg/net/#Dial
+var tcpNetwork = flagx.Enum{
+	Options: []string{"tcp", "tcp4", "tcp6"},
+	Value:   "tcp",
+}
+
+func init() {
+	// Add as an advanced flag.
+	flagx.Advanced.Var(&tcpNetwork, "httpx.tcp-network", "Controls the TCP stack used by httpx net.Listeners")
+}
 
 // The code here is adapted from https://golang.org/src/net/http/server.go?s=85391:85432#L2742
 
@@ -56,7 +70,7 @@ func serve(server *http.Server, listener net.Listener) {
 // contain the address and port which this server is listening on.
 func ListenAndServeAsync(server *http.Server) error {
 	// Start listening synchronously.
-	listener, err := net.Listen("tcp", server.Addr)
+	listener, err := net.Listen(tcpNetwork.Value, server.Addr)
 	if err != nil {
 		return err
 	}
@@ -87,7 +101,7 @@ func serveTLS(server *http.Server, listener net.Listener, certFile, keyFile stri
 // fatal error if the server dies for a reason besides ErrServerClosed.
 func ListenAndServeTLSAsync(server *http.Server, certFile, keyFile string) error {
 	// Start listening synchronously.
-	listener, err := net.Listen("tcp", server.Addr)
+	listener, err := net.Listen(tcpNetwork.Value, server.Addr)
 	if err != nil {
 		return err
 	}
