@@ -71,13 +71,7 @@ func (bh *BucketHandle) GetFilesSince(ctx context.Context, prefix string, filter
 	return files, byteCount, nil
 }
 
-// *******************************************************************
-// Storage Bucket related stuff.
-//  TODO move to another package?
-// *******************************************************************
-
-// GetBucket gets a storage bucket.
-// TODO - this is currently duplicated in etl-gardener/state/state.go
+// GetBucket gets an enhanced BucketHandle
 func GetBucket(ctx context.Context, sClient stiface.Client, bucketName string) (*BucketHandle, error) {
 	bucket := sClient.Bucket(bucketName)
 	if bucket == nil {
