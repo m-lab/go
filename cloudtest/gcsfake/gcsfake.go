@@ -14,7 +14,7 @@
 
 // Package cloudtest provides utilities for testing, e.g. cloud
 // service tests using mock http Transport, fake storage client, etc.
-package cloudtest
+package gcsfake
 
 import (
 	"context"
@@ -26,14 +26,12 @@ import (
 )
 
 // GCSClient provides a fake storage client that can be customized with arbitrary fake bucket contents.
-// DEPRECATED - use identical code in cloud/gcsfake
 type GCSClient struct {
 	stiface.Client
 	buckets map[string]BucketHandle
 }
 
 // AddTestBucket adds a fake bucket for testing.
-// DEPRECATED - use identical code in cloud/gcsfake
 func (c *GCSClient) AddTestBucket(name string, bh BucketHandle) {
 	if c.buckets == nil {
 		c.buckets = make(map[string]BucketHandle, 5)
