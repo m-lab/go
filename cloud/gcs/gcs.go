@@ -18,12 +18,23 @@ type BucketHandle struct {
 	stiface.BucketHandle
 }
 
+// HasFiles returns boolean indicating whether there are any file objects with the provided prefix.
+// It may iterate over some objects if the first object isn't a file.
+func (bh *BucketHandle) HasFiles(ctx context.Context, prefix string) (bool, error) {
+	o, _, err := bh.getFilesSince(ctx, prefix, nil, time.Time{}, 1)
+	return len(o) > 0, err
+}
+
 // GetFilesSince returns list of all normal file objects with prefix and mTime > after.
 // prefix is the path not including gs://bucket-name/, including the final /
 // Will retry iterator errors up to five total.
 // returns (objects, byteCount, error)
-// Performance:  This handles about 5000 objects/second, including objects rejected by the regex and time cutoff.
+// Performance:  This takes about 5000 objects/second, including objects rejected by the regex and time cutoff.
 func (bh *BucketHandle) GetFilesSince(ctx context.Context, prefix string, filter *regexp.Regexp, after time.Time) ([]*storage.ObjectAttrs, int64, error) {
+	return bh.getFilesSince(ctx, prefix, filter, after, 0)
+}
+
+func (bh *BucketHandle) getFilesSince(ctx context.Context, prefix string, filter *regexp.Regexp, after time.Time, limit int) ([]*storage.ObjectAttrs, int64, error) {
 	qry := storage.Query{
 		Delimiter: "/", // This prevents traversing subdirectories.
 		Prefix:    prefix,
@@ -34,7 +45,11 @@ func (bh *BucketHandle) GetFilesSince(ctx context.Context, prefix string, filter
 		return nil, 0, fmt.Errorf("Object iterator is nil.  BucketHandle: %v Prefix: %s", bh, prefix)
 	}
 
-	files := make([]*storage.ObjectAttrs, 0, 1000)
+	init := limit
+	if init == 0 {
+		init = 1000
+	}
+	files := make([]*storage.ObjectAttrs, 0, init)
 
 	byteCount := int64(0)
 	gcsErrCount := 0
@@ -67,6 +82,9 @@ func (bh *BucketHandle) GetFilesSince(ctx context.Context, prefix string, filter
 		}
 		byteCount += o.Size
 		files = append(files, o)
+		if limit > 0 && len(files) >= limit {
+			break
+		}
 	}
 	return files, byteCount, nil
 }

@@ -19,6 +19,25 @@ func init() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 }
 
+func TestHasFiles(t *testing.T) {
+	fc := gcsfake.GCSClient{}
+	fc.AddTestBucket("foobar",
+		gcsfake.BucketHandle{
+			ObjAttrs: []*storage.ObjectAttrs{
+				{Name: "ndt/2019/01/01/obj1", Size: 101, Updated: time.Now()},
+				{Name: "ndt/2019/01/01/obj2", Size: 2020, Updated: time.Now()},
+			}})
+
+	bh, err := gcs.GetBucket(context.Background(), fc, "foobar")
+	rtx.Must(err, "GetBucket")
+	if ok, _ := bh.HasFiles(context.Background(), "ndt/2019"); ok {
+		t.Error("Should be false")
+	}
+	if ok, _ := bh.HasFiles(context.Background(), "ndt/2019/01/01"); !ok {
+		t.Error("Should be true")
+	}
+}
+
 func TestGetFilesSince(t *testing.T) {
 	fc := gcsfake.GCSClient{}
 	fc.AddTestBucket("foobar",
