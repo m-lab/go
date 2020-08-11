@@ -10,11 +10,11 @@ import (
 	"time"
 
 	"google.golang.org/api/option"
-
 	"cloud.google.com/go/bigquery"
 	"github.com/googleapis/google-cloud-go-testing/bigquery/bqiface"
-	"github.com/m-lab/go/cloud/bqfake"
 	"google.golang.org/api/iterator"
+
+	"github.com/m-lab/go/cloudtest/bqfake"
 )
 
 func init() {

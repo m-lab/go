@@ -13,8 +13,9 @@ import (
 
 	"cloud.google.com/go/bigquery"
 	"github.com/googleapis/google-cloud-go-testing/bigquery/bqiface"
-	"github.com/m-lab/go/cloud/bqfake"
 	"google.golang.org/api/iterator"
+
+	"github.com/m-lab/go/cloud/bqfake"
 )
 
 func init() {
