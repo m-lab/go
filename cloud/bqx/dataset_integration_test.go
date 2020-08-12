@@ -48,15 +48,22 @@ func init() {
 // Looks like the Location field defaults to US.  Might be different if run in different locale.
 const wantTableMetadata2 = `{"Location":"US","Schema":[{"Name":"test_id","Type":"STRING"}],"TimePartitioning":{},"FullID":"mlab-testing:go.TestGetTableStats","Type":"TABLE","CreationTime":"2017-12-06T12:19:16.218-05:00","LastModifiedTime":"2017-12-06T12:19:16.218-05:00","NumBytes":7,"NumLongTermBytes":7,"NumRows":1}`
 
-// TestGetTableStats does a live test against a sandbox test table.
-func TestGetTableStats(t *testing.T) {
-	client, _ := LoggingCloudClient() // Use this for creating the ResponseBody.
-
-	opts := []option.ClientOption{option.WithHTTPClient(client)}
+func clientOpts() []option.ClientOption {
+	opts := []option.ClientOption{}
 	if os.Getenv("TRAVIS") != "" {
 		authOpt := option.WithCredentialsFile("../travis-testing.key")
 		opts = append(opts, authOpt)
 	}
+	return opts
+}
+
+// TestGetTableStats does a live test against a sandbox test table.
+func TestGetTableStats(t *testing.T) {
+	client, _ := LoggingCloudClient() // Use this for creating the ResponseBody.
+
+	opts := clientOpts()
+	opts = append(opts, option.WithHTTPClient(client))
+
 	tExt, err := bqx.NewDataset("mlab-testing", "go", opts...)
 	if err != nil {
 		t.Fatal(err)
@@ -99,11 +106,9 @@ func TestQueryAndParse(t *testing.T) {
 	// This logs all the requests and responses, for debugging purposes.
 	// Turns out this test causes three http requests to the backend.
 	client, _ := LoggingCloudClient() // Use this for creating the ResponseBody.
-	opts := []option.ClientOption{option.WithHTTPClient(client)}
-	if os.Getenv("TRAVIS") != "" {
-		authOpt := option.WithCredentialsFile("../travis-testing.key")
-		opts = append(opts, authOpt)
-	}
+	opts := clientOpts()
+	opts = append(opts, option.WithHTTPClient(client))
+
 	tExt, err := bqx.NewDataset("mlab-testing", "go", opts...)
 	if err != nil {
 		t.Fatal(err)
@@ -142,17 +147,12 @@ func TestQueryAndParse(t *testing.T) {
 	}
 }
 
-func clientOpts() []option.ClientOption {
-	opts := []option.ClientOption{}
-	if os.Getenv("TRAVIS") != "" {
-		authOpt := option.WithCredentialsFile("../travis-testing.key")
-		opts = append(opts, authOpt)
-	}
-	return opts
-}
-
+// This test is always failing.
 func TestPartitionInfo(t *testing.T) {
-	util, err := bqx.NewDataset("mlab-testing", "go", clientOpts()...)
+	client, _ := LoggingCloudClient()
+	opts := clientOpts()
+	opts = append(opts, option.WithHTTPClient(client))
+	util, err := bqx.NewDataset("mlab-testing", "go", opts...)
 	if err != nil {
 		t.Fatal(err)
 	}
