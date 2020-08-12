@@ -1,5 +1,5 @@
 // Package bqfake provides tools to construct fake bigquery datasets, tables, query responses, etc.
-// DEPRECATED - please use cloudtest/bqfake instead.
+// DEPRECATED - please use cloudtest/bqfake instead!
 package bqfake
 
 /* Outline:
@@ -64,6 +64,7 @@ func (tbl Table) Metadata(ctx context.Context) (*bigquery.TableMetadata, error) 
 }
 
 // Create implements the bqiface method.
+// DEPRECATED - use cloudtest/bqfake
 func (tbl Table) Create(ctx context.Context, meta *bigquery.TableMetadata) error {
 	log.Println("Create", meta)
 	if tbl.metadata == nil {
