@@ -1,16 +1,16 @@
-package gcsfake_test
+package gcsfake
 
 import (
+	"bytes"
 	"context"
 	"log"
+	"reflect"
 	"testing"
 	"time"
 
 	"cloud.google.com/go/storage"
 	"github.com/googleapis/google-cloud-go-testing/storage/stiface"
 	"google.golang.org/api/iterator"
-
-	"github.com/m-lab/go/cloudtest/gcsfake"
 )
 
 func init() {
@@ -18,7 +18,7 @@ func init() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 }
 
-func assertStifaceClient() { func(c stiface.Client) {}(&gcsfake.GCSClient{}) }
+func assertStifaceClient() { func(c stiface.Client) {}(&GCSClient{}) }
 
 func countAll(t *testing.T, it stiface.ObjectIterator) (total int, normal int, prefix int) {
 	for o, err := it.Next(); err != iterator.Done; o, err = it.Next() {
@@ -46,9 +46,9 @@ func TestGCSClient(t *testing.T) {
 	// Use a fake queue client.
 	ctx := context.Background()
 
-	fc := gcsfake.GCSClient{}
+	fc := GCSClient{}
 	fc.AddTestBucket("foobar",
-		&gcsfake.BucketHandle{
+		&BucketHandle{
 			ObjAttrs: []*storage.ObjectAttrs{
 				{Name: "ndt/2019/01/01/obj1", Updated: time.Now()},
 				{Name: "ndt/2019/01/01/obj2", Updated: time.Now()},
@@ -97,4 +97,84 @@ func TestGCSClient(t *testing.T) {
 	}
 
 	fc.Close()
+}
+
+func TestBucketHandle_Object(t *testing.T) {
+	bh := &BucketHandle{}
+	testObj := &ObjectHandle{
+		Bucket: bh,
+		Name:   "test/obj",
+		Data:   new(bytes.Buffer),
+	}
+	bh.Objs = map[string]*ObjectHandle{
+		"test/obj": testObj,
+	}
+
+	// Get an existing object.
+	got := bh.Object("test/obj")
+	if !reflect.DeepEqual(got, testObj) {
+		t.Errorf("BucketHandle.Object() = %v, want %v", got, testObj)
+	}
+
+	// Get a new object.
+	got = bh.Object("non/existing/obj")
+	if fakeObj, ok := got.(*ObjectHandle); ok {
+		if fakeObj.Name != "non/existing/obj" || fakeObj.Bucket != bh ||
+			fakeObj.Data == nil || fakeObj.WritesMustFail {
+			t.Errorf("Object() didn't return the expected ObjectHandle.")
+		}
+	} else {
+		t.Errorf("Object() didn't return a fake ObjectHandle")
+	}
+}
+
+func TestObjectHandle_NewWriter(t *testing.T) {
+	buf := new(bytes.Buffer)
+	obj := &ObjectHandle{
+		Data:           buf,
+		WritesMustFail: true,
+	}
+
+	got := obj.NewWriter(context.Background())
+	if fakeWriter, ok := got.(*fakeWriter); ok {
+		if fakeWriter.object != obj || fakeWriter.buf != buf ||
+			fakeWriter.mustFail != obj.WritesMustFail {
+			t.Errorf("NewWriter() didn't return the expected Writer")
+		}
+	}
+}
+
+func Test_fakeWriter_Write(t *testing.T) {
+	testStr := []byte("test")
+	bh := &BucketHandle{
+		Objs: make(map[string]*ObjectHandle, 0),
+	}
+	obj := &ObjectHandle{
+		Bucket: bh,
+	}
+	w := &fakeWriter{
+		object: obj,
+		buf:    new(bytes.Buffer),
+	}
+	got, err := w.Write(testStr)
+	if err != nil {
+		t.Errorf("Write() returned an error: %v", err)
+	}
+	if got != len(testStr) || string(w.buf.Bytes()) != string(testStr) {
+		t.Error("Write() didn't write the expected []byte")
+	}
+
+	w.mustFail = true
+	got, err = w.Write(testStr)
+	if err == nil {
+		t.Errorf("Write(): expected err, got nil")
+	}
+}
+
+func Test_fakeWriter_Close(t *testing.T) {
+	w := &fakeWriter{}
+	if err := w.Close(); err != nil {
+		t.Errorf("Close() returned error: %v", err)
+	}
+
 }
