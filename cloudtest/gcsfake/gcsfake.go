@@ -17,7 +17,9 @@
 package gcsfake
 
 import (
+	"bytes"
 	"context"
+	"errors"
 	"strings"
 
 	"cloud.google.com/go/storage"
@@ -28,40 +30,56 @@ import (
 // GCSClient provides a fake storage client that can be customized with arbitrary fake bucket contents.
 type GCSClient struct {
 	stiface.Client
-	buckets map[string]BucketHandle
+	buckets map[string]*BucketHandle
 }
 
 // AddTestBucket adds a fake bucket for testing.
-func (c *GCSClient) AddTestBucket(name string, bh BucketHandle) {
+func (c *GCSClient) AddTestBucket(name string, bh *BucketHandle) {
 	if c.buckets == nil {
-		c.buckets = make(map[string]BucketHandle, 5)
+		c.buckets = make(map[string]*BucketHandle, 5)
 	}
 	c.buckets[name] = bh
 }
 
 // Close implements stiface.Client.Close
-func (c GCSClient) Close() error {
+func (c *GCSClient) Close() error {
 	return nil
 }
 
 // Bucket implements stiface.Client.Bucket
-func (c GCSClient) Bucket(name string) stiface.BucketHandle {
+func (c *GCSClient) Bucket(name string) stiface.BucketHandle {
 	return c.buckets[name]
 }
 
 // BucketHandle provides a fake BucketHandle implementation for testing.
 type BucketHandle struct {
 	stiface.BucketHandle
-	ObjAttrs []*storage.ObjectAttrs // Objects that will be returned by iterator
+	ObjAttrs       []*storage.ObjectAttrs // Objects that will be returned by iterator
+	Objs           map[string]*ObjectHandle
+	WritesMustFail bool
 }
 
 // Attrs implements trivial stiface.BucketHandle.Attrs
-func (bh BucketHandle) Attrs(ctx context.Context) (*storage.BucketAttrs, error) {
+func (bh *BucketHandle) Attrs(ctx context.Context) (*storage.BucketAttrs, error) {
 	return &storage.BucketAttrs{}, nil
 }
 
+// Object returns an ObjectHandle for the specified object name if it exists
+// in this bucket, or a new ObjectHandle otherwise.
+func (bh *BucketHandle) Object(name string) stiface.ObjectHandle {
+	if o, ok := bh.Objs[name]; ok {
+		return o
+	}
+	return &ObjectHandle{
+		Name:           name,
+		Bucket:         bh,
+		Data:           new(bytes.Buffer),
+		WritesMustFail: bh.WritesMustFail,
+	}
+}
+
 // Objects implements stiface.BucketHandle.Objects
-func (bh BucketHandle) Objects(ctx context.Context, q *storage.Query) stiface.ObjectIterator {
+func (bh *BucketHandle) Objects(ctx context.Context, q *storage.Query) stiface.ObjectIterator {
 	obj := make([]*storage.ObjectAttrs, 0, len(bh.ObjAttrs))
 	dir := ""
 	for i := range bh.ObjAttrs {
@@ -82,7 +100,7 @@ func (bh BucketHandle) Objects(ctx context.Context, q *storage.Query) stiface.Ob
 		obj = append(obj, bh.ObjAttrs[i])
 	}
 	n := 0
-	return objIt{ctx: ctx, next: &n, objects: obj}
+	return &objIt{ctx: ctx, next: &n, objects: obj}
 }
 
 // objIt provides a fake stiface.ObjectIterator
@@ -94,7 +112,7 @@ type objIt struct {
 }
 
 // Next implements stiface.ObjectIterator.Next
-func (it objIt) Next() (*storage.ObjectAttrs, error) {
+func (it *objIt) Next() (*storage.ObjectAttrs, error) {
 	if it.ctx.Err() != nil {
 		return nil, it.ctx.Err()
 	}
@@ -103,4 +121,42 @@ func (it objIt) Next() (*storage.ObjectAttrs, error) {
 	}
 	*it.next++
 	return it.objects[*it.next-1], nil
+}
+
+// ObjectHandle implements stiface.ObjectHandle
+type ObjectHandle struct {
+	stiface.ObjectHandle
+	Name           string
+	Bucket         *BucketHandle
+	Data           *bytes.Buffer
+	WritesMustFail bool
+}
+
+// NewWriter implements stiface.ObjectHandle.NewWriter.
+func (o *ObjectHandle) NewWriter(context.Context) stiface.Writer {
+	return &fakeWriter{
+		object:   o,
+		buf:      o.Data,
+		mustFail: o.WritesMustFail,
+	}
+}
+
+type fakeWriter struct {
+	stiface.Writer
+	object   *ObjectHandle
+	buf      *bytes.Buffer
+	mustFail bool
+}
+
+// Write writes data to the fake bucket. The object is created if it does not
+// exist already.
+func (w *fakeWriter) Write(p []byte) (int, error) {
+	if w.mustFail {
+		return 0, errors.New("write failed")
+	}
+	w.object.Bucket.Objs[w.object.Name] = w.object
+	return w.buf.Write(p)
+}
+func (w *fakeWriter) Close() error {
+	return nil
 }

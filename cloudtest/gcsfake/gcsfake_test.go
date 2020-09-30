@@ -48,7 +48,7 @@ func TestGCSClient(t *testing.T) {
 
 	fc := gcsfake.GCSClient{}
 	fc.AddTestBucket("foobar",
-		gcsfake.BucketHandle{
+		&gcsfake.BucketHandle{
 			ObjAttrs: []*storage.ObjectAttrs{
 				{Name: "ndt/2019/01/01/obj1", Updated: time.Now()},
 				{Name: "ndt/2019/01/01/obj2", Updated: time.Now()},
