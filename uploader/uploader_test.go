@@ -2,11 +2,13 @@ package uploader
 
 import (
 	"context"
+	"io/ioutil"
 	"reflect"
 	"testing"
 
 	"github.com/googleapis/google-cloud-go-testing/storage/stiface"
 	"github.com/m-lab/go/cloudtest/gcsfake"
+	"github.com/m-lab/go/testingx"
 )
 
 func TestNew(t *testing.T) {
@@ -18,10 +20,12 @@ func TestNew(t *testing.T) {
 }
 
 func TestUploader_Upload(t *testing.T) {
-	type fields struct {
-		client stiface.Client
-		bucket stiface.BucketHandle
-	}
+	// Initialize fake client with working and failing buckets.
+	client := &gcsfake.GCSClient{}
+	failingBucket := gcsfake.NewBucketHandle()
+	failingBucket.WritesMustFail = true
+	client.AddTestBucket("test_bucket", gcsfake.NewBucketHandle())
+	client.AddTestBucket("failing_bucket", failingBucket)
 	type args struct {
 		ctx     context.Context
 		path    string
@@ -29,17 +33,15 @@ func TestUploader_Upload(t *testing.T) {
 	}
 	tests := []struct {
 		name    string
-		fields  fields
+		client  stiface.Client
+		bucket  string
 		args    args
 		wantErr bool
 	}{
 		{
-			name: "ok",
-			fields: fields{
-				bucket: &gcsfake.BucketHandle{
-					Objs: make(map[string]*gcsfake.ObjectHandle, 0),
-				},
-			},
+			name:   "ok",
+			client: client,
+			bucket: "test_bucket",
 			args: args{
 				ctx:     context.Background(),
 				content: []byte("test"),
@@ -47,13 +49,9 @@ func TestUploader_Upload(t *testing.T) {
 			},
 		},
 		{
-			name: "write-fails",
-			fields: fields{
-				bucket: &gcsfake.BucketHandle{
-					Objs:           make(map[string]*gcsfake.ObjectHandle, 0),
-					WritesMustFail: true,
-				},
-			},
+			name:   "write-fails",
+			client: client,
+			bucket: "failing_bucket",
 			args: args{
 				ctx:     context.Background(),
 				content: []byte("failing write"),
@@ -64,10 +62,7 @@ func TestUploader_Upload(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			u := &Uploader{
-				client: tt.fields.client,
-				bucket: tt.fields.bucket,
-			}
+			u := New(tt.client, tt.bucket)
 			obj, err := u.Upload(tt.args.ctx, tt.args.path, tt.args.content)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Uploader.Upload() error = %v, wantErr %v", err, tt.wantErr)
@@ -77,11 +72,16 @@ func TestUploader_Upload(t *testing.T) {
 			}
 			// Check uploaded content.
 			if err == nil {
-				if bucket, ok := tt.fields.bucket.(*gcsfake.BucketHandle); ok {
-					uploaded := bucket.Objs[tt.args.path]
-					if !reflect.DeepEqual(uploaded.Data.Bytes(), tt.args.content) {
-						t.Errorf("Uploader.Upload() didn't upload the expected data")
-					}
+				b := tt.client.Bucket(tt.bucket)
+				uploaded := b.Object(tt.args.path)
+
+				reader, err := uploaded.NewReader(context.Background())
+				testingx.Must(t, err, "cannot get a Reader for the uploaded file")
+				content, err := ioutil.ReadAll(reader)
+				testingx.Must(t, err, "cannot read the uploaded file's contents")
+
+				if !reflect.DeepEqual(content, tt.args.content) {
+					t.Errorf("Uploader.Upload() didn't upload the expected data")
 				}
 			}
 		})

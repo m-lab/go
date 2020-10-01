@@ -59,6 +59,14 @@ type BucketHandle struct {
 	WritesMustFail bool
 }
 
+// NewBucketHandle creates a new empty BucketHandle.
+func NewBucketHandle() *BucketHandle {
+	return &BucketHandle{
+		ObjAttrs: make([]*storage.ObjectAttrs, 0),
+		Objs:     make(map[string]*ObjectHandle),
+	}
+}
+
 // Attrs implements trivial stiface.BucketHandle.Attrs
 func (bh *BucketHandle) Attrs(ctx context.Context) (*storage.BucketAttrs, error) {
 	return &storage.BucketAttrs{}, nil
@@ -132,7 +140,14 @@ type ObjectHandle struct {
 	WritesMustFail bool
 }
 
-// NewWriter implements stiface.ObjectHandle.NewWriter.
+// NewReader returns a fakeReader for this ObjectHandle.
+func (o *ObjectHandle) NewReader(context.Context) (stiface.Reader, error) {
+	return &fakeReader{
+		buf: o.Data,
+	}, nil
+}
+
+// NewWriter returns a fakeWrite for this ObjectHandle.
 func (o *ObjectHandle) NewWriter(context.Context) stiface.Writer {
 	return &fakeWriter{
 		object:   o,
@@ -159,4 +174,13 @@ func (w *fakeWriter) Write(p []byte) (int, error) {
 }
 func (w *fakeWriter) Close() error {
 	return nil
+}
+
+type fakeReader struct {
+	stiface.Reader
+	buf *bytes.Buffer
+}
+
+func (r *fakeReader) Read(p []byte) (int, error) {
+	return r.buf.Read(p)
 }

@@ -10,6 +10,7 @@ import (
 
 	"cloud.google.com/go/storage"
 	"github.com/googleapis/google-cloud-go-testing/storage/stiface"
+	"github.com/m-lab/go/testingx"
 	"google.golang.org/api/iterator"
 )
 
@@ -128,6 +129,24 @@ func TestBucketHandle_Object(t *testing.T) {
 	}
 }
 
+func TestObjectHandle_NewReader(t *testing.T) {
+	buf := new(bytes.Buffer)
+	buf.WriteString("test")
+	obj := &ObjectHandle{
+		Data:           buf,
+		WritesMustFail: true,
+	}
+	got, err := obj.NewReader(context.Background())
+	testingx.Must(t, err, "NewReader() failed")
+	if reader, ok := got.(*fakeReader); ok {
+		if reader.buf != obj.Data {
+			t.Errorf("NewReader() did not return the expected Reader")
+		}
+	} else {
+		t.Errorf("NewReader() did not return a *fakeReader")
+	}
+}
+
 func TestObjectHandle_NewWriter(t *testing.T) {
 	buf := new(bytes.Buffer)
 	obj := &ObjectHandle{
@@ -177,4 +196,16 @@ func Test_fakeWriter_Close(t *testing.T) {
 		t.Errorf("Close() returned error: %v", err)
 	}
 
+}
+
+func Test_fakeReader_Read(t *testing.T) {
+	w := &fakeReader{
+		buf: bytes.NewBuffer([]byte("test")),
+	}
+	got := make([]byte, 4)
+	_, err := w.Read(got)
+	testingx.Must(t, err, "Read() returned an error")
+	if string(got) != "test" {
+		t.Errorf("Read(): got %s, expected test", string(got))
+	}
 }
