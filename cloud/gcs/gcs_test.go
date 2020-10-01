@@ -20,9 +20,9 @@ func init() {
 }
 
 func TestHasFiles(t *testing.T) {
-	fc := gcsfake.GCSClient{}
+	fc := &gcsfake.GCSClient{}
 	fc.AddTestBucket("foobar",
-		gcsfake.BucketHandle{
+		&gcsfake.BucketHandle{
 			ObjAttrs: []*storage.ObjectAttrs{
 				{Name: "ndt/2019/01/01/obj1", Size: 101, Updated: time.Now()},
 				{Name: "ndt/2019/01/01/obj2", Size: 2020, Updated: time.Now()},
@@ -39,9 +39,9 @@ func TestHasFiles(t *testing.T) {
 }
 
 func TestGetFilesSince(t *testing.T) {
-	fc := gcsfake.GCSClient{}
+	fc := &gcsfake.GCSClient{}
 	fc.AddTestBucket("foobar",
-		gcsfake.BucketHandle{
+		&gcsfake.BucketHandle{
 			ObjAttrs: []*storage.ObjectAttrs{
 				{Name: "ndt/2019/01/01/obj1", Size: 101, Updated: time.Now()},
 				{Name: "ndt/2019/01/01/obj2", Size: 2020, Updated: time.Now()},
@@ -66,9 +66,9 @@ func TestGetFilesSince(t *testing.T) {
 }
 
 func TestGetFilesSince_Context(t *testing.T) {
-	fc := gcsfake.GCSClient{}
+	fc := &gcsfake.GCSClient{}
 	fc.AddTestBucket("foobar",
-		gcsfake.BucketHandle{
+		&gcsfake.BucketHandle{
 			ObjAttrs: []*storage.ObjectAttrs{
 				{Name: "ndt/2019/01/01/obj1", Size: 101, Updated: time.Now()},
 			}})
