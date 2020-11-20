@@ -30,10 +30,7 @@ func (u *URL) Get() *url.URL {
 func (u *URL) Set(s string) error {
 	var err error
 	(*u).URL, err = url.Parse(s)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 // String formats the underlying URL as a string.
