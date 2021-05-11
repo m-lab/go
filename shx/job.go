@@ -154,9 +154,6 @@ func (s *State) Path(path ...string) string {
 	if filepath.IsAbs(path[0]) {
 		return filepath.Join(path...)
 	}
-	if len(path) == 1 {
-		return filepath.Join(s.Dir, path[0])
-	}
 	return filepath.Join(append([]string{s.Dir}, path...)...)
 }
 
