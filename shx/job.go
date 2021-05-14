@@ -367,7 +367,7 @@ func (c *ScriptJob) Run(ctx context.Context, s *State) error {
 	z := s.copy()
 	for i := range c.Jobs {
 		err := c.Jobs[i].Run(ctx, z)
-		// Special handling for script errors.
+		// Only generate description when the error is NOT a script error.
 		if err != nil && !errors.Is(err, ErrScriptError) {
 			d := &Description{}
 			c.Describe(d)
