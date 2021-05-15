@@ -23,6 +23,7 @@ package shx
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -127,6 +128,18 @@ func New() *State {
 		Env:    os.Environ(),
 	}
 	return s
+}
+
+func (s *State) copy() *State {
+	c := &State{
+		Stdin:  s.Stdin,
+		Stdout: s.Stdout,
+		Stderr: s.Stderr,
+		Dir:    s.Dir,
+	}
+	// Make independent copy of environment.
+	c.Env = append(c.Env, s.Env...)
+	return c
 }
 
 func prefix(d int) string {
@@ -245,4 +258,137 @@ func (f *ExecJob) Describe(d *Description) {
 		args = " " + strings.Join(f.args, " ")
 	}
 	d.Append(f.name + args)
+}
+
+// Func creates a new FuncJob that runs the given function. Job functions should
+// honor the context to support cancelation. The given name is used to describe
+// this function.
+func Func(name string, job func(ctx context.Context, s *State) error) *FuncJob {
+	return &FuncJob{
+		Job: job,
+		Desc: func(d *Description) {
+			d.Append(name)
+		},
+	}
+}
+
+// FuncJob is a generic Job type that allows creating new operations without
+// creating a totally new type. When created directly, both Job and Desc fields
+// must be defined.
+type FuncJob struct {
+	Job  func(ctx context.Context, s *State) error
+	Desc func(d *Description)
+}
+
+// Run executes the job function.
+func (f *FuncJob) Run(ctx context.Context, s *State) error {
+	return f.Job(ctx, s)
+}
+
+// Describe generates a description for this custom function.
+func (f *FuncJob) Describe(d *Description) {
+	f.Desc(d)
+}
+
+// Chdir creates Job that changes the State Dir to the given directory at
+// runtime. This does not alter the process working directory. Chdir is helpful
+// in Script() Jobs.
+func Chdir(dir string) Job {
+	return &FuncJob{
+		Job: func(ctx context.Context, s *State) error {
+			s.Dir = s.Path(dir)
+			return nil
+		},
+		Desc: func(d *Description) {
+			d.Append(fmt.Sprintf("cd %s", dir))
+		},
+	}
+}
+
+// SetEnv creates a Job to assign the given name=value in the running State Env.
+// SetEnv is helpful in Script() Jobs.
+func SetEnv(name string, value string) Job {
+	return &FuncJob{
+		Job: func(ctx context.Context, s *State) error {
+			s.SetEnv(name, value)
+			return nil
+		},
+		Desc: func(d *Description) {
+			d.Append(fmt.Sprintf("export %s=%q", name, value))
+		},
+	}
+}
+
+// SetEnvFromJob creates a new Job that sets the given name in Env to the result
+// written to stdout by running the given Job. Errors from the given Job are
+// returned.
+func SetEnvFromJob(name string, job Job) Job {
+	return &FuncJob{
+		Job: func(ctx context.Context, s *State) error {
+			b := &bytes.Buffer{}
+			s2 := &State{
+				Stdout: b,
+				Env:    append([]string(nil), s.Env...),
+			}
+			err := job.Run(ctx, s2)
+			if err != nil {
+				return err
+			}
+			s.SetEnv(name, strings.TrimSpace(b.String()))
+			return nil
+		},
+		Desc: func(d *Description) {
+			close := d.StartSequence(fmt.Sprintf("export %s=$(", name), "")
+			job.Describe(d)
+			close(")")
+		},
+	}
+}
+
+// Script creates a Job that executes the given Job parameters in sequence. If
+// any Job returns an error, execution stops.
+func Script(t ...Job) *ScriptJob {
+	return &ScriptJob{
+		Jobs: t,
+	}
+}
+
+// ErrScriptError is a base Script error.
+var ErrScriptError = errors.New("script execution error")
+
+// ScriptJob implements the Job interface for running an ordered sequence of Jobs.
+type ScriptJob struct {
+	Jobs []Job
+}
+
+// Run sequentially executes every Job in the script. Any Job error stops
+// execution and generates an error describing the command that failed.
+func (c *ScriptJob) Run(ctx context.Context, s *State) error {
+	z := s.copy()
+	for i := range c.Jobs {
+		err := c.Jobs[i].Run(ctx, z)
+		// Only generate description when the error is NOT a script error.
+		if err != nil && !errors.Is(err, ErrScriptError) {
+			d := &Description{}
+			c.Describe(d)
+			str := d.String()
+			return fmt.Errorf("%w:\n%s - %s", ErrScriptError, str, err.Error())
+		}
+		// All other errors.
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// Describe generates a description for all jobs in the script.
+func (c *ScriptJob) Describe(d *Description) {
+	d.Append("(")
+	d.Depth++
+	for i := range c.Jobs {
+		c.Jobs[i].Describe(d)
+	}
+	d.Depth--
+	d.Append(")")
 }
