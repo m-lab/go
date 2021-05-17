@@ -306,9 +306,9 @@ func Chdir(dir string) Job {
 	}
 }
 
-// Println writes the given message to the State Stdout. Println expands
-// variable references from the running State environment. Println supports the
-// same variable syntax as os.Expand, e.g. $NAME or ${NAME}.
+// Println writes the given message to the State Stdout and expands variable
+// references from the running State environment. Println supports the same
+// variable syntax as os.Expand, e.g. $NAME or ${NAME}.
 func Println(message string) Job {
 	return &FuncJob{
 		Job: func(ctx context.Context, s *State) error {
@@ -519,7 +519,7 @@ func (c *PipeJob) Run(ctx context.Context, z *State) error {
 		select {
 		case err = <-done:
 		case <-ctx.Done():
-			// Continue colleting errors after context cancellation.
+			// Continue collecting errors after context cancellation.
 			err = <-done
 		}
 		// Return first error. Deferred wait group will block until all Jobs return.
