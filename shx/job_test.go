@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"path"
 	"testing"
 
 	. "github.com/m-lab/go/shx"
@@ -191,6 +192,66 @@ func TestScript(t *testing.T) {
 	}
 }
 
+func TestPipe(t *testing.T) {
+	tmpdir := t.TempDir()
+
+	tests := []struct {
+		name    string
+		t       []Job
+		z       *State
+		want    string
+		wantErr bool
+	}{
+		{
+			name: "okay",
+			t: []Job{
+				System("pwd"),
+				System("cat"),
+				System("cat >output.log"), // WriteFile("output.log", 0666),
+			},
+			want: tmpdir + "\n",
+		},
+		{
+			name: "success-readcloser-writecloser",
+			t: []Job{
+				Func(
+					"reset-writer",
+					func(ctx context.Context, s *State) error {
+						s.Stdout = bytes.NewBuffer(nil)
+						return nil
+					}),
+				Func(
+					"reset-reader",
+					func(ctx context.Context, s *State) error {
+						s.Stdin = bytes.NewBuffer(nil)
+						return nil
+					}),
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			c := Pipe(tt.t...)
+			ctx := context.Background()
+			s := New()
+			s.Dir = tmpdir
+			if err := c.Run(ctx, s); (err != nil) != tt.wantErr {
+				t.Errorf("pipeJob.Run() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if tt.want == "" {
+				return
+			}
+			b, err := ioutil.ReadFile(path.Join(tmpdir, "output.log"))
+			if err != nil && !tt.wantErr {
+				t.Errorf("pipeJob.Run() readfile error = %v, want nil", err)
+			}
+			if string(b) != tt.want {
+				t.Errorf("pipeJob.Run() wrong output = %q, want %q", string(b), tt.want)
+			}
+		})
+	}
+}
+
 func TestState(t *testing.T) {
 	t.Run("SetState", func(t *testing.T) {
 		s := New()
@@ -257,6 +318,21 @@ func TestDescribe(t *testing.T) {
 			want: " 1: custom\n",
 		},
 		{
+			name: "pipe",
+			job:  Pipe(Exec("echo", "ok"), Exec("cat")),
+			want: " 1: echo ok | cat\n",
+		},
+		{
+			name: "setenv-pipe",
+			job:  SetEnvFromJob("key", Pipe(Exec("echo", "ok"), Exec("cat"))),
+			want: " 1: export key=$(echo ok | cat)\n",
+		},
+		{
+			name: "setenv-pipe-pipe",
+			job:  Pipe(Exec("cat", "foo.list"), Pipe(Exec("echo", "ok"), Exec("cat"))),
+			want: " 1: cat foo.list | echo ok | cat\n",
+		},
+		{
 			name: "script",
 			job:  Script(Exec("echo", "ok")),
 			want: " 1: (\n 2:   echo ok\n 3: )\n",
@@ -275,6 +351,21 @@ func TestDescribe(t *testing.T) {
 			name: "func-setenvfromjob",
 			job:  SetEnvFromJob("key", Exec("echo", "ok")),
 			want: " 1: export key=$(echo ok)\n",
+		},
+		{
+			name: "func-iffilemissing",
+			job:  IfFileMissing("file.missing", Exec("echo", "ok")),
+			want: " 1: if [[ ! -f file.missing ]] ; then\n 2:   echo ok\n 3: fi\n",
+		},
+		{
+			name: "func-ifvarempty",
+			job:  IfVarEmpty("key", Exec("echo", "ok")),
+			want: " 1: if [[ -z ${key} ]] ; then\n 2:   echo ok\n 3: fi\n",
+		},
+		{
+			name: "func-println",
+			job:  Println("test"),
+			want: ` 1: echo "test"` + "\n",
 		},
 	}
 
@@ -322,6 +413,11 @@ func TestRun(t *testing.T) {
 			want: "output",
 		},
 		{
+			name: "pipe",
+			job:  Pipe(Exec("echo", "ok"), Exec("cat")),
+			want: "ok\n",
+		},
+		{
 			name: "script",
 			job:  Script(Exec("echo", "ok")),
 			want: "ok\n",
@@ -364,6 +460,39 @@ func TestRun(t *testing.T) {
 			name:    "func-setenvfromjob-error",
 			job:     SetEnvFromJob("key", System("exit 1")),
 			wantErr: true,
+		},
+		{
+			name: "func-iffilemissing",
+			job:  IfFileMissing("file.missing", Exec("echo", "ok")),
+			want: "ok\n",
+		},
+		{
+			name: "func-iffilemissing-not-missing",
+			job:  IfFileMissing("job_test.go", Exec("echo", "ok")),
+			want: "",
+		},
+		{
+			name: "func-ifvarempty",
+			job:  IfVarEmpty("key", Exec("echo", "ok")),
+			want: "ok\n",
+		},
+		{
+			name: "func-ifvarempty-not-empty",
+			job: Script(
+				SetEnv("key", "value"),
+				IfVarEmpty("key", Exec("echo", "ok")),
+			),
+			want: "",
+		},
+		{
+			name: "func-println",
+			job:  Println("test"),
+			want: "test\n",
+		},
+		{
+			name: "func-println-expand",
+			job:  Script(SetEnv("KEY", "VALUE"), Println("test ${KEY}")),
+			want: "test VALUE\n",
 		},
 	}
 
@@ -464,6 +593,32 @@ func ExampleScriptJob_Describe() {
 	//  2:   export FOO="BAR"
 	//  3:   env
 	//  4: )
+}
+
+func ExamplePipeJob_Run() {
+	p := Pipe(
+		Exec("ls"),
+		Exec("tail", "-1"),
+		Exec("wc", "-l"),
+	)
+	s := New()
+	err := p.Run(context.Background(), s)
+	if err != nil {
+		panic(err)
+	}
+	// Output: 1
+}
+
+func ExamplePipeJob_Describe() {
+	p := Pipe(
+		Exec("ls"),
+		Exec("tail", "-1"),
+		Exec("wc", "-l"),
+	)
+	d := &Description{}
+	p.Describe(d)
+	fmt.Println(d.String())
+	// Output:  1: ls | tail -1 | wc -l
 }
 
 func Example() {

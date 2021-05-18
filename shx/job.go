@@ -30,6 +30,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"sync"
 )
 
 // Description is used to produce a representation of a Job. Custom Job types
@@ -305,6 +306,22 @@ func Chdir(dir string) Job {
 	}
 }
 
+// Println writes the given message to the State Stdout and expands variable
+// references from the running State environment. Println supports the same
+// variable syntax as os.Expand, e.g. $NAME or ${NAME}.
+func Println(message string) Job {
+	return &FuncJob{
+		Job: func(ctx context.Context, s *State) error {
+			message = os.Expand(message, s.GetEnv)
+			_, err := s.Stdout.Write([]byte(message + "\n"))
+			return err
+		},
+		Desc: func(d *Description) {
+			d.Append(fmt.Sprintf("echo %q", message))
+		},
+	}
+}
+
 // SetEnv creates a Job to assign the given name=value in the running State Env.
 // SetEnv is helpful in Script() Jobs.
 func SetEnv(name string, value string) Job {
@@ -341,6 +358,49 @@ func SetEnvFromJob(name string, job Job) Job {
 			close := d.StartSequence(fmt.Sprintf("export %s=$(", name), "")
 			job.Describe(d)
 			close(")")
+		},
+	}
+}
+
+// IfFileMissing creates a Job that runs the given job if the named file does
+// not exist.
+func IfFileMissing(file string, job Job) Job {
+	return &FuncJob{
+		Desc: func(d *Description) {
+			d.Append(fmt.Sprintf("if [[ ! -f %s ]] ; then", file))
+			d.Depth++
+			job.Describe(d)
+			d.Depth--
+			d.Append("fi")
+		},
+		Job: func(ctx context.Context, s *State) error {
+			_, err := os.Stat(s.Path(file))
+			if err != nil {
+				return job.Run(ctx, s)
+			}
+			// This is not an error, we simply don't run the job.
+			return nil
+		},
+	}
+}
+
+// IfVarEmpty creates a Job that runs the given job if the named variable is
+// empty.
+func IfVarEmpty(key string, job Job) Job {
+	return &FuncJob{
+		Desc: func(d *Description) {
+			d.Append(fmt.Sprintf("if [[ -z ${%s} ]] ; then", key))
+			d.Depth++
+			job.Describe(d)
+			d.Depth--
+			d.Append("fi")
+		},
+		Job: func(ctx context.Context, s *State) error {
+			if s.GetEnv(key) == "" {
+				return job.Run(ctx, s)
+			}
+			// This is not an error, we simply don't run the job.
+			return nil
 		},
 	}
 }
@@ -391,4 +451,124 @@ func (c *ScriptJob) Describe(d *Description) {
 	}
 	d.Depth--
 	d.Append(")")
+}
+
+// Pipe creates a Job that executes the given Jobs as a "shell pipeline",
+// passing the output of the first to the input of the next, and so on.
+// If any Job returns an error, the first error is returned.
+func Pipe(t ...Job) *PipeJob {
+	return &PipeJob{
+		Jobs: t,
+	}
+}
+
+// PipeJob implements the Job interface for running multiple Jobs in a
+// pipeline.
+type PipeJob struct {
+	Jobs []Job
+}
+
+// Run executes every Job in the pipeline. The stdout from the first command is
+// passed to the stdin to the next command. The stderr for all commands is
+// inherited from the given State. If any Job returns an error, the first error
+// is returned for the entire PipeJob.
+func (c *PipeJob) Run(ctx context.Context, z *State) error {
+	e := c.Jobs
+	p := nPipes(z.Stdin, z.Stdout, len(e))
+	s := make([]*State, len(e))
+	for i := range e {
+		s[i] = &State{
+			Stdin:  p[i].R,
+			Stdout: p[i].W,
+			Stderr: z.Stderr,
+			Dir:    z.Dir,
+			Env:    z.Env,
+		}
+	}
+	// Create channel for all pipe job return values.
+	done := make(chan error, len(e))
+
+	// Create a wait group to block on all Jobs returning.
+	wg := sync.WaitGroup{}
+	defer wg.Wait()
+
+	// Context cancellation will execute before waiting on wait group.
+	ctx2, cancel2 := context.WithCancel(ctx)
+	defer cancel2()
+
+	// Run all jobs in reverse order, end of pipe to beginning.
+	for i := len(e) - 1; i >= 0; i-- {
+		wg.Add(1)
+		go func(n, i int, e Job, s *State) {
+			err := e.Run(ctx2, s)
+			// Send possible errors to outer loop.
+			done <- err
+			wg.Done()
+			if i != 0 {
+				closeReader(s.Stdin)
+			}
+			if i != n-1 {
+				closeWriter(s.Stdout)
+			}
+		}(len(e), i, e[i], s[i])
+	}
+
+	// Wait for goroutines to return or context cancellation.
+	for range e {
+		var err error
+		select {
+		case err = <-done:
+		case <-ctx.Done():
+			// Continue collecting errors after context cancellation.
+			err = <-done
+		}
+		// Return first error. Deferred wait group will block until all Jobs return.
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// Describe generates a description for all jobs in the pipeline.
+func (c *PipeJob) Describe(d *Description) {
+	endlist := d.StartSequence("", " | ")
+	defer endlist("")
+	for i := range c.Jobs {
+		c.Jobs[i].Describe(d)
+	}
+}
+
+func closeWriter(w io.Writer) error {
+	c, ok := w.(io.WriteCloser)
+	if ok {
+		return c.Close()
+	}
+	// Not a write closer, so cannot be closed.
+	return nil
+}
+
+func closeReader(r io.Reader) error {
+	c, ok := r.(io.ReadCloser)
+	if ok {
+		return c.Close()
+	}
+	// Not a read closer, so cannot be closed.
+	return nil
+}
+
+type rw struct {
+	R io.Reader
+	W io.Writer
+}
+
+func nPipes(r io.Reader, w io.Writer, n int) []rw {
+	var p []rw
+	for i := 0; i < n-1; i++ {
+		rp, wp := io.Pipe()
+		p = append(p, rw{R: r, W: wp})
+		r = rp
+	}
+	p = append(p, rw{R: r, W: w})
+	return p
 }
