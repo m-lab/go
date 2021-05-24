@@ -196,6 +196,11 @@ func Test_fakeWriter_Close(t *testing.T) {
 		t.Errorf("Close() returned error: %v", err)
 	}
 
+	w.closeMustFail = true
+	if err := w.Close(); err == nil {
+		t.Errorf("Close() did not return an error")
+	}
+
 }
 
 func Test_fakeReader_Read(t *testing.T) {
