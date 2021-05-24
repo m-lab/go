@@ -57,6 +57,7 @@ type BucketHandle struct {
 	ObjAttrs       []*storage.ObjectAttrs // Objects that will be returned by iterator
 	Objs           map[string]*ObjectHandle
 	WritesMustFail bool
+	ClosesMustFail bool
 }
 
 // NewBucketHandle creates a new empty BucketHandle.
@@ -83,6 +84,7 @@ func (bh *BucketHandle) Object(name string) stiface.ObjectHandle {
 		Bucket:         bh,
 		Data:           new(bytes.Buffer),
 		WritesMustFail: bh.WritesMustFail,
+		ClosesMustFail: bh.ClosesMustFail,
 	}
 }
 
@@ -138,6 +140,7 @@ type ObjectHandle struct {
 	Bucket         *BucketHandle
 	Data           *bytes.Buffer
 	WritesMustFail bool
+	ClosesMustFail bool
 }
 
 // NewReader returns a fakeReader for this ObjectHandle.
@@ -150,17 +153,19 @@ func (o *ObjectHandle) NewReader(context.Context) (stiface.Reader, error) {
 // NewWriter returns a fakeWrite for this ObjectHandle.
 func (o *ObjectHandle) NewWriter(context.Context) stiface.Writer {
 	return &fakeWriter{
-		object:   o,
-		buf:      o.Data,
-		mustFail: o.WritesMustFail,
+		object:        o,
+		buf:           o.Data,
+		mustFail:      o.WritesMustFail,
+		closeMustFail: o.ClosesMustFail,
 	}
 }
 
 type fakeWriter struct {
 	stiface.Writer
-	object   *ObjectHandle
-	buf      *bytes.Buffer
-	mustFail bool
+	object        *ObjectHandle
+	buf           *bytes.Buffer
+	mustFail      bool
+	closeMustFail bool
 }
 
 // Write writes data to the fake bucket. The object is created if it does not
@@ -173,6 +178,9 @@ func (w *fakeWriter) Write(p []byte) (int, error) {
 	return w.buf.Write(p)
 }
 func (w *fakeWriter) Close() error {
+	if w.closeMustFail {
+		return errors.New("close failed")
+	}
 	return nil
 }
 

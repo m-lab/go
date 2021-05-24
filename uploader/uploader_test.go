@@ -24,8 +24,11 @@ func TestUploader_Upload(t *testing.T) {
 	client := &gcsfake.GCSClient{}
 	failingBucket := gcsfake.NewBucketHandle()
 	failingBucket.WritesMustFail = true
+	failingCloseBucket := gcsfake.NewBucketHandle()
+	failingCloseBucket.ClosesMustFail = true
 	client.AddTestBucket("test_bucket", gcsfake.NewBucketHandle())
 	client.AddTestBucket("failing_bucket", failingBucket)
+	client.AddTestBucket("failing_close_bucket", failingCloseBucket)
 	type args struct {
 		ctx     context.Context
 		path    string
@@ -55,6 +58,17 @@ func TestUploader_Upload(t *testing.T) {
 			args: args{
 				ctx:     context.Background(),
 				content: []byte("failing write"),
+				path:    "this/is/a/test",
+			},
+			wantErr: true,
+		},
+		{
+			name:   "close-fails",
+			client: client,
+			bucket: "failing_close_bucket",
+			args: args{
+				ctx:     context.Background(),
+				content: []byte("failing close"),
 				path:    "this/is/a/test",
 			},
 			wantErr: true,
