@@ -26,9 +26,15 @@ func New(client stiface.Client, bucket string) *Uploader {
 func (u *Uploader) Upload(ctx context.Context, path string, content []byte) (stiface.ObjectHandle, error) {
 	obj := u.bucket.Object(path)
 	w := obj.NewWriter(ctx)
-	defer w.Close()
 
 	_, err := io.Copy(w, bytes.NewBuffer(content))
+	if err != nil {
+		return nil, err
+	}
+
+	// Avoid using defer w.Close() here as it would hide errors occurring
+	// while closing the writer, such as permission errors.
+	err = w.Close()
 	if err != nil {
 		return nil, err
 	}
