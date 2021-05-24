@@ -9,7 +9,9 @@ import (
 	"log"
 	"os"
 	"path"
+	"strings"
 	"testing"
+	"time"
 
 	. "github.com/m-lab/go/shx"
 )
@@ -207,7 +209,7 @@ func TestPipe(t *testing.T) {
 			t: []Job{
 				System("pwd"),
 				System("cat"),
-				System("cat >output.log"), // WriteFile("output.log", 0666),
+				WriteFile("output.log", 0666),
 			},
 			want: tmpdir + "\n",
 		},
@@ -252,6 +254,67 @@ func TestPipe(t *testing.T) {
 	}
 }
 
+func TestReadWrite(t *testing.T) {
+	tmpdir := t.TempDir()
+
+	r, err := os.Open("/dev/zero")
+	if err != nil {
+		t.Fatal(err)
+	}
+	w, err := os.OpenFile("/dev/null", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	tests := []struct {
+		name    string
+		t       []Job
+		ctxErr  bool
+		fileErr bool
+	}{
+		{
+			name: "okay-readfile-writefile",
+			t: []Job{
+				ReadFile("/dev/zero"),
+				WriteFile("/dev/null", 0666),
+			},
+			ctxErr: true,
+		},
+		{
+			name: "error-readfile-writefile",
+			t: []Job{
+				ReadFile("/does-not-exist/foo"),
+				WriteFile("/does-not-exist/bar", 0666),
+			},
+			fileErr: true,
+		},
+		{
+			name: "okay-read-write",
+			t: []Job{
+				Read(r),
+				Write(w),
+			},
+			ctxErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Millisecond)
+			defer cancel()
+			s := New()
+			s.Dir = tmpdir
+
+			c := Pipe(tt.t...)
+			err := c.Run(ctx, s)
+			if tt.fileErr && !strings.Contains(err.Error(), "no such file or directory") {
+				t.Errorf("pipeJob.Run() wrong error = %v, want 'no such file or directory'", err)
+			}
+			if tt.ctxErr && err != context.DeadlineExceeded {
+				t.Errorf("pipeJob.Run() wrong error = %v, want %v", err, context.DeadlineExceeded)
+			}
+		})
+	}
+}
 func TestState(t *testing.T) {
 	t.Run("SetState", func(t *testing.T) {
 		s := New()
@@ -336,6 +399,26 @@ func TestDescribe(t *testing.T) {
 			name: "script",
 			job:  Script(Exec("echo", "ok")),
 			want: " 1: (\n 2:   echo ok\n 3: )\n",
+		},
+		{
+			name: "func-read",
+			job:  Read(nil),
+			want: " 1: read(<nil>)\n",
+		},
+		{
+			name: "func-readfile",
+			job:  ReadFile("input.file"),
+			want: " 1: cat < input.file\n",
+		},
+		{
+			name: "func-write",
+			job:  Write(nil),
+			want: " 1: write(<nil>)\n",
+		},
+		{
+			name: "func-writefile",
+			job:  WriteFile("output.file", 0666),
+			want: " 1: cat > output.file\n",
 		},
 		{
 			name: "func-chdir",
@@ -431,6 +514,29 @@ func TestRun(t *testing.T) {
 			name:    "script-deep-error",
 			job:     Script(Script(System("exit 1"))),
 			wantErr: true,
+		},
+		{
+			name: "func-read",
+			job:  Read(bytes.NewBuffer([]byte("output"))),
+			want: "output",
+		},
+		{
+			name: "func-readfile",
+			job:  ReadFile("testdata/input.file"),
+			want: "input\n",
+		},
+		{
+			name:    "func-readfile-error",
+			job:     ReadFile("this-file-does-not-exist"),
+			wantErr: true,
+		},
+		{
+			name: "func-writefile",
+			job: Script(
+				Pipe(Exec("echo", "ok"), WriteFile("output.file", 0666)),
+				Exec("cat", "output.file"),
+			),
+			want: "ok\n",
 		},
 		{
 			name:    "func-chdir",

@@ -291,6 +291,92 @@ func (f *FuncJob) Describe(d *Description) {
 	f.Desc(d)
 }
 
+// NewReaderContext creates a context-aware io.Reader. This is helpful for
+// creating custom Jobs that are context-aware when reading from otherwise
+// unbounded IO operations, e.g. io.Copy().
+func NewReaderContext(ctx context.Context, r io.Reader) io.Reader {
+	return &readerCtx{ctx: ctx, Reader: r}
+}
+
+type readerCtx struct {
+	ctx context.Context
+	io.Reader
+}
+
+func (r *readerCtx) Read(p []byte) (n int, err error) {
+	if err := r.ctx.Err(); err != nil {
+		return 0, err
+	}
+	return r.Reader.Read(p)
+}
+
+// Read creates a Job that reads from the given reader and writes it to Job's
+// stdout. Read creates a context-aware reader from the given io.Reader.
+func Read(r io.Reader) Job {
+	return &FuncJob{
+		Job: func(ctx context.Context, s *State) error {
+			_, err := io.Copy(s.Stdout, NewReaderContext(ctx, r))
+			return err
+		},
+		Desc: func(d *Description) {
+			d.Append(fmt.Sprintf("read(%v)", r))
+		},
+	}
+}
+
+// ReadFile creates a Job that reads from the named file and writes it to the
+// Job's stdout.
+func ReadFile(path string) Job {
+	return &FuncJob{
+		Job: func(ctx context.Context, s *State) error {
+			file, err := os.Open(s.Path(path))
+			if err != nil {
+				return err
+			}
+			defer file.Close()
+			_, err = io.Copy(s.Stdout, NewReaderContext(ctx, file))
+			return err
+		},
+		Desc: func(d *Description) {
+			d.Append(fmt.Sprintf("cat < %s", path))
+		},
+	}
+}
+
+// Write creates a Job that reads from the Job input and writes to the given
+// writer. Write creates a context-aware reader from the Job input.
+func Write(w io.Writer) Job {
+	return &FuncJob{
+		Job: func(ctx context.Context, s *State) error {
+			_, err := io.Copy(w, NewReaderContext(ctx, s.Stdin))
+			return err
+		},
+		Desc: func(d *Description) {
+			d.Append(fmt.Sprintf("write(%v)", w))
+		},
+	}
+}
+
+// WriteFile creates a Job that reads from the Job input and writes to the named
+// file. The output path is created if it does not exist and is truncated if it
+// does.
+func WriteFile(path string, perm os.FileMode) Job {
+	return &FuncJob{
+		Job: func(ctx context.Context, s *State) error {
+			file, err := os.OpenFile(s.Path(path), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, perm)
+			if err != nil {
+				return err
+			}
+			defer file.Close()
+			_, err = io.Copy(file, NewReaderContext(ctx, s.Stdin))
+			return err
+		},
+		Desc: func(d *Description) {
+			d.Append(fmt.Sprintf("cat > %s", path))
+		},
+	}
+}
+
 // Chdir creates Job that changes the State Dir to the given directory at
 // runtime. This does not alter the process working directory. Chdir is helpful
 // in Script() Jobs.
