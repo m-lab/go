@@ -2,6 +2,10 @@ module github.com/m-lab/go
 
 go 1.13
 
+// These v1 versions were published incorrectly. Retracting to prevent go mod
+// from automatically selecting them.
+retract [v1.0.0, v1.4.0]
+
 require (
 	cloud.google.com/go/bigquery v1.6.0
 	cloud.google.com/go/datastore v1.1.0
@@ -14,7 +18,6 @@ require (
 	github.com/kr/text v0.2.0 // indirect
 	github.com/m-lab/uuid-annotator v0.4.1
 	github.com/prometheus/client_golang v1.7.1
-	github.com/prometheus/prometheus v2.5.0+incompatible
 	golang.org/x/net v0.0.0-20200421231249-e086a090c8fd
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	golang.org/x/tools v0.0.0-20200422205258-72e4a01eba43 // indirect
