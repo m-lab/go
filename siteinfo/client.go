@@ -33,12 +33,8 @@ func New(projectID, version string, httpClient HTTPProvider) *Client {
 	}
 }
 
-// Switches fetches the sites/switches.json output format and returns its
-// content as a map[site]Switch.
-func (s Client) Switches() (map[string]Switch, error) {
-	url := s.makeBaseURL() + "sites/switches.json"
-
-	resp, err := s.httpClient.Get(url)
+func (c Client) getContent(url string) ([]byte, error) {
+	resp, err := c.httpClient.Get(url)
 	if err != nil {
 		return nil, err
 	}
@@ -48,13 +44,38 @@ func (s Client) Switches() (map[string]Switch, error) {
 	if err != nil {
 		return nil, err
 	}
+	return body, nil
+}
 
+// Switches fetches the sites/switches.json output format and returns its
+// content as a map[site]Switch.
+func (c Client) Switches() (map[string]Switch, error) {
+	url := c.makeBaseURL() + "sites/switches.json"
+	body, err := c.getContent(url)
+	if err != nil {
+		return nil, err
+	}
 	res := make(map[string]Switch)
 	err = json.Unmarshal(body, &res)
 	if err != nil {
 		return nil, err
 	}
+	return res, nil
+}
 
+// Projects fetches the sites/projects.json output format and returns its
+// content as a map[<short-node-name>]string.
+func (c Client) Projects() (map[string]string, error) {
+	url := c.makeBaseURL() + "sites/projects.json"
+	body, err := c.getContent(url)
+	if err != nil {
+		return nil, err
+	}
+	res := make(map[string]string)
+	err = json.Unmarshal(body, &res)
+	if err != nil {
+		return nil, err
+	}
 	return res, nil
 }
 
