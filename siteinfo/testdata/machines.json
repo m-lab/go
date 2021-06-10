@@ -3,24 +3,28 @@
       "hostname": "mlab2-abc09.mlab-oti.measurement-lab.org",
       "ipv4": "192.168.5.150",
       "ipv6": "2004:42a8:144:6::150",
-      "project": "mlab-oti"
+      "project": "mlab-oti",
+      "type": "physical"
    },
    {
       "hostname": "mlab3-abc09.mlab-oti.measurement-lab.org",
       "ipv4": "192.168.5.163",
       "ipv6": "2004:42a8:144:6::163",
-      "project": "mlab-oti"
+      "project": "mlab-oti",
+      "type": "cloud"
    },
    {
       "hostname": "mlab4-xyz05.mlab-staging.measurement-lab.org",
       "ipv4": "10.10.5.176",
       "ipv6": "2002:41f8:504:7::176",
-      "project": "mlab-staging"
+      "project": "mlab-staging",
+      "type": "physical"
    },
    {
       "hostname": "mlab1-lol0t.mlab-sandbox.measurement-lab.org",
       "ipv4": "195.89.146.201",
       "ipv6": "2001:5012:100:24::201",
-      "project": "mlab-sandbox"
+      "project": "mlab-sandbox",
+      "type": "physical"
    }
 ]
