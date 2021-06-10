@@ -80,7 +80,7 @@ func (c Client) Projects() (map[string]string, error) {
 }
 
 // Machines fetches the sites/machines.json output format and returns its
-// content as a []Machines.
+// content as a []Machine.
 func (c Client) Machines() ([]Machine, error) {
 	url := c.makeBaseURL() + "sites/machines.json"
 	body, err := c.getContent(url)
