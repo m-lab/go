@@ -127,7 +127,7 @@ func TestClient_Switches(t *testing.T) {
 
 	// Make reading the response body fail.
 	client.httpClient = &failingReadProvider{}
-	res, err = client.Switches()
+	_, err = client.Switches()
 	if err == nil {
 		t.Errorf("Switches(): expected err, got nil.")
 	}
@@ -188,5 +188,60 @@ func TestClient_Projects(t *testing.T) {
 	_, err = client.Projects()
 	if err == nil {
 		t.Errorf("Projects(): expected err, got nil.")
+	}
+}
+
+func TestClient_Machines(t *testing.T) {
+	prov := &fileReaderProvider{
+		path: "testdata/machines.json",
+	}
+	client := New("testmachines", "v2", prov)
+
+	// This should return the content of the test file.
+	res, err := client.Machines()
+	if err != nil {
+		t.Errorf("Machines() returned err: %v", err)
+	}
+
+	if len(res) != 4 {
+		t.Errorf("Machines(): wrong map len %d, expected %d", len(res), 8)
+	}
+
+	// Test working HTTP client request
+	client.httpClient = &stringProvider{
+		response: `[
+          {
+            "hostname": "mlab2-abc09.mlab-oti.measurement-lab.org",
+            "ipv4": "192.168.5.150",
+            "ipv6": "2004:42a8:144:6::150",
+            "project": "mlab-oti"
+          }
+		]`,
+	}
+
+	_, err = client.Machines()
+	if err != nil {
+		t.Error("Machines(): expected success, got error.")
+	}
+
+	// Make the HTTP client fail.
+	client.httpClient = &failingProvider{}
+	_, err = client.Machines()
+	if err == nil {
+		t.Errorf("Machines(): expected err, got nil.")
+	}
+
+	// Make reading the response body fail.
+	client.httpClient = &failingReadProvider{}
+	_, err = client.Machines()
+	if err == nil {
+		t.Errorf("Machines(): expected err, got nil.")
+	}
+
+	// Make the JSON unmarshalling fail.
+	client.httpClient = &stringProvider{"this will fail"}
+	_, err = client.Machines()
+	if err == nil {
+		t.Errorf("Machines(): expected err, got nil.")
 	}
 }
