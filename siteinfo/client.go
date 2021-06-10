@@ -79,6 +79,22 @@ func (c Client) Projects() (map[string]string, error) {
 	return res, nil
 }
 
+// Machines fetches the sites/machines.json output format and returns its
+// content as a []Machines.
+func (c Client) Machines() ([]Machine, error) {
+	url := c.makeBaseURL() + "sites/machines.json"
+	body, err := c.getContent(url)
+	if err != nil {
+		return nil, err
+	}
+	res := []Machine{}
+	err = json.Unmarshal(body, &res)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
 func (s Client) makeBaseURL() string {
 	return fmt.Sprintf(baseURLFormat, s.ProjectID, s.Version)
 }
