@@ -1,10 +1,10 @@
 module github.com/m-lab/go
 
-go 1.13
+go 1.16
 
 // These v1 versions were published incorrectly. Retracting to prevent go mod
 // from automatically selecting them.
-retract [v1.0.0, v1.4.0]
+retract [v1.0.0, v1.4.1]
 
 require (
 	cloud.google.com/go/bigquery v1.6.0
