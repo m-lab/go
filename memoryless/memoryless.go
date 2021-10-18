@@ -203,6 +203,7 @@ func NewTicker(ctx context.Context, config Config) (*Ticker, error) {
 // between function calls. It is a convenience function for code that does not
 // want to use the channel interface.
 func Run(ctx context.Context, f func(), c Config) error {
+	rand.Seed(time.Now().UnixNano())
 	ticker, err := MakeTicker(ctx, c)
 	if err != nil {
 		return err
