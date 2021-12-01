@@ -118,3 +118,21 @@ func TestLogEvery_Printf(t *testing.T) {
 		t.Error("Too few logs", len(lines))
 	}
 }
+
+// cpu: Intel(R) Core(TM) i7-7920HQ CPU @ 3.10GHz
+// Before using ticker:    33018	     37712 ns/op	   40000 B/op	    2000 allocs/op
+// After using ticker: 	  113064	     10403 ns/op	   16000 B/op	    1000 allocs/op
+func BenchmarkLogEvery(b *testing.B) {
+	b.ReportAllocs()
+	le := logx.NewLogEvery(nil, time.Minute)
+	b.ResetTimer()
+
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+
+			for i := 0; i < 1000; i++ {
+				le.Println("foobar")
+			}
+		}
+	})
+}

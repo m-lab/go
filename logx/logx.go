@@ -20,9 +20,7 @@ import (
 	"io"
 	"log"
 	"os"
-	"sync/atomic"
 	"time"
-	"unsafe"
 )
 
 // This indirection allows breaking os.Pipe call for testing.
@@ -70,25 +68,22 @@ type Logger interface {
 }
 
 type logEvery struct {
-	logger   *log.Logger
-	lastTime unsafe.Pointer
-	interval time.Duration
+	logger *log.Logger
+	ticker *time.Ticker
 }
 
 // NewLogEvery creates a logger that will log not more than once every interval.
 func NewLogEvery(logger *log.Logger, interval time.Duration) Logger {
-	return &logEvery{logger, unsafe.Pointer(&time.Time{}), interval}
+	return &logEvery{logger: logger, ticker: time.NewTicker(interval)}
 }
 
 func (le *logEvery) ok() bool {
-	now := time.Now()
-	oldPtr := atomic.LoadPointer(&le.lastTime)
-	last := *(*time.Time)(oldPtr)
-	if now.Sub(last) < le.interval {
+	select {
+	case <-le.ticker.C:
+		return true
+	default:
 		return false
 	}
-	// If this fails, then some other thread won the race.
-	return atomic.CompareAndSwapPointer(&le.lastTime, oldPtr, unsafe.Pointer(&now))
 }
 
 func (le *logEvery) Println(v ...interface{}) {
