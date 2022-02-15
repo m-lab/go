@@ -39,7 +39,7 @@ func (kv *KeyValue) Set(kvs string) error {
 				return err
 			}
 			kv.pairs[fields[0]] = kvsource{
-				value: string(b),
+				value: strings.TrimSpace(string(b)),
 				fname: fname,
 			}
 		} else {

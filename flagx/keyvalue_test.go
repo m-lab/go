@@ -81,6 +81,14 @@ func TestKeyValue(t *testing.T) {
 			},
 		},
 		{
+			name: "success-strip-whitespace-newlines",
+			kvs:  "a=@" + f,
+			file: "\t d    \n\n ",
+			want: map[string]string{
+				"a": "d",
+			},
+		},
+		{
 			name:    "error-bad-key-value",
 			kvs:     "a=b,c",
 			wantErr: true,
