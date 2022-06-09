@@ -21,6 +21,7 @@ func TestKeyArrayValue(t *testing.T) {
 			want: map[string][]string{
 				"key1": []string{"value1"},
 			},
+			wantErr:    false,
 			wantString: "key1:[value1]",
 		},
 		{
@@ -29,7 +30,30 @@ func TestKeyArrayValue(t *testing.T) {
 			want: map[string][]string{
 				"key1": []string{"value1", "value1.1"},
 			},
+			wantErr:    false,
 			wantString: "key1:[value1,value1.1]",
+		},
+		{
+			name: "success-multiple-pairs",
+			flags: []string{
+				"key1=value1,value1.1",
+				"key2=value2,value2.1,value2.2",
+				"key3=value3",
+			},
+			want: map[string][]string{
+				"key1": []string{"value1", "value1.1"},
+				"key2": []string{"value2", "value2.1", "value2.2"},
+				"key3": []string{"value3"},
+			},
+			wantErr:    false,
+			wantString: "key1:[value1,value1.1],key2:[value2,value2.1,value2.2],key3:[value3]",
+		},
+		{
+			name:       "invalid-input",
+			flags:      []string{"key1=value1,key2=value2"},
+			want:       map[string][]string{},
+			wantErr:    true,
+			wantString: "",
 		},
 	}
 
