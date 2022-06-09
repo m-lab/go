@@ -1,9 +1,9 @@
 package flagx_test
 
 import (
+	"reflect"
 	"testing"
 
-	"github.com/go-test/deep"
 	"github.com/m-lab/go/flagx"
 )
 
@@ -58,24 +58,26 @@ func TestKeyArrayValue(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		kav := flagx.KeyArrayValue{}
-		for _, f := range tt.flags {
-			if err := kav.Set(f); (err != nil) != tt.wantErr {
-				t.Errorf("KeyArrayValue.Set() error: %v, wantErr: %v", err, tt.wantErr)
+		t.Run(tt.name, func(t *testing.T) {
+			kav := flagx.KeyArrayValue{}
+			for _, f := range tt.flags {
+				if err := kav.Set(f); (err != nil) != tt.wantErr {
+					t.Errorf("KeyArrayValue.Set() error: %v, wantErr: %v", err, tt.wantErr)
+				}
 			}
-		}
-		if tt.wantErr {
-			return
-		}
+			if tt.wantErr {
+				return
+			}
 
-		got := kav.Get()
-		if diff := deep.Equal(got, tt.want); diff != nil {
-			t.Errorf("KeyArrayValue.Get() did not match; got: %v, want: %v", got, tt.want)
-		}
+			got := kav.Get()
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("KeyArrayValue.Get() did not match; got: %v, want: %v", got, tt.want)
+			}
 
-		if kav.String() != tt.wantString {
-			t.Errorf("KeyArrayValue.String() did not match; got: %s, want: %s",
-				kav.String(), tt.wantString)
-		}
+			if kav.String() != tt.wantString {
+				t.Errorf("KeyArrayValue.String() did not match; got: %s, want: %s",
+					kav.String(), tt.wantString)
+			}
+		})
 	}
 }
