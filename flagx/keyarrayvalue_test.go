@@ -2,8 +2,11 @@ package flagx_test
 
 import (
 	"reflect"
+	"sort"
+	"strings"
 	"testing"
 
+	"github.com/go-test/deep"
 	"github.com/m-lab/go/flagx"
 )
 
@@ -74,9 +77,13 @@ func TestKeyArrayValue(t *testing.T) {
 				t.Errorf("KeyArrayValue.Get() did not match; got: %v, want: %v", got, tt.want)
 			}
 
-			if kav.String() != tt.wantString {
-				t.Errorf("KeyArrayValue.String() did not match; got: %s, want: %s",
-					kav.String(), tt.wantString)
+			// Sort because order is not guaranteed.
+			strFields := strings.Split(kav.String(), ",")
+			sort.Strings(strFields)
+			kvsFields := strings.Split(tt.wantString, ",")
+			sort.Strings(kvsFields)
+			if diff := deep.Equal(strFields, kvsFields); diff != nil {
+				t.Errorf("KeyValue.String() did not match; got = %v, want %v, diff %v", strFields, kvsFields, diff)
 			}
 		})
 	}
