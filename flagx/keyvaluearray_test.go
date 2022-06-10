@@ -10,7 +10,7 @@ import (
 	"github.com/m-lab/go/flagx"
 )
 
-func TestKeyArrayValue(t *testing.T) {
+func TestKeyValueArray(t *testing.T) {
 	tests := []struct {
 		name       string
 		flags      []string
@@ -42,14 +42,15 @@ func TestKeyArrayValue(t *testing.T) {
 				"key1=value1,value1.1",
 				"key2=value2,value2.1,value2.2",
 				"key3=value3",
+				"key2=value2.3",
 			},
 			want: map[string][]string{
 				"key1": []string{"value1", "value1.1"},
-				"key2": []string{"value2", "value2.1", "value2.2"},
+				"key2": []string{"value2", "value2.1", "value2.2", "value2.3"},
 				"key3": []string{"value3"},
 			},
 			wantErr:    false,
-			wantString: "key1:[value1,value1.1],key2:[value2,value2.1,value2.2],key3:[value3]",
+			wantString: "key1:[value1,value1.1],key2:[value2,value2.1,value2.2,value2.3],key3:[value3]",
 		},
 		{
 			name:       "invalid-input",
@@ -62,28 +63,28 @@ func TestKeyArrayValue(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			kav := flagx.KeyArrayValue{}
+			kva := flagx.KeyValueArray{}
 			for _, f := range tt.flags {
-				if err := kav.Set(f); (err != nil) != tt.wantErr {
-					t.Errorf("KeyArrayValue.Set() error: %v, wantErr: %v", err, tt.wantErr)
+				if err := kva.Set(f); (err != nil) != tt.wantErr {
+					t.Errorf("KeyValueArrray.Set() error: %v, wantErr: %v", err, tt.wantErr)
 				}
 			}
 			if tt.wantErr {
 				return
 			}
 
-			got := kav.Get()
+			got := kva.Get()
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("KeyArrayValue.Get() did not match; got: %v, want: %v", got, tt.want)
+				t.Errorf("KeyValueArray.Get() did not match; got: %v, want: %v", got, tt.want)
 			}
 
 			// Sort because order is not guaranteed.
-			strFields := strings.Split(kav.String(), ",")
+			strFields := strings.Split(kva.String(), ",")
 			sort.Strings(strFields)
 			kvsFields := strings.Split(tt.wantString, ",")
 			sort.Strings(kvsFields)
 			if diff := deep.Equal(strFields, kvsFields); diff != nil {
-				t.Errorf("KeyValue.String() did not match; got = %v, want %v, diff %v", strFields, kvsFields, diff)
+				t.Errorf("KeyValueArray.String() did not match; got = %v, want %v, diff %v", strFields, kvsFields, diff)
 			}
 		})
 	}
