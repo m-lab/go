@@ -54,7 +54,7 @@ func TestKeyValueArray(t *testing.T) {
 		},
 		{
 			name:       "invalid-input",
-			flags:      []string{"key1=value1,key2=value2"},
+			flags:      []string{"key1"},
 			want:       map[string][]string{},
 			wantErr:    true,
 			wantString: "",

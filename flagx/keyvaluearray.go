@@ -17,7 +17,7 @@ type KeyValueArray struct {
 // Set parses key=value1,value2,... arguments. Only one key-[]value
 // pair can be specified per call.
 func (kva *KeyValueArray) Set(pair string) error {
-	p := strings.Split(pair, "=")
+	p := strings.SplitN(pair, "=", 2)
 	if len(p) != 2 {
 		return fmt.Errorf("bad input pair: %s split on '=' into %d pieces (should have been 2)",
 			pair, len(p))
