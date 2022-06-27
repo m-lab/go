@@ -95,6 +95,22 @@ func (c Client) Machines() ([]Machine, error) {
 	return res, nil
 }
 
+// SiteMachines fetches the sites/site-machines.json output format and returns
+// its content as a map[<short-node-name>][]string.
+func (c Client) SiteMachines() (map[string][]string, error) {
+	url := c.makeBaseURL() + "sites/site-machines.json"
+	body, err := c.getContent(url)
+	if err != nil {
+		return nil, err
+	}
+	res := make(map[string][]string)
+	err = json.Unmarshal(body, &res)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
 func (s Client) makeBaseURL() string {
 	return fmt.Sprintf(baseURLFormat, s.ProjectID, s.Version)
 }
