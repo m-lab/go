@@ -271,7 +271,7 @@ func TestClient_SiteMachines(t *testing.T) {
 		t.Errorf("SiteMachines(): wrong machine count for site xyz0t %d, expected %d", len(res["xyz0t"]), 2)
 	}
 
-	// Test working HTTP client request
+	// Test working HTTP client request.
 	client.httpClient = &stringProvider{
 		response: `{
 			"abc01": [
