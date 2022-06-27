@@ -282,27 +282,27 @@ func TestClient_SiteMachines(t *testing.T) {
 
 	_, err = client.SiteMachines()
 	if err != nil {
-		t.Error("SiteMachines(): expected success, got error.")
+		t.Errorf("SiteMachines(): expected success, got error: %v", err)
 	}
 
 	// Make the HTTP client fail.
 	client.httpClient = &failingProvider{}
 	_, err = client.SiteMachines()
 	if err == nil {
-		t.Errorf("SiteMachines(): expected err, got nil.")
+		t.Error("SiteMachines(): expected err, got nil.")
 	}
 
 	// Make reading the response body fail.
 	client.httpClient = &failingReadProvider{}
 	_, err = client.SiteMachines()
 	if err == nil {
-		t.Errorf("SiteMachines(): expected err, got nil.")
+		t.Error("SiteMachines(): expected err, got nil.")
 	}
 
 	// Make the JSON unmarshalling fail.
 	client.httpClient = &stringProvider{"this will fail"}
 	_, err = client.SiteMachines()
 	if err == nil {
-		t.Errorf("SiteMachines(): expected err, got nil.")
+		t.Error("SiteMachines(): expected err, got nil.")
 	}
 }
