@@ -245,3 +245,64 @@ func TestClient_Machines(t *testing.T) {
 		t.Errorf("Machines(): expected err, got nil.")
 	}
 }
+
+func TestClient_SiteMachines(t *testing.T) {
+	prov := &fileReaderProvider{
+		path: "testdata/site-machines.json",
+	}
+	client := New("testsitemachines", "v2", prov)
+
+	// This should return the content of the test file.
+	res, err := client.SiteMachines()
+	if err != nil {
+		t.Errorf("SiteMachines() returned err: %v", err)
+	}
+
+	if len(res) != 3 {
+		t.Errorf("SiteMachines(): wrong map len %d, expected %d", len(res), 3)
+	}
+	if len(res["abc01"]) != 4 {
+		t.Errorf("SiteMachines(): wrong machine count for site abc01 %d, expected %d", len(res["abc01"]), 4)
+	}
+	if len(res["lol02"]) != 1 {
+		t.Errorf("SiteMachines(): wrong machine count for site lol02 %d, expected %d", len(res["lol02"]), 1)
+	}
+	if len(res["xyz0t"]) != 2 {
+		t.Errorf("SiteMachines(): wrong machine count for site xyz0t %d, expected %d", len(res["xyz0t"]), 2)
+	}
+
+	// Test working HTTP client request
+	client.httpClient = &stringProvider{
+		response: `{
+			"abc01": [
+				"mlab1"
+			]
+		}`,
+	}
+
+	_, err = client.SiteMachines()
+	if err != nil {
+		t.Error("SiteMachines(): expected success, got error.")
+	}
+
+	// Make the HTTP client fail.
+	client.httpClient = &failingProvider{}
+	_, err = client.SiteMachines()
+	if err == nil {
+		t.Errorf("SiteMachines(): expected err, got nil.")
+	}
+
+	// Make reading the response body fail.
+	client.httpClient = &failingReadProvider{}
+	_, err = client.SiteMachines()
+	if err == nil {
+		t.Errorf("SiteMachines(): expected err, got nil.")
+	}
+
+	// Make the JSON unmarshalling fail.
+	client.httpClient = &stringProvider{"this will fail"}
+	_, err = client.SiteMachines()
+	if err == nil {
+		t.Errorf("SiteMachines(): expected err, got nil.")
+	}
+}
