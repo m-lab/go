@@ -7,10 +7,6 @@ import (
 	"github.com/m-lab/go/siteinfo/siteinfotest"
 )
 
-//
-// Tests start here.
-//
-
 func TestNew(t *testing.T) {
 	client := New("project", "v1", http.DefaultClient)
 	if client == nil {
