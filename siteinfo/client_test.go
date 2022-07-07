@@ -1,75 +1,11 @@
 package siteinfo
 
 import (
-	"bufio"
-	"bytes"
-	"fmt"
-	"io/ioutil"
 	"net/http"
-	"os"
 	"testing"
+
+	"github.com/m-lab/go/siteinfo/siteinfotest"
 )
-
-// StringProvider implements a HTTPProvider but the response's content is
-// a fixed string.
-type StringProvider struct {
-	response string
-}
-
-func (prov StringProvider) Get(string) (*http.Response, error) {
-	return &http.Response{
-		Body:       ioutil.NopCloser(bytes.NewBufferString(prov.response)),
-		StatusCode: http.StatusOK,
-	}, nil
-}
-
-// FileReaderProvider implements a HTTPProvider but the response's content
-// comes from a configurable file.
-type FileReaderProvider struct {
-	path           string
-	mustFailToRead bool
-}
-
-func (prov FileReaderProvider) Get(string) (*http.Response, error) {
-	// Note: it's the caller's responsibility to call Body.Close().
-	f, _ := os.Open(prov.path)
-	return &http.Response{
-		Body:       ioutil.NopCloser(bufio.NewReader(f)),
-		StatusCode: http.StatusOK,
-	}, nil
-}
-
-// FailingProvider always fails.
-type FailingProvider struct{}
-
-func (prov FailingProvider) Get(string) (*http.Response, error) {
-	return nil, fmt.Errorf("error")
-}
-
-// FailingReadProvider returns a Body whose Read() method always fails.
-type FailingReadProvider struct{}
-
-func (prov FailingReadProvider) Get(string) (*http.Response, error) {
-	return &http.Response{
-		Body:       &MockReadCloser{},
-		StatusCode: http.StatusOK,
-	}, nil
-}
-
-// mockReadCloser is ReadCloser that fails.
-type MockReadCloser struct{}
-
-func (MockReadCloser) Read(p []byte) (n int, err error) {
-	return 0, fmt.Errorf("error")
-}
-
-func (MockReadCloser) Close() error {
-	return nil
-}
-
-//
-// Tests start here.
-//
 
 func TestNew(t *testing.T) {
 	client := New("project", "v1", http.DefaultClient)
@@ -79,8 +15,8 @@ func TestNew(t *testing.T) {
 }
 
 func TestClient_Switches(t *testing.T) {
-	prov := &FileReaderProvider{
-		path: "testdata/switches.json",
+	prov := &siteinfotest.FileReaderProvider{
+		Path: "testdata/switches.json",
 	}
 	client := New("test", "v1", prov)
 
@@ -99,8 +35,8 @@ func TestClient_Switches(t *testing.T) {
 	}
 
 	// Test working call
-	client.httpClient = &StringProvider{
-		response: `{
+	client.httpClient = &siteinfotest.StringProvider{
+		Response: `{
 			"xyz03": {
 				"auto_negotiation": "yes",
 				"flow_control": "no",
@@ -119,21 +55,23 @@ func TestClient_Switches(t *testing.T) {
 	}
 
 	// Make the HTTP client fail.
-	client.httpClient = &FailingProvider{}
+	client.httpClient = &siteinfotest.FailingProvider{}
 	_, err = client.Switches()
 	if err == nil {
 		t.Errorf("Switches(): expected err, got nil.")
 	}
 
 	// Make reading the response body fail.
-	client.httpClient = &FailingReadProvider{}
+	client.httpClient = &siteinfotest.FailingReadProvider{}
 	_, err = client.Switches()
 	if err == nil {
 		t.Errorf("Switches(): expected err, got nil.")
 	}
 
 	// Make the JSON unmarshalling fail.
-	client.httpClient = &StringProvider{"this will fail"}
+	client.httpClient = &siteinfotest.StringProvider{
+		Response: "this will fail",
+	}
 	_, err = client.Switches()
 	if err == nil {
 		t.Errorf("Switches(): expected err, got nil.")
@@ -141,8 +79,8 @@ func TestClient_Switches(t *testing.T) {
 }
 
 func TestClient_Projects(t *testing.T) {
-	prov := &FileReaderProvider{
-		path: "testdata/projects.json",
+	prov := &siteinfotest.FileReaderProvider{
+		Path: "testdata/projects.json",
 	}
 	client := New("rofl", "v2", prov)
 
@@ -161,8 +99,8 @@ func TestClient_Projects(t *testing.T) {
 	}
 
 	// Test working HTTP client request
-	client.httpClient = &StringProvider{
-		response: `{"mlab1-xyz0t":"mlab-sandbox"}`,
+	client.httpClient = &siteinfotest.StringProvider{
+		Response: `{"mlab1-xyz0t":"mlab-sandbox"}`,
 	}
 	_, err = client.Projects()
 	if err != nil {
@@ -170,21 +108,23 @@ func TestClient_Projects(t *testing.T) {
 	}
 
 	// Make the HTTP client fail.
-	client.httpClient = &FailingProvider{}
+	client.httpClient = &siteinfotest.FailingProvider{}
 	_, err = client.Projects()
 	if err == nil {
 		t.Errorf("Projects(): expected err, got nil.")
 	}
 
 	// Make reading the response body fail.
-	client.httpClient = &FailingReadProvider{}
+	client.httpClient = &siteinfotest.FailingReadProvider{}
 	_, err = client.Projects()
 	if err == nil {
 		t.Errorf("Projects(): expected err, got nil.")
 	}
 
 	// Make the JSON unmarshalling fail.
-	client.httpClient = &StringProvider{"this will fail"}
+	client.httpClient = &siteinfotest.StringProvider{
+		Response: "this will fail",
+	}
 	_, err = client.Projects()
 	if err == nil {
 		t.Errorf("Projects(): expected err, got nil.")
@@ -192,8 +132,8 @@ func TestClient_Projects(t *testing.T) {
 }
 
 func TestClient_Machines(t *testing.T) {
-	prov := &FileReaderProvider{
-		path: "testdata/machines.json",
+	prov := &siteinfotest.FileReaderProvider{
+		Path: "testdata/machines.json",
 	}
 	client := New("testmachines", "v2", prov)
 
@@ -208,8 +148,8 @@ func TestClient_Machines(t *testing.T) {
 	}
 
 	// Test working HTTP client request
-	client.httpClient = &StringProvider{
-		response: `[
+	client.httpClient = &siteinfotest.StringProvider{
+		Response: `[
           {
             "hostname": "mlab2-abc09.mlab-oti.measurement-lab.org",
             "ipv4": "192.168.5.150",
@@ -225,21 +165,23 @@ func TestClient_Machines(t *testing.T) {
 	}
 
 	// Make the HTTP client fail.
-	client.httpClient = &FailingProvider{}
+	client.httpClient = &siteinfotest.FailingProvider{}
 	_, err = client.Machines()
 	if err == nil {
 		t.Errorf("Machines(): expected err, got nil.")
 	}
 
 	// Make reading the response body fail.
-	client.httpClient = &FailingReadProvider{}
+	client.httpClient = &siteinfotest.FailingReadProvider{}
 	_, err = client.Machines()
 	if err == nil {
 		t.Errorf("Machines(): expected err, got nil.")
 	}
 
 	// Make the JSON unmarshalling fail.
-	client.httpClient = &StringProvider{"this will fail"}
+	client.httpClient = &siteinfotest.StringProvider{
+		Response: "this will fail",
+	}
 	_, err = client.Machines()
 	if err == nil {
 		t.Errorf("Machines(): expected err, got nil.")
@@ -247,8 +189,8 @@ func TestClient_Machines(t *testing.T) {
 }
 
 func TestClient_SiteMachines(t *testing.T) {
-	prov := &FileReaderProvider{
-		path: "testdata/site-machines.json",
+	prov := &siteinfotest.FileReaderProvider{
+		Path: "testdata/site-machines.json",
 	}
 	client := New("testsitemachines", "v2", prov)
 
@@ -272,8 +214,8 @@ func TestClient_SiteMachines(t *testing.T) {
 	}
 
 	// Test working HTTP client request.
-	client.httpClient = &StringProvider{
-		response: `{
+	client.httpClient = &siteinfotest.StringProvider{
+		Response: `{
 			"abc01": [
 				"mlab1"
 			]
@@ -286,21 +228,23 @@ func TestClient_SiteMachines(t *testing.T) {
 	}
 
 	// Make the HTTP client fail.
-	client.httpClient = &FailingProvider{}
+	client.httpClient = &siteinfotest.FailingProvider{}
 	_, err = client.SiteMachines()
 	if err == nil {
 		t.Error("SiteMachines(): expected err, got nil.")
 	}
 
 	// Make reading the response body fail.
-	client.httpClient = &FailingReadProvider{}
+	client.httpClient = &siteinfotest.FailingReadProvider{}
 	_, err = client.SiteMachines()
 	if err == nil {
 		t.Error("SiteMachines(): expected err, got nil.")
 	}
 
 	// Make the JSON unmarshalling fail.
-	client.httpClient = &StringProvider{"this will fail"}
+	client.httpClient = &siteinfotest.StringProvider{
+		Response: "this will fail",
+	}
 	_, err = client.SiteMachines()
 	if err == nil {
 		t.Error("SiteMachines(): expected err, got nil.")
