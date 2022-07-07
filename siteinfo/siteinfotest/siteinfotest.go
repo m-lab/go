@@ -31,7 +31,10 @@ type FileReaderProvider struct {
 
 func (prov FileReaderProvider) Get(string) (*http.Response, error) {
 	// Note: it's the caller's responsibility to call Body.Close().
-	f, _ := os.Open(prov.Path)
+	f, err := os.Open(prov.Path)
+	if err != nil {
+		return nil, err
+	}
 	return &http.Response{
 		Body:       ioutil.NopCloser(bufio.NewReader(f)),
 		StatusCode: http.StatusOK,
@@ -50,18 +53,18 @@ type FailingReadProvider struct{}
 
 func (prov FailingReadProvider) Get(string) (*http.Response, error) {
 	return &http.Response{
-		Body:       &MockReadCloser{},
+		Body:       &FailingReadCloser{},
 		StatusCode: http.StatusOK,
 	}, nil
 }
 
-// MockReadCloser is ReadCloser that fails.
-type MockReadCloser struct{}
+// FailingReadCloser is ReadCloser that fails.
+type FailingReadCloser struct{}
 
-func (MockReadCloser) Read(p []byte) (n int, err error) {
+func (FailingReadCloser) Read(p []byte) (n int, err error) {
 	return 0, fmt.Errorf("error")
 }
 
-func (MockReadCloser) Close() error {
+func (FailingReadCloser) Close() error {
 	return nil
 }

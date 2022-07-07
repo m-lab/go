@@ -69,7 +69,9 @@ func TestClient_Switches(t *testing.T) {
 	}
 
 	// Make the JSON unmarshalling fail.
-	client.httpClient = &siteinfotest.StringProvider{"this will fail"}
+	client.httpClient = &siteinfotest.StringProvider{
+		Response: "this will fail",
+	}
 	_, err = client.Switches()
 	if err == nil {
 		t.Errorf("Switches(): expected err, got nil.")
@@ -120,7 +122,9 @@ func TestClient_Projects(t *testing.T) {
 	}
 
 	// Make the JSON unmarshalling fail.
-	client.httpClient = &siteinfotest.StringProvider{"this will fail"}
+	client.httpClient = &siteinfotest.StringProvider{
+		Response: "this will fail",
+	}
 	_, err = client.Projects()
 	if err == nil {
 		t.Errorf("Projects(): expected err, got nil.")
@@ -175,7 +179,9 @@ func TestClient_Machines(t *testing.T) {
 	}
 
 	// Make the JSON unmarshalling fail.
-	client.httpClient = &siteinfotest.StringProvider{"this will fail"}
+	client.httpClient = &siteinfotest.StringProvider{
+		Response: "this will fail",
+	}
 	_, err = client.Machines()
 	if err == nil {
 		t.Errorf("Machines(): expected err, got nil.")
@@ -236,7 +242,9 @@ func TestClient_SiteMachines(t *testing.T) {
 	}
 
 	// Make the JSON unmarshalling fail.
-	client.httpClient = &siteinfotest.StringProvider{"this will fail"}
+	client.httpClient = &siteinfotest.StringProvider{
+		Response: "this will fail",
+	}
 	_, err = client.SiteMachines()
 	if err == nil {
 		t.Error("SiteMachines(): expected err, got nil.")
