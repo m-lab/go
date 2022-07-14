@@ -22,14 +22,14 @@ func TestRun(t *testing.T) {
 			want:   "20190403",
 		},
 		{
-			name:   "YYYYMMDDslash",
-			format: timex.YYYYMMDDslash,
+			name:   "YYYYMMDDWithSlash",
+			format: timex.YYYYMMDDWithSlash,
 			input:  time.Date(2019, time.April, 03, 0, 0, 0, 0, time.UTC),
 			want:   "2019/04/03",
 		},
 		{
-			name:   "YYYYMMDDdash",
-			format: timex.YYYYMMDDdash,
+			name:   "YYYYMMDDWithDash",
+			format: timex.YYYYMMDDWithDash,
 			input:  time.Date(2019, time.April, 03, 0, 0, 0, 0, time.UTC),
 			want:   "2019-04-03",
 		},
