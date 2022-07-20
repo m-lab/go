@@ -18,7 +18,7 @@ func NewRandom(seed int64) Random {
 }
 
 // GetRandomInt returns a non-negative pseudo-random number in the interval [0, max).
-// It returns 0 if n <= 0.
+// It returns 0 if max <= 0.
 func (r *Random) GetRandomInt(max int) int {
 	if max <= 0 {
 		return 0
@@ -29,6 +29,7 @@ func (r *Random) GetRandomInt(max int) int {
 // GetExpDistributedInt returns a exponentially distributed number in the interval
 // [0, max), rounded to the nearest int. Callers can adjust the rate of the
 // function through the rate parameter.
+// It returns 0 if max <= 0.
 func (r *Random) GetExpDistributedInt(max int, rate float64) int {
 	if max <= 0 {
 		return 0
