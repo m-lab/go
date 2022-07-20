@@ -51,28 +51,24 @@ func TestRandom_GetRandomInt(t *testing.T) {
 func TestRandom_GetExpDistributedInt(t *testing.T) {
 	tests := []struct {
 		name      string
-		max       int
 		rate      float64
 		expected1 int
 		expected2 int
 	}{
 		{
 			name:      "rate-1",
-			max:       10,
 			rate:      1,
 			expected1: 1,
 			expected2: 0,
 		},
 		{
 			name:      "rate-0.1",
-			max:       10,
 			rate:      0.1,
 			expected1: 5,
 			expected2: 2,
 		},
 		{
 			name:      "rate-5",
-			max:       10,
 			rate:      5,
 			expected1: 0,
 			expected2: 0,
