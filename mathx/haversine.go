@@ -8,7 +8,7 @@ const earthRadius = 6371
 
 // GetHaversineDistance finds the distance (in km) between two latitude/longitude
 // pairs using the Haversine formula.
-func GetHaversineDistance(lat1 float64, lon1 float64, lat2 float64, lon2 float64) float64 {
+func GetHaversineDistance(lat1, lon1, lat2, lon2 float64) float64 {
 	dlat := degreesToRadian(lat2 - lat1)
 	dlon := degreesToRadian(lon2 - lon1)
 
