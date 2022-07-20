@@ -8,12 +8,20 @@ const earthRadius = 6371
 
 // GetHaversineDistance finds the distance (in km) between two latitude/longitude
 // pairs using the Haversine formula.
+// For more details, see http://en.wikipedia.org/wiki/Haversine_formula.
 func GetHaversineDistance(lat1, lon1, lat2, lon2 float64) float64 {
-	dlat := degreesToRadian(lat2 - lat1)
-	dlon := degreesToRadian(lon2 - lon1)
+	dlat1 := degreesToRadian(lat1)
+	dlon1 := degreesToRadian(lon1)
+	dlat2 := degreesToRadian(lat2)
+	dlon2 := degreesToRadian(lon2)
 
-	a := math.Sin(dlat/2)*math.Sin(dlat/2) + math.Cos(degreesToRadian(lat1))*
-		math.Cos(degreesToRadian(lat2))*math.Sin(dlon/2)*math.Sin(dlon/2)
+	diffLat := dlat2 - dlat1
+	diffLon := dlon2 - dlon1
+	sinDiffLat := math.Sin(diffLat / 2)
+	sinDiffLon := math.Sin(diffLon / 2)
+
+	a := sinDiffLat*sinDiffLat + math.Cos(dlat1)*
+		math.Cos(dlat2)*sinDiffLon*sinDiffLon
 	c := 2 * math.Atan2(math.Sqrt(a), math.Sqrt(1-a))
 	d := earthRadius * c
 

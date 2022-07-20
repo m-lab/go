@@ -64,23 +64,16 @@ func TestRandom_GetExpDistributedInt(t *testing.T) {
 			expected2: 0,
 		},
 		{
-			name:      "rate-2",
+			name:      "rate-0.1",
 			max:       10,
-			rate:      2,
-			expected1: 0,
-			expected2: 0,
+			rate:      0.1,
+			expected1: 5,
+			expected2: 2,
 		},
 		{
-			name:      "zero",
-			max:       0,
-			rate:      1,
-			expected1: 0,
-			expected2: 0,
-		},
-		{
-			name:      "negative",
-			max:       -10,
-			rate:      1,
+			name:      "rate-5",
+			max:       10,
+			rate:      5,
 			expected1: 0,
 			expected2: 0,
 		},
@@ -88,13 +81,13 @@ func TestRandom_GetExpDistributedInt(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			r := NewRandom(seed)
-			got := r.GetExpDistributedInt(tt.max, tt.rate)
+			got := r.GetExpDistributedInt(tt.rate)
 
 			if got != tt.expected1 {
 				t.Errorf("GetExpDistributedInt() = %d, want %d", got, tt.expected1)
 			}
 
-			got = r.GetExpDistributedInt(tt.max, tt.rate)
+			got = r.GetExpDistributedInt(tt.rate)
 
 			if got != tt.expected2 {
 				t.Errorf("GetExpDistributedInt() = %d, want %d", got, tt.expected2)
