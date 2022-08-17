@@ -13,14 +13,14 @@
 #
 language: go
 go:
-- "1.16"
+- 1.18
 
 dist: xenial
 
 before_install:
 # Coverage tools
-- go get github.com/mattn/goveralls
-- go get github.com/wadey/gocovmerge
+- go install github.com/mattn/goveralls@latest
+- go install github.com/wadey/gocovmerge@latest
 
 # Install gcloud, for integration tests.
 - $TRAVIS_BUILD_DIR/travis/install_gcloud.sh
