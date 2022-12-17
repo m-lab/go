@@ -110,6 +110,8 @@ func init() {
 // before you pass it in.
 type IPAnonymizer interface {
 	IP(ip net.IP)
+	// Net(ip net.IP) *net.IPNet
+	Contains(ip, src net.IP) bool
 }
 
 // New is an IP anonymization factory function that expects you to pass in
@@ -143,6 +145,9 @@ func New(method Method) IPAnonymizer {
 type nullIPAnonymizer struct{}
 
 func (nullIPAnonymizer) IP(ip net.IP) {}
+func (nullIPAnonymizer) Contains(ip, src net.IP) bool {
+	return false
+}
 
 // netblockIPAnonymizer restricts v4 addresses to a /24 and v6 addresses to a /64
 type netblockAnonymizer struct{}
@@ -170,4 +175,31 @@ func (netblockAnonymizer) IP(ip net.IP) {
 	}
 	log.Println("The passed in IP address was neither a v4 nor a v6 address:", ip)
 	return
+}
+
+// Contains determines whether the anonymized IP anon as a netblock, contains the given dst address.
+func (n netblockAnonymizer) Contains(anon, dst net.IP) bool {
+	if anon == nil || dst == nil {
+		return false
+	}
+	for i := range IgnoredIPs {
+		if IgnoredIPs[i].Equal(dst) {
+			return false
+		}
+	}
+	if anon.To4() != nil {
+		nn := &net.IPNet{
+			IP:   anon,
+			Mask: net.CIDRMask(24, len(anon)*8),
+		}
+		return nn.Contains(dst)
+	}
+	if anon.To16() != nil {
+		nn := &net.IPNet{
+			IP:   anon,
+			Mask: net.CIDRMask(64, len(anon)*8),
+		}
+		return nn.Contains(dst)
+	}
+	return false
 }
