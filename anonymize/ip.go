@@ -110,8 +110,7 @@ func init() {
 // before you pass it in.
 type IPAnonymizer interface {
 	IP(ip net.IP)
-	// Net(ip net.IP) *net.IPNet
-	Contains(ip, src net.IP) bool
+	Contains(dst, ip net.IP) bool
 }
 
 // New is an IP anonymization factory function that expects you to pass in
@@ -145,8 +144,8 @@ func New(method Method) IPAnonymizer {
 type nullIPAnonymizer struct{}
 
 func (nullIPAnonymizer) IP(ip net.IP) {}
-func (nullIPAnonymizer) Contains(ip, src net.IP) bool {
-	return false
+func (nullIPAnonymizer) Contains(dst, ip net.IP) bool {
+	return dst.Equal(ip)
 }
 
 // netblockIPAnonymizer restricts v4 addresses to a /24 and v6 addresses to a /64
@@ -177,9 +176,9 @@ func (netblockAnonymizer) IP(ip net.IP) {
 	return
 }
 
-// Contains determines whether the anonymized IP anon as a netblock, contains the given dst address.
-func (n netblockAnonymizer) Contains(anon, dst net.IP) bool {
-	if anon == nil || dst == nil {
+// Contains determines whether the dst IP (treated as an anonymized netblock), contains the given dst address.
+func (n netblockAnonymizer) Contains(dst, ip net.IP) bool {
+	if dst == nil || ip == nil {
 		return false
 	}
 	for i := range IgnoredIPs {
@@ -187,19 +186,19 @@ func (n netblockAnonymizer) Contains(anon, dst net.IP) bool {
 			return false
 		}
 	}
-	if anon.To4() != nil {
+	if dst.To4() != nil {
 		nn := &net.IPNet{
-			IP:   anon,
-			Mask: net.CIDRMask(24, len(anon)*8),
+			IP:   dst,
+			Mask: net.CIDRMask(24, 32),
 		}
-		return nn.Contains(dst)
+		return nn.Contains(ip)
 	}
-	if anon.To16() != nil {
+	if dst.To16() != nil {
 		nn := &net.IPNet{
-			IP:   anon,
-			Mask: net.CIDRMask(64, len(anon)*8),
+			IP:   dst,
+			Mask: net.CIDRMask(64, 128),
 		}
-		return nn.Contains(dst)
+		return nn.Contains(ip)
 	}
 	return false
 }
