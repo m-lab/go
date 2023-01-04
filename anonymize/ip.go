@@ -176,7 +176,7 @@ func (netblockAnonymizer) IP(ip net.IP) {
 	return
 }
 
-// Contains determines whether the dst IP (treated as an anonymized netblock), contains the given dst address.
+// Contains determines whether the dst IP (as if netblock anonymized), contains the given dst address.
 func (n netblockAnonymizer) Contains(dst, ip net.IP) bool {
 	if dst == nil || ip == nil {
 		return false
