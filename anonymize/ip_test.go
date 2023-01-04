@@ -101,7 +101,7 @@ func Example() {
 	log.Println(ip) // Should be "10.10.4.0" if the --anonymize.ip=netblock command-line flag was passed.
 }
 
-func Test_netblockAnonymizer_Contains(t *testing.T) {
+func TestAnonymizerContains(t *testing.T) {
 	anonymize.IgnoredIPs = []net.IP{net.ParseIP("127.0.0.1"), net.ParseIP("1::2")}
 	tests := []struct {
 		name string
@@ -126,14 +126,14 @@ func Test_netblockAnonymizer_Contains(t *testing.T) {
 			want: true,
 		},
 		{
-			name: "success-nullanonymizer-ipv4-no-match",
+			name: "nullanonymizer-ipv4-no-match",
 			n:    anonymize.New(anonymize.None),
 			dst:  net.ParseIP("192.168.0.1"),
 			ip:   net.ParseIP("192.168.0.2"),
 			want: false,
 		},
 		{
-			name: "success-nullanonymizer-ipv4-match",
+			name: "nullanonymizer-ipv4-match",
 			n:    anonymize.New(anonymize.None),
 			dst:  net.ParseIP("192.168.0.2"),
 			ip:   net.ParseIP("192.168.0.2"),
