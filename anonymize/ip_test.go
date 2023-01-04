@@ -175,17 +175,24 @@ func TestAnonymizerContains(t *testing.T) {
 			want: false,
 		},
 		{
-			name: "error-invalid-ip-byte-array",
+			name: "error-invalid-byte-array-1-byte-ip",
+			n:    anonymize.New(anonymize.Netblock),
+			dst:  []byte{'0'},
+			ip:   net.ParseIP("127.0.0.1"),
+			want: false,
+		},
+		{
+			name: "error-invalid-byte-array-5-byte-ip",
 			n:    anonymize.New(anonymize.Netblock),
 			dst:  append(net.ParseIP("127.0.0.1"), '0'),
 			ip:   net.ParseIP("127.0.0.1"),
 			want: false,
 		},
 		{
-			name: "error-invalid-ip-byte-array",
+			name: "error-invalid-byte-array-17-byte-ip",
 			n:    anonymize.New(anonymize.Netblock),
-			dst:  append(net.ParseIP("127.0.0.1"), '0'),
-			ip:   net.ParseIP("127.0.0.1"),
+			dst:  append(net.ParseIP("fd12:3456:789a:1::1"), '0'),
+			ip:   net.ParseIP("2::1"),
 			want: false,
 		},
 	}
