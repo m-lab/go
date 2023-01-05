@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/go-test/deep"
-
 	"github.com/m-lab/go/anonymize"
 	"github.com/m-lab/go/rtx"
 )
@@ -100,4 +99,109 @@ func Example() {
 	anon := anonymize.New(anonymize.IPAnonymizationFlag)
 	anon.IP(ip)
 	log.Println(ip) // Should be "10.10.4.0" if the --anonymize.ip=netblock command-line flag was passed.
+}
+
+func TestAnonymizerContains(t *testing.T) {
+	anonymize.IgnoredIPs = []net.IP{net.ParseIP("127.0.0.1"), net.ParseIP("1::2")}
+	tests := []struct {
+		name string
+		n    anonymize.IPAnonymizer
+		dst  net.IP
+		ip   net.IP
+		want bool
+	}{
+		// Does the destination IP (as a netblock) contain the given ip?
+		{
+			name: "success-ipv4",
+			n:    anonymize.New(anonymize.Netblock),
+			dst:  net.ParseIP("192.168.0.1"),
+			ip:   net.ParseIP("192.168.0.2"),
+			want: true,
+		},
+		{
+			name: "success-ipv4",
+			n:    anonymize.New(anonymize.Netblock),
+			dst:  net.ParseIP("192.168.0.2"),
+			ip:   net.ParseIP("192.168.0.1"),
+			want: true,
+		},
+		{
+			name: "nullanonymizer-ipv4-no-match",
+			n:    anonymize.New(anonymize.None),
+			dst:  net.ParseIP("192.168.0.1"),
+			ip:   net.ParseIP("192.168.0.2"),
+			want: false,
+		},
+		{
+			name: "nullanonymizer-ipv4-match",
+			n:    anonymize.New(anonymize.None),
+			dst:  net.ParseIP("192.168.0.2"),
+			ip:   net.ParseIP("192.168.0.2"),
+			want: true,
+		},
+		{
+			name: "success-ipv6",
+			n:    anonymize.New(anonymize.Netblock),
+			dst:  net.ParseIP("fd12:3456:789a:1::1"),
+			ip:   net.ParseIP("fd12:3456:789a:1::2"),
+			want: true,
+		},
+		{
+			name: "success-ipv6",
+			n:    anonymize.New(anonymize.Netblock),
+			dst:  net.ParseIP("fd12:3456:789a:1::2"),
+			ip:   net.ParseIP("fd12:3456:789a:1::1"),
+			want: true,
+		},
+		{
+			name: "success-ignored",
+			n:    anonymize.New(anonymize.Netblock),
+			dst:  net.ParseIP("127.0.0.1"),
+			ip:   net.ParseIP("127.0.0.1"),
+			want: false,
+		},
+		{
+			name: "success-nil-dst-arg",
+			n:    anonymize.New(anonymize.Netblock),
+			dst:  nil,
+			ip:   net.ParseIP("127.0.0.1"),
+			want: false,
+		},
+		{
+			name: "success-nil-ip-arg",
+			n:    anonymize.New(anonymize.Netblock),
+			dst:  net.ParseIP("127.0.0.1"),
+			ip:   nil,
+			want: false,
+		},
+		{
+			name: "error-invalid-byte-array-1-byte-ip",
+			n:    anonymize.New(anonymize.Netblock),
+			dst:  []byte{'0'},
+			ip:   net.ParseIP("127.0.0.1"),
+			want: false,
+		},
+		{
+			name: "error-invalid-byte-array-5-byte-ip",
+			n:    anonymize.New(anonymize.Netblock),
+			dst:  append(net.ParseIP("127.0.0.1"), '0'),
+			ip:   net.ParseIP("127.0.0.1"),
+			want: false,
+		},
+		{
+			name: "error-invalid-byte-array-17-byte-ip",
+			n:    anonymize.New(anonymize.Netblock),
+			dst:  append(net.ParseIP("fd12:3456:789a:1::1"), '0'),
+			ip:   net.ParseIP("2::1"),
+			want: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.n.Contains(tt.dst, tt.ip); got != tt.want {
+				t.Errorf("netblockAnonymizer.Contains() = %v, want %v", got, tt.want)
+			}
+		})
+	}
 }
