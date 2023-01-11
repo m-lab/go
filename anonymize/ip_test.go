@@ -58,8 +58,8 @@ func TestNetblockAnon(t *testing.T) {
 		{"1:0::2", "1::2"},         // IgnoredIPs should be ignored.
 		{"10.1.2.3", "10.1.2.0"},
 		{"255.255.255.255", "255.255.255.0"},
-		{"0:1:2:3:4:5:6:7", "0:1:2:3::"},
-		{"aaaa:aaab:aaac:aaad:aaae:aaaf:aaa1:aaa1", "aaaa:aaab:aaac:aaad::"},
+		{"0:1:2:3:4:5:6:7", "0:1:2::"},
+		{"aaaa:aaab:aaac:aaad:aaae:aaaf:aaa1:aaa1", "aaaa:aaab:aaac::"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.ip, func(t *testing.T) {

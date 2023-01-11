@@ -166,8 +166,8 @@ func (netblockAnonymizer) IP(ip net.IP) {
 		return
 	}
 	if ip.To16() != nil {
-		// Anonymize IPv6 addresses to the containing /64
-		for i := 8; i < 16; i++ {
+		// Truncate IPv6 addresses to the containing /48
+		for i := 6; i < 16; i++ {
 			ip[i] = 0
 		}
 		return
@@ -196,7 +196,7 @@ func (n netblockAnonymizer) Contains(dst, ip net.IP) bool {
 	if dst.To16() != nil {
 		nn := &net.IPNet{
 			IP:   dst,
-			Mask: net.CIDRMask(64, 128),
+			Mask: net.CIDRMask(48, 128),
 		}
 		return nn.Contains(ip)
 	}
