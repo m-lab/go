@@ -34,6 +34,7 @@ func Parse(name string) (Name, error) {
 	//   ndt.iupui.mlab1.lga01.measurement-lab.org  - 6
 	// v2
 	//   mlab1-lga01.mlab-oti.measurement-lab.org - 4
+	//   mlab1-lga01.mlab-oti.measurement-lab.org-d9h6 - 4  (A MIG instance with a random suffix)
 	//   ndt-iupui-mlab1-lga01.mlab-oti.measurement-lab.org - 4
 	//   ndt-mlab1-lga01.mlab-oti.measurement-lab.org - 4
 
