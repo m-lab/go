@@ -15,6 +15,7 @@ type Name struct {
 	Site    string
 	Project string
 	Domain  string
+	Suffix  string
 	Version string
 }
 
@@ -24,7 +25,7 @@ func Parse(name string) (Name, error) {
 	var parts Name
 
 	reV1 := regexp.MustCompile(`(?:[a-z-.]+)?(mlab[1-4]d?)[-.]([a-z]{3}[0-9tc]{2})\.(measurement-lab.org)$`)
-	reV2 := regexp.MustCompile(`(?:[a-z-.]+)?(mlab[1-4]d?)-([a-z]{3}[0-9tc]{2})\.(.*?)\.(measurement-lab.org)$`)
+	reV2 := regexp.MustCompile(`(?:[a-z-.]+)?(mlab[1-4]d?)-([a-z]{3}[0-9tc]{2})\.(.*?)\.(measurement-lab.org)-?([a-z0-9]{4})?$`)
 
 	// Example hostnames with field counts when split by '.':
 	// v1
@@ -45,7 +46,7 @@ func Parse(name string) (Name, error) {
 	// be longer than a machine name e.g. "mlab1".
 	if len(fields) == 4 && len(fields[0]) > 6 {
 		mV2 := reV2.FindAllStringSubmatch(name, -1)
-		if len(mV2) != 1 || len(mV2[0]) != 5 {
+		if len(mV2) != 1 || len(mV2[0]) != 6 {
 			return parts, fmt.Errorf("Invalid v2 hostname: %s", name)
 		}
 		parts = Name{
@@ -53,6 +54,7 @@ func Parse(name string) (Name, error) {
 			Site:    mV2[0][2],
 			Project: mV2[0][3],
 			Domain:  mV2[0][4],
+			Suffix:  mV2[0][5],
 			Version: "v2",
 		}
 	} else {
