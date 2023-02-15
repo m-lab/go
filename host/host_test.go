@@ -49,10 +49,10 @@ func TestName(t *testing.T) {
 			},
 		},
 		{
-			name:     "valid-v2-with-prefix",
+			name:     "valid-v2-with-service",
 			hostname: "ndt-mlab1-lol01.mlab-sandbox.measurement-lab.org",
 			want: Name{
-				Prefix:  "ndt-",
+				Service: "ndt",
 				Machine: "mlab1",
 				Site:    "lol01",
 				Project: "mlab-sandbox",
@@ -61,10 +61,10 @@ func TestName(t *testing.T) {
 			},
 		},
 		{
-			name:     "valid-v2-with-prefix-and-suffix",
+			name:     "valid-v2-with-service-and-suffix",
 			hostname: "ndt-mlab1-lol01.mlab-sandbox.measurement-lab.org-a9b8",
 			want: Name{
-				Prefix:  "ndt-",
+				Service: "ndt",
 				Machine: "mlab1",
 				Site:    "lol01",
 				Project: "mlab-sandbox",
@@ -112,43 +112,6 @@ func TestName(t *testing.T) {
 				Site:    "lol01",
 				Domain:  "measurement-lab.org",
 				Version: "v1",
-			},
-		},
-		{
-			name:     "valid-v2-with-ndt",
-			hostname: "ndt-iupui-mlab1-lol01.mlab-sandbox.measurement-lab.org",
-			want: Name{
-				Prefix:  "ndt-iupui-",
-				Machine: "mlab1",
-				Site:    "lol01",
-				Project: "mlab-sandbox",
-				Domain:  "measurement-lab.org",
-				Version: "v2",
-			},
-		},
-		{
-			name:     "valid-v2-with-ndt-short",
-			hostname: "ndt-mlab1-lol01.mlab-sandbox.measurement-lab.org",
-			want: Name{
-				Prefix:  "ndt-",
-				Machine: "mlab1",
-				Site:    "lol01",
-				Project: "mlab-sandbox",
-				Domain:  "measurement-lab.org",
-				Version: "v2",
-			},
-		},
-		{
-			name:     "valid-v2-with-ndt-short-with-suffix",
-			hostname: "ndt-mlab1-lol01.mlab-sandbox.measurement-lab.org-q44c",
-			want: Name{
-				Prefix:  "ndt-",
-				Machine: "mlab1",
-				Site:    "lol01",
-				Project: "mlab-sandbox",
-				Domain:  "measurement-lab.org",
-				Suffix:  "-q44c",
-				Version: "v2",
 			},
 		},
 		{

@@ -11,7 +11,7 @@ import (
 
 // Name represents an M-Lab hostname and all of its constituent parts.
 type Name struct {
-	Prefix  string
+	Service string
 	Machine string
 	Site    string
 	Project string
@@ -26,7 +26,7 @@ func Parse(name string) (Name, error) {
 	var parts Name
 
 	reV1 := regexp.MustCompile(`(?:[a-z-.]+)?(mlab[1-4]d?)[-.]([a-z]{3}[0-9tc]{2})\.(measurement-lab.org)$`)
-	reV2 := regexp.MustCompile(`([a-z-]+)?(mlab[1-4]d?)-([a-z]{3}[0-9tc]{2})\.(.*?)\.(measurement-lab.org)(-[a-z0-9]{4})?$`)
+	reV2 := regexp.MustCompile(`([a-z0-9]+)?-?(mlab[1-4]d?)-([a-z]{3}[0-9tc]{2})\.(.*?)\.(measurement-lab.org)(-[a-z0-9]{4})?$`)
 
 	// Example hostnames with field counts when split by '.':
 	// v1
@@ -53,7 +53,7 @@ func Parse(name string) (Name, error) {
 			return parts, fmt.Errorf("invalid v2 hostname: %s", name)
 		}
 		parts = Name{
-			Prefix:  mV2[0][1],
+			Service: mV2[0][1],
 			Machine: mV2[0][2],
 			Site:    mV2[0][3],
 			Project: mV2[0][4],
@@ -92,7 +92,7 @@ func (n Name) String() string {
 // Returns an M-lab hostname with any prefix preserved
 // Example: ndt-mlab1-abc01.mlab-sandbox.measurement-lab.org
 func (n Name) StringWithPrefix() string {
-	return fmt.Sprintf("%s%s-%s.%s.%s", n.Prefix, n.Machine, n.Site, n.Project, n.Domain)
+	return fmt.Sprintf("%s-%s-%s.%s.%s", n.Service, n.Machine, n.Site, n.Project, n.Domain)
 }
 
 // Returns an M-lab hostname with any suffix preserved
@@ -104,5 +104,5 @@ func (n Name) StringWithSuffix() string {
 // Returns an M-lab hostname with any prefix and suffix preserved
 // Example: ndt-mlab1-abc01.mlab-sandbox.measurement-lab.org-gz77
 func (n Name) StringAll() string {
-	return fmt.Sprintf("%s%s-%s.%s.%s%s", n.Prefix, n.Machine, n.Site, n.Project, n.Domain, n.Suffix)
+	return fmt.Sprintf("%s-%s-%s.%s.%s%s", n.Service, n.Machine, n.Site, n.Project, n.Domain, n.Suffix)
 }
