@@ -27,24 +27,49 @@ func TestName(t *testing.T) {
 		},
 		{
 			name:     "valid-v2",
-			hostname: "mlab1-lol01.mlab-oti.measurement-lab.org",
+			hostname: "mlab1-lol01.mlab-sandbox.measurement-lab.org",
 			want: Name{
 				Machine: "mlab1",
 				Site:    "lol01",
-				Project: "mlab-oti",
+				Project: "mlab-sandbox",
 				Domain:  "measurement-lab.org",
 				Version: "v2",
 			},
 		},
 		{
 			name:     "valid-v2-with-suffix",
-			hostname: "mlab1-lol01.mlab-oti.measurement-lab.org-a9b8",
+			hostname: "mlab1-lol01.mlab-sandbox.measurement-lab.org-a9b8",
 			want: Name{
 				Machine: "mlab1",
 				Site:    "lol01",
-				Project: "mlab-oti",
+				Project: "mlab-sandbox",
 				Domain:  "measurement-lab.org",
-				Suffix:  "a9b8",
+				Suffix:  "-a9b8",
+				Version: "v2",
+			},
+		},
+		{
+			name:     "valid-v2-with-prefix",
+			hostname: "ndt-mlab1-lol01.mlab-sandbox.measurement-lab.org",
+			want: Name{
+				Prefix:  "ndt-",
+				Machine: "mlab1",
+				Site:    "lol01",
+				Project: "mlab-sandbox",
+				Domain:  "measurement-lab.org",
+				Version: "v2",
+			},
+		},
+		{
+			name:     "valid-v2-with-prefix-and-suffix",
+			hostname: "ndt-mlab1-lol01.mlab-sandbox.measurement-lab.org-a9b8",
+			want: Name{
+				Prefix:  "ndt-",
+				Machine: "mlab1",
+				Site:    "lol01",
+				Project: "mlab-sandbox",
+				Domain:  "measurement-lab.org",
+				Suffix:  "-a9b8",
 				Version: "v2",
 			},
 		},
@@ -60,11 +85,11 @@ func TestName(t *testing.T) {
 		},
 		{
 			name:     "valid-v2-bmc",
-			hostname: "mlab1d-lol01.mlab-oti.measurement-lab.org",
+			hostname: "mlab1d-lol01.mlab-sandbox.measurement-lab.org",
 			want: Name{
 				Machine: "mlab1d",
 				Site:    "lol01",
-				Project: "mlab-oti",
+				Project: "mlab-sandbox",
 				Domain:  "measurement-lab.org",
 				Version: "v2",
 			},
@@ -91,35 +116,38 @@ func TestName(t *testing.T) {
 		},
 		{
 			name:     "valid-v2-with-ndt",
-			hostname: "ndt-iupui-mlab1-lol01.mlab-oti.measurement-lab.org",
+			hostname: "ndt-iupui-mlab1-lol01.mlab-sandbox.measurement-lab.org",
 			want: Name{
+				Prefix:  "ndt-iupui-",
 				Machine: "mlab1",
 				Site:    "lol01",
-				Project: "mlab-oti",
+				Project: "mlab-sandbox",
 				Domain:  "measurement-lab.org",
 				Version: "v2",
 			},
 		},
 		{
 			name:     "valid-v2-with-ndt-short",
-			hostname: "ndt-mlab1-lol01.mlab-oti.measurement-lab.org",
+			hostname: "ndt-mlab1-lol01.mlab-sandbox.measurement-lab.org",
 			want: Name{
+				Prefix:  "ndt-",
 				Machine: "mlab1",
 				Site:    "lol01",
-				Project: "mlab-oti",
+				Project: "mlab-sandbox",
 				Domain:  "measurement-lab.org",
 				Version: "v2",
 			},
 		},
 		{
 			name:     "valid-v2-with-ndt-short-with-suffix",
-			hostname: "ndt-mlab1-lol01.mlab-oti.measurement-lab.org-q44c",
+			hostname: "ndt-mlab1-lol01.mlab-sandbox.measurement-lab.org-q44c",
 			want: Name{
+				Prefix:  "ndt-",
 				Machine: "mlab1",
 				Site:    "lol01",
-				Project: "mlab-oti",
+				Project: "mlab-sandbox",
 				Domain:  "measurement-lab.org",
-				Suffix:  "q44c",
+				Suffix:  "-q44c",
 				Version: "v2",
 			},
 		},
@@ -172,7 +200,7 @@ func TestName(t *testing.T) {
 				return
 			}
 			if !reflect.DeepEqual(result, test.want) {
-				t.Errorf("\nUnexpected result. Got:\n%+v\nExpected:\n%+v", result, test.want)
+				t.Errorf("\nUnexpected result. Got:\n%#v\nExpected:\n%#v", result, test.want)
 			}
 		})
 	}

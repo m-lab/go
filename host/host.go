@@ -11,6 +11,7 @@ import (
 
 // Name represents an M-Lab hostname and all of its constituent parts.
 type Name struct {
+	Prefix  string
 	Machine string
 	Site    string
 	Project string
@@ -25,7 +26,7 @@ func Parse(name string) (Name, error) {
 	var parts Name
 
 	reV1 := regexp.MustCompile(`(?:[a-z-.]+)?(mlab[1-4]d?)[-.]([a-z]{3}[0-9tc]{2})\.(measurement-lab.org)$`)
-	reV2 := regexp.MustCompile(`(?:[a-z-.]+)?(mlab[1-4]d?)-([a-z]{3}[0-9tc]{2})\.(.*?)\.(measurement-lab.org)-?([a-z0-9]{4})?$`)
+	reV2 := regexp.MustCompile(`([a-z-]+)?(mlab[1-4]d?)-([a-z]{3}[0-9tc]{2})\.(.*?)\.(measurement-lab.org)(-[a-z0-9]{4})?$`)
 
 	// Example hostnames with field counts when split by '.':
 	// v1
@@ -34,34 +35,36 @@ func Parse(name string) (Name, error) {
 	//   ndt.iupui.mlab1.lga01.measurement-lab.org  - 6
 	// v2
 	//   mlab1-lga01.mlab-oti.measurement-lab.org - 4
-	//   mlab1-lga01.mlab-oti.measurement-lab.org-d9h6 - 4  (A MIG instance with a random suffix)
+	//   mlab1-lga01.mlab-oti.measurement-lab.org-d9h6 - 4 (A MIG instance with a random suffix)
+	//   ndt-mlab1-lga01.mlab-oti.measurement-lab.org-d9h6 - 4 (A MIG instance with a prefix and random suffix)
 	//   ndt-iupui-mlab1-lga01.mlab-oti.measurement-lab.org - 4
 	//   ndt-mlab1-lga01.mlab-oti.measurement-lab.org - 4
 
 	fields := strings.Split(name, ".")
 	if len(fields) < 3 || len(fields) > 6 {
-		return parts, fmt.Errorf("Invalid hostname: %s", name)
+		return parts, fmt.Errorf("invalid hostname: %s", name)
 	}
 
 	// v2 names always have four fields. And the first field will always
 	// be longer than a machine name e.g. "mlab1".
 	if len(fields) == 4 && len(fields[0]) > 6 {
 		mV2 := reV2.FindAllStringSubmatch(name, -1)
-		if len(mV2) != 1 || len(mV2[0]) != 6 {
-			return parts, fmt.Errorf("Invalid v2 hostname: %s", name)
+		if len(mV2) != 1 || len(mV2[0]) != 7 {
+			return parts, fmt.Errorf("invalid v2 hostname: %s", name)
 		}
 		parts = Name{
-			Machine: mV2[0][1],
-			Site:    mV2[0][2],
-			Project: mV2[0][3],
-			Domain:  mV2[0][4],
-			Suffix:  mV2[0][5],
+			Prefix:  mV2[0][1],
+			Machine: mV2[0][2],
+			Site:    mV2[0][3],
+			Project: mV2[0][4],
+			Domain:  mV2[0][5],
+			Suffix:  mV2[0][6],
 			Version: "v2",
 		}
 	} else {
 		mV1 := reV1.FindAllStringSubmatch(name, -1)
 		if len(mV1) != 1 || len(mV1[0]) != 4 {
-			return parts, fmt.Errorf("Invalid v1 hostname: %s", name)
+			return parts, fmt.Errorf("invalid v1 hostname: %s", name)
 		}
 		parts = Name{
 			Machine: mV1[0][1],
@@ -75,6 +78,8 @@ func Parse(name string) (Name, error) {
 	return parts, nil
 }
 
+// Returns a typical M-Lab machine hostname
+// Example: mlab2-abc01.mlab-sandbox.measurement-lab.org
 func (n Name) String() string {
 	switch n.Version {
 	case "v2":
@@ -82,4 +87,22 @@ func (n Name) String() string {
 	default:
 		return fmt.Sprintf("%s.%s.%s", n.Machine, n.Site, n.Domain)
 	}
+}
+
+// Returns an M-lab hostname with any prefix preserved
+// Example: ndt-mlab1-abc01.mlab-sandbox.measurement-lab.org
+func (n Name) StringWithPrefix() string {
+	return fmt.Sprintf("%s%s-%s.%s.%s", n.Prefix, n.Machine, n.Site, n.Project, n.Domain)
+}
+
+// Returns an M-lab hostname with any suffix preserved
+// Example: mlab1-abc01.mlab-sandbox.measurement-lab.org-gz77
+func (n Name) StringWithSuffix() string {
+	return fmt.Sprintf("%s-%s.%s.%s%s", n.Machine, n.Site, n.Project, n.Domain, n.Suffix)
+}
+
+// Returns an M-lab hostname with any prefix and suffix preserved
+// Example: ndt-mlab1-abc01.mlab-sandbox.measurement-lab.org-gz77
+func (n Name) StringAll() string {
+	return fmt.Sprintf("%s%s-%s.%s.%s%s", n.Prefix, n.Machine, n.Site, n.Project, n.Domain, n.Suffix)
 }
