@@ -95,7 +95,7 @@ func (n Name) StringWithService() string {
 	if n.Service != "" {
 		return fmt.Sprintf("%s-%s-%s.%s.%s", n.Service, n.Machine, n.Site, n.Project, n.Domain)
 	} else {
-		return fmt.Sprintf("%s-%s.%s.%s", n.Machine, n.Site, n.Project, n.Domain)
+		return n.String()
 	}
 }
 
@@ -108,13 +108,5 @@ func (n Name) StringWithSuffix() string {
 // Returns an M-lab hostname with any service and suffix preserved
 // Example: ndt-mlab1-abc01.mlab-sandbox.measurement-lab.org-gz77
 func (n Name) StringAll() string {
-	var s string
-
-	if n.Service != "" {
-		s = n.Service + "-"
-	} else {
-		s = ""
-	}
-
-	return fmt.Sprintf("%s%s-%s.%s.%s%s", s, n.Machine, n.Site, n.Project, n.Domain, n.Suffix)
+	return n.StringWithService() + n.Suffix
 }
