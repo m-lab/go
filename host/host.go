@@ -36,7 +36,7 @@ func Parse(name string) (Name, error) {
 	// v2
 	//   mlab1-lga01.mlab-oti.measurement-lab.org - 4
 	//   mlab1-lga01.mlab-oti.measurement-lab.org-d9h6 - 4 (A MIG instance with a random suffix)
-	//   ndt-mlab1-lga01.mlab-oti.measurement-lab.org-d9h6 - 4 (A MIG instance with a prefix and random suffix)
+	//   ndt-mlab1-lga01.mlab-oti.measurement-lab.org-d9h6 - 4 (A MIG instance with a service and random suffix)
 	//   ndt-iupui-mlab1-lga01.mlab-oti.measurement-lab.org - 4
 	//   ndt-mlab1-lga01.mlab-oti.measurement-lab.org - 4
 
@@ -89,10 +89,14 @@ func (n Name) String() string {
 	}
 }
 
-// Returns an M-lab hostname with any prefix preserved
+// Returns an M-lab hostname with any service name preserved
 // Example: ndt-mlab1-abc01.mlab-sandbox.measurement-lab.org
-func (n Name) StringWithPrefix() string {
-	return fmt.Sprintf("%s-%s-%s.%s.%s", n.Service, n.Machine, n.Site, n.Project, n.Domain)
+func (n Name) StringWithService() string {
+	if n.Service != "" {
+		return fmt.Sprintf("%s-%s-%s.%s.%s", n.Service, n.Machine, n.Site, n.Project, n.Domain)
+	} else {
+		return fmt.Sprintf("%s-%s.%s.%s", n.Machine, n.Site, n.Project, n.Domain)
+	}
 }
 
 // Returns an M-lab hostname with any suffix preserved
@@ -101,8 +105,16 @@ func (n Name) StringWithSuffix() string {
 	return fmt.Sprintf("%s-%s.%s.%s%s", n.Machine, n.Site, n.Project, n.Domain, n.Suffix)
 }
 
-// Returns an M-lab hostname with any prefix and suffix preserved
+// Returns an M-lab hostname with any service and suffix preserved
 // Example: ndt-mlab1-abc01.mlab-sandbox.measurement-lab.org-gz77
 func (n Name) StringAll() string {
-	return fmt.Sprintf("%s-%s-%s.%s.%s%s", n.Service, n.Machine, n.Site, n.Project, n.Domain, n.Suffix)
+	var s string
+
+	if n.Service != "" {
+		s = n.Service + "-"
+	} else {
+		s = ""
+	}
+
+	return fmt.Sprintf("%s%s-%s.%s.%s%s", s, n.Machine, n.Site, n.Project, n.Domain, n.Suffix)
 }
