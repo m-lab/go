@@ -27,24 +27,49 @@ func TestName(t *testing.T) {
 		},
 		{
 			name:     "valid-v2",
-			hostname: "mlab1-lol01.mlab-oti.measurement-lab.org",
+			hostname: "mlab1-lol01.mlab-sandbox.measurement-lab.org",
 			want: Name{
 				Machine: "mlab1",
 				Site:    "lol01",
-				Project: "mlab-oti",
+				Project: "mlab-sandbox",
 				Domain:  "measurement-lab.org",
 				Version: "v2",
 			},
 		},
 		{
 			name:     "valid-v2-with-suffix",
-			hostname: "mlab1-lol01.mlab-oti.measurement-lab.org-a9b8",
+			hostname: "mlab1-lol01.mlab-sandbox.measurement-lab.org-a9b8",
 			want: Name{
 				Machine: "mlab1",
 				Site:    "lol01",
-				Project: "mlab-oti",
+				Project: "mlab-sandbox",
 				Domain:  "measurement-lab.org",
-				Suffix:  "a9b8",
+				Suffix:  "-a9b8",
+				Version: "v2",
+			},
+		},
+		{
+			name:     "valid-v2-with-service",
+			hostname: "ndt-mlab1-lol01.mlab-sandbox.measurement-lab.org",
+			want: Name{
+				Service: "ndt",
+				Machine: "mlab1",
+				Site:    "lol01",
+				Project: "mlab-sandbox",
+				Domain:  "measurement-lab.org",
+				Version: "v2",
+			},
+		},
+		{
+			name:     "valid-v2-with-service-and-suffix",
+			hostname: "ndt-mlab1-lol01.mlab-sandbox.measurement-lab.org-a9b8",
+			want: Name{
+				Service: "ndt",
+				Machine: "mlab1",
+				Site:    "lol01",
+				Project: "mlab-sandbox",
+				Domain:  "measurement-lab.org",
+				Suffix:  "-a9b8",
 				Version: "v2",
 			},
 		},
@@ -60,11 +85,11 @@ func TestName(t *testing.T) {
 		},
 		{
 			name:     "valid-v2-bmc",
-			hostname: "mlab1d-lol01.mlab-oti.measurement-lab.org",
+			hostname: "mlab1d-lol01.mlab-sandbox.measurement-lab.org",
 			want: Name{
 				Machine: "mlab1d",
 				Site:    "lol01",
-				Project: "mlab-oti",
+				Project: "mlab-sandbox",
 				Domain:  "measurement-lab.org",
 				Version: "v2",
 			},
@@ -87,40 +112,6 @@ func TestName(t *testing.T) {
 				Site:    "lol01",
 				Domain:  "measurement-lab.org",
 				Version: "v1",
-			},
-		},
-		{
-			name:     "valid-v2-with-ndt",
-			hostname: "ndt-iupui-mlab1-lol01.mlab-oti.measurement-lab.org",
-			want: Name{
-				Machine: "mlab1",
-				Site:    "lol01",
-				Project: "mlab-oti",
-				Domain:  "measurement-lab.org",
-				Version: "v2",
-			},
-		},
-		{
-			name:     "valid-v2-with-ndt-short",
-			hostname: "ndt-mlab1-lol01.mlab-oti.measurement-lab.org",
-			want: Name{
-				Machine: "mlab1",
-				Site:    "lol01",
-				Project: "mlab-oti",
-				Domain:  "measurement-lab.org",
-				Version: "v2",
-			},
-		},
-		{
-			name:     "valid-v2-with-ndt-short-with-suffix",
-			hostname: "ndt-mlab1-lol01.mlab-oti.measurement-lab.org-q44c",
-			want: Name{
-				Machine: "mlab1",
-				Site:    "lol01",
-				Project: "mlab-oti",
-				Domain:  "measurement-lab.org",
-				Suffix:  "q44c",
-				Version: "v2",
 			},
 		},
 		{
@@ -172,7 +163,7 @@ func TestName(t *testing.T) {
 				return
 			}
 			if !reflect.DeepEqual(result, test.want) {
-				t.Errorf("\nUnexpected result. Got:\n%+v\nExpected:\n%+v", result, test.want)
+				t.Errorf("\nUnexpected result. Got:\n%#v\nExpected:\n%#v", result, test.want)
 			}
 		})
 	}
@@ -181,16 +172,130 @@ func TestName(t *testing.T) {
 func TestName_String(t *testing.T) {
 	tests := []struct {
 		name string
+		want string
 	}{
-		{name: "mlab1.foo01.measurement-lab.org"},
-		{name: "mlab1-foo01.mlab-sandbox.measurement-lab.org"},
+		{
+			name: "mlab1.foo01.measurement-lab.org",
+			want: "mlab1.foo01.measurement-lab.org",
+		},
+		{
+			name: "mlab1-foo01.mlab-sandbox.measurement-lab.org",
+			want: "mlab1-foo01.mlab-sandbox.measurement-lab.org",
+		},
+		{
+			name: "ndt-mlab1-foo01.mlab-sandbox.measurement-lab.org",
+			want: "mlab1-foo01.mlab-sandbox.measurement-lab.org",
+		},
+		{
+			name: "ndt-mlab1-foo01.mlab-sandbox.measurement-lab.org-qf8y",
+			want: "mlab1-foo01.mlab-sandbox.measurement-lab.org",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			n, err := Parse(tt.name)
 			rtx.Must(err, "Failed to parse: %s", tt.name)
-			if got := n.String(); got != tt.name {
-				t.Errorf("Name.String() = %v, want %v", got, tt.name)
+			if got := n.String(); got != tt.want {
+				t.Errorf("Name.String() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestName_StringWithService(t *testing.T) {
+	tests := []struct {
+		name string
+		want string
+	}{
+		{
+			name: "mlab1-foo01.mlab-sandbox.measurement-lab.org",
+			want: "mlab1-foo01.mlab-sandbox.measurement-lab.org",
+		},
+		{
+			name: "ndt-mlab1-foo01.mlab-sandbox.measurement-lab.org",
+			want: "ndt-mlab1-foo01.mlab-sandbox.measurement-lab.org",
+		},
+		{
+			name: "mlab1-foo01.mlab-sandbox.measurement-lab.org-qf8y",
+			want: "mlab1-foo01.mlab-sandbox.measurement-lab.org",
+		},
+		{
+			name: "ndt-mlab1-foo01.mlab-sandbox.measurement-lab.org-qf8y",
+			want: "ndt-mlab1-foo01.mlab-sandbox.measurement-lab.org",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			n, err := Parse(tt.name)
+			rtx.Must(err, "Failed to parse: %s", tt.name)
+			if got := n.StringWithService(); got != tt.want {
+				t.Errorf("Name.StringWithService() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestName_StringWithSuffix(t *testing.T) {
+	tests := []struct {
+		name string
+		want string
+	}{
+		{
+			name: "mlab1-foo01.mlab-sandbox.measurement-lab.org",
+			want: "mlab1-foo01.mlab-sandbox.measurement-lab.org",
+		},
+		{
+			name: "ndt-mlab1-foo01.mlab-sandbox.measurement-lab.org",
+			want: "mlab1-foo01.mlab-sandbox.measurement-lab.org",
+		},
+		{
+			name: "mlab1-foo01.mlab-sandbox.measurement-lab.org-qf8y",
+			want: "mlab1-foo01.mlab-sandbox.measurement-lab.org-qf8y",
+		},
+		{
+			name: "ndt-mlab1-foo01.mlab-sandbox.measurement-lab.org-qf8y",
+			want: "mlab1-foo01.mlab-sandbox.measurement-lab.org-qf8y",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			n, err := Parse(tt.name)
+			rtx.Must(err, "Failed to parse: %s", tt.name)
+			if got := n.StringWithSuffix(); got != tt.want {
+				t.Errorf("Name.StringWithSuffix() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestName_StringAll(t *testing.T) {
+	tests := []struct {
+		name string
+		want string
+	}{
+		{
+			name: "mlab1-foo01.mlab-sandbox.measurement-lab.org",
+			want: "mlab1-foo01.mlab-sandbox.measurement-lab.org",
+		},
+		{
+			name: "ndt-mlab1-foo01.mlab-sandbox.measurement-lab.org",
+			want: "ndt-mlab1-foo01.mlab-sandbox.measurement-lab.org",
+		},
+		{
+			name: "mlab1-foo01.mlab-sandbox.measurement-lab.org-qf8y",
+			want: "mlab1-foo01.mlab-sandbox.measurement-lab.org-qf8y",
+		},
+		{
+			name: "ndt-mlab1-foo01.mlab-sandbox.measurement-lab.org-qf8y",
+			want: "ndt-mlab1-foo01.mlab-sandbox.measurement-lab.org-qf8y",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			n, err := Parse(tt.name)
+			rtx.Must(err, "Failed to parse: %s", tt.name)
+			if got := n.StringAll(); got != tt.want {
+				t.Errorf("Name.StringAll() = %v, want %v", got, tt.want)
 			}
 		})
 	}
