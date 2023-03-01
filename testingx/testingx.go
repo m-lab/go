@@ -2,6 +2,7 @@ package testingx
 
 import (
 	"fmt"
+	"os"
 )
 
 // FatalReporter defines the interface for reporting a fatal test.
@@ -16,12 +17,15 @@ type FatalReporter interface {
 // a format string.
 //
 // The main purpose of this function is to turn the common pattern of:
-//    err := Func()
-//    if err != nil {
-//        t.Fatalf("Helpful message (error: %v)", err)
-//    }
+//
+//	err := Func()
+//	if err != nil {
+//	    t.Fatalf("Helpful message (error: %v)", err)
+//	}
+//
 // into a simplified pattern of:
-//    Must(t, Func(), "Helpful message")
+//
+//	Must(t, Func(), "Helpful message")
 //
 // This has the benefit of using fewer lines and verifying unit tests are
 // "correct by inspection".
@@ -34,4 +38,12 @@ func Must(t FatalReporter, err error, prefix string, args ...interface{}) {
 		}
 		t.Fatal(prefix + suffix)
 	}
+}
+
+// MustReadFile will read the file under the input `path` and return the array
+// of bytes. If it fails, it will call t.Fatal.
+func MustReadFile(t FatalReporter, path string) []byte {
+	file, err := os.ReadFile(path)
+	Must(t, err, "")
+	return file
 }
