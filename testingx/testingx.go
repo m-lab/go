@@ -42,8 +42,8 @@ func Must(t FatalReporter, err error, prefix string, args ...interface{}) {
 
 // MustReadFile will read the file under the input `path` and return the array
 // of bytes. If it fails, it will call t.Fatal.
-func MustReadFile(t FatalReporter, path string, prefix string) []byte {
+func MustReadFile(t FatalReporter, path string) []byte {
 	file, err := os.ReadFile(path)
-	Must(t, err, prefix)
+	Must(t, err, "")
 	return file
 }
