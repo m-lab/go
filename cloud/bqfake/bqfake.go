@@ -19,6 +19,11 @@ import (
 	"google.golang.org/api/iterator"
 )
 
+var (
+	// ErrTypeAssertionFailed may be returned by the row iterator when the target type is incorrect.
+	ErrTypeAssertionFailed = errors.New("type assertion failed")
+)
+
 // Table implements part of the bqiface.Table interface required for basic testing
 // Other parts of the interface should be implemented as needed.
 type Table struct {
@@ -99,44 +104,44 @@ func (ds Dataset) Table(name string) bqiface.Table {
 }
 
 // ClientConfig contains configuration for injecting result and error values.
-type ClientConfig struct {
-	QueryConfig
+type ClientConfig[Row any] struct {
+	QueryConfig[Row]
 }
 
 // QueryConfig contains configuration for injecting query results and error values.
-type QueryConfig struct {
+type QueryConfig[Row any] struct {
 	ReadErr error
-	RowIteratorConfig
+	RowIteratorConfig[Row]
 }
 
 // RowIteratorConfig contains configuration for injecting row iteration results and error values.
-type RowIteratorConfig struct {
+type RowIteratorConfig[Row any] struct {
 	IterErr error
-	Rows    []map[string]bigquery.Value
+	Rows    []Row
 }
 
 // Query implements parts of bqiface.Query to allow some very basic
 // unit tests.
-type Query struct {
+type Query[Row any] struct {
 	bqiface.Query
-	config QueryConfig
+	config QueryConfig[Row]
 }
 
 // SetQueryConfig is used to set the ReadErr or RowIteratorConfig.
-func (q Query) SetQueryConfig(bqiface.QueryConfig) {
+func (q Query[Row]) SetQueryConfig(bqiface.QueryConfig) {
 	log.Println("SetQueryConfig not implemented")
 }
 
-func (q Query) Run(context.Context) (bqiface.Job, error) {
+func (q Query[Row]) Run(context.Context) (bqiface.Job, error) {
 	log.Println("Run not implemented")
 	return Job{}, nil
 }
 
-func (q Query) Read(context.Context) (bqiface.RowIterator, error) {
+func (q Query[Row]) Read(context.Context) (bqiface.RowIterator, error) {
 	if q.config.ReadErr != nil {
 		return nil, q.config.ReadErr
 	}
-	return &RowIterator{config: q.config.RowIteratorConfig}, nil
+	return &RowIterator[Row]{config: q.config.RowIteratorConfig}, nil
 }
 
 // Job implements parts of bqiface.Job to allow some very basic
@@ -150,13 +155,17 @@ func (j Job) Wait(context.Context) (*bigquery.JobStatus, error) {
 	return nil, nil
 }
 
-type RowIterator struct {
+type RowIterator[Row any] struct {
 	bqiface.RowIterator
-	config RowIteratorConfig
+	config RowIteratorConfig[Row]
 	index  int
 }
 
-func (r *RowIterator) Next(dst interface{}) error {
+func (r *RowIterator[Row]) TotalRows() uint64 {
+	return uint64(len(r.config.Rows))
+}
+
+func (r *RowIterator[Row]) Next(dst interface{}) error {
 	// Check config for an error.
 	if r.config.IterErr != nil {
 		return r.config.IterErr
@@ -165,7 +174,10 @@ func (r *RowIterator) Next(dst interface{}) error {
 	if r.index >= len(r.config.Rows) {
 		return iterator.Done
 	}
-	v := dst.(*map[string]bigquery.Value)
+	v, ok := dst.(*Row)
+	if !ok {
+		return ErrTypeAssertionFailed
+	}
 	*v = r.config.Rows[r.index]
 	r.index++
 	return nil

@@ -29,7 +29,7 @@ func assertDataset(ds bqfake.Dataset) {
 }
 
 // This fails to compile if Client does not satisfy the interface.
-func assertClient(c bqfake.Client) {
+func assertClient[Row any](c bqfake.Client[Row]) {
 	func(cc bqiface.Client) {}(c)
 }
 
@@ -210,30 +210,32 @@ func TestQuery(t *testing.T) {
 func TestNewQueryReadClient(t *testing.T) {
 	tests := []struct {
 		name    string
-		config  bqfake.QueryConfig
+		config  bqfake.QueryConfig[map[string]bigquery.Value]
+		rows    uint64
 		wantErr bool
 	}{
 		{
 			name: "success",
-			config: bqfake.QueryConfig{
-				RowIteratorConfig: bqfake.RowIteratorConfig{
+			config: bqfake.QueryConfig[map[string]bigquery.Value]{
+				RowIteratorConfig: bqfake.RowIteratorConfig[map[string]bigquery.Value]{
 					Rows: []map[string]bigquery.Value{
 						{"okay": 1.234},
 					},
 				},
 			},
+			rows: 1,
 		},
 		{
 			name: "read-error",
-			config: bqfake.QueryConfig{
+			config: bqfake.QueryConfig[map[string]bigquery.Value]{
 				ReadErr: fmt.Errorf("Fake read error"),
 			},
 			wantErr: true,
 		},
 		{
 			name: "iter-error",
-			config: bqfake.QueryConfig{
-				RowIteratorConfig: bqfake.RowIteratorConfig{
+			config: bqfake.QueryConfig[map[string]bigquery.Value]{
+				RowIteratorConfig: bqfake.RowIteratorConfig[map[string]bigquery.Value]{
 					IterErr: fmt.Errorf("Fake iter error"),
 				},
 			},
@@ -252,6 +254,15 @@ func TestNewQueryReadClient(t *testing.T) {
 			if it == nil {
 				return
 			}
+			if it.TotalRows() != tt.rows {
+				t.Errorf("RowIterator.TotalRows() = %d, want %d", it.TotalRows(), tt.rows)
+			}
+			// Try loading wrong type.
+			var x string
+			err = it.Next(&x)
+			if !tt.wantErr && err != bqfake.ErrTypeAssertionFailed {
+				t.Errorf("RowIterator.Next() = %v, want %v", err, bqfake.ErrTypeAssertionFailed)
+			}
 			var row map[string]bigquery.Value
 			i := 0
 			for err = it.Next(&row); err == nil; err = it.Next(&row) {
@@ -265,7 +276,6 @@ func TestNewQueryReadClient(t *testing.T) {
 			if err == iterator.Done {
 				return
 			}
-			// err != nil.
 			if err != tt.config.RowIteratorConfig.IterErr {
 				t.Errorf("Next() error; got %v, want %v", err, tt.config.RowIteratorConfig.IterErr)
 				return

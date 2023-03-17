@@ -66,40 +66,40 @@ func DryRunClient() (*http.Client, *CountingTransport) {
 }
 
 // Client implements a fake client.
-type Client struct {
+type Client[Row any] struct {
 	bqiface.Client
 	ctx    context.Context // Just for checking expiration/cancelation
-	config ClientConfig
+	config ClientConfig[Row]
 }
 
 // NewClient creates a new Client implementing bqiface.Client, with a dry run HTTPClient.
-func NewClient(ctx context.Context, project string, opts ...option.ClientOption) (*Client, error) {
+func NewClient(ctx context.Context, project string, opts ...option.ClientOption) (*Client[map[string]bigquery.Value], error) {
 	dryRun, _ := DryRunClient()
 	opts = append(opts, option.WithHTTPClient(dryRun))
 	c, err := bigquery.NewClient(ctx, project, opts...)
 	if err != nil {
 		return nil, err
 	}
-	return &Client{Client: bqiface.AdaptClient(c), ctx: ctx}, nil
+	return &Client[map[string]bigquery.Value]{Client: bqiface.AdaptClient(c), ctx: ctx}, nil
 }
 
 // Dataset creates a Dataset.
 // TODO - understand how bqiface adapters/structs work, and make this return a Dataset
 // that satisfies bqiface.Dataset interface?
-func (client Client) Dataset(ds string) bqiface.Dataset {
+func (client Client[Row]) Dataset(ds string) bqiface.Dataset {
 	return Dataset{Dataset: client.Client.Dataset(ds), tables: make(map[string]*Table)}
 }
 
-func (client Client) Query(string) bqiface.Query {
-	return Query{
+func (client Client[Row]) Query(string) bqiface.Query {
+	return Query[Row]{
 		config: client.config.QueryConfig,
 	}
 }
 
-func NewQueryReadClient(qc QueryConfig) *Client {
+func NewQueryReadClient[Row any](qc QueryConfig[Row]) *Client[Row] {
 	// NOTE: if all needed functions are implemented by the fake, then a real
 	// client is unnecessary.
-	return &Client{
-		config: ClientConfig{QueryConfig: qc},
+	return &Client[Row]{
+		config: ClientConfig[Row]{QueryConfig: qc},
 	}
 }
