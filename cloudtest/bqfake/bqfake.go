@@ -27,6 +27,17 @@ type Table struct {
 	name string
 	// NOTE: TableType is used to indicate if this is initialized
 	metadata *bigquery.TableMetadata
+	err      error
+}
+
+// NewTable returns a new instance of Table.
+func NewTable(ds Dataset, name string, md *bigquery.TableMetadata, err error) *Table {
+	return &Table{
+		ds:       ds,
+		name:     name,
+		metadata: md,
+		err:      err,
+	}
 }
 
 // ProjectID implements the bqiface method.
@@ -80,10 +91,42 @@ func (tbl Table) Create(ctx context.Context, meta *bigquery.TableMetadata) error
 	return nil
 }
 
+// Update updates the table's `Schema`.
+func (tbl Table) Update(ctx context.Context, md bigquery.TableMetadataToUpdate, etag string) (*bigquery.TableMetadata, error) {
+	if md.Schema != nil {
+		tbl.metadata.Schema = md.Schema
+	}
+	return tbl.metadata, nil
+}
+
 // Dataset implements part of the bqiface.Dataset interface.
 type Dataset struct {
 	bqiface.Dataset
-	tables map[string]*Table
+	tables   map[string]*Table
+	metadata *bqiface.DatasetMetadata
+	err      error
+}
+
+// NewDataset returns a new instance of Dataset.
+func NewDataset(t map[string]*Table, md *bqiface.DatasetMetadata, err error) *Dataset {
+	return &Dataset{
+		tables:   t,
+		metadata: md,
+		err:      err,
+	}
+}
+
+// Metadata implements the bqiface method.
+func (ds Dataset) Metadata(ctx context.Context) (*bqiface.DatasetMetadata, error) {
+	if ds.metadata != nil {
+		return ds.metadata, nil
+	}
+	return nil, errors.New("invalid dataset metadata")
+}
+
+// Create returns an error.
+func (ds Dataset) Create(ctx context.Context, md *bqiface.DatasetMetadata) error {
+	return ds.err
 }
 
 // Table implements the bqiface method.
