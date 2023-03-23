@@ -2,6 +2,7 @@ package bqfake_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -9,10 +10,11 @@ import (
 	"testing"
 	"time"
 
-	"google.golang.org/api/option"
 	"cloud.google.com/go/bigquery"
+	"github.com/google/go-cmp/cmp"
 	"github.com/googleapis/google-cloud-go-testing/bigquery/bqiface"
 	"google.golang.org/api/iterator"
+	"google.golang.org/api/option"
 
 	"github.com/m-lab/go/cloudtest/bqfake"
 )
@@ -55,7 +57,7 @@ func TestNewClientErr(t *testing.T) {
 	ctx := context.Background()
 	// These options are incompatible with one another and generate an error from bigquery.NewClient.
 	opts := []option.ClientOption{option.WithAPIKey("asdf"), option.WithoutAuthentication()}
-	c, err := bqfake.NewClient(ctx, "fakeProject", opts...)
+	c, err := bqfake.NewClient(ctx, "fakeProject", map[string]*bqfake.Dataset{}, opts...)
 	if err == nil {
 		c.Close()
 		t.Fatal("Should return constructing client error")
@@ -74,9 +76,82 @@ func TestBadDataset(t *testing.T) {
 	ds.Table("Foobar")
 }
 
+func TestDatasetMetadata(t *testing.T) {
+	tests := []struct {
+		name    string
+		md      *bqiface.DatasetMetadata
+		want    *bqiface.DatasetMetadata
+		wantErr bool
+	}{
+		{
+			name: "success",
+			md: &bqiface.DatasetMetadata{
+				DatasetMetadata: bigquery.DatasetMetadata{
+					Name: "fakeMetadata",
+				},
+			},
+			want: &bqiface.DatasetMetadata{
+				DatasetMetadata: bigquery.DatasetMetadata{
+					Name: "fakeMetadata",
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name:    "error",
+			md:      nil,
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ds := bqfake.NewDataset(nil, tt.md, nil)
+			got, err := ds.Metadata(context.Background())
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Dataset.Metadata() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if !tt.wantErr && !cmp.Equal(got, tt.want) {
+				t.Errorf("Dataset.Metadata() got = %v, want = %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestDatasetCreate(t *testing.T) {
+	tests := []struct {
+		name    string
+		err     error
+		wantErr bool
+	}{
+		{
+			name:    "success",
+			err:     nil,
+			wantErr: false,
+		},
+		{
+			name:    "error",
+			err:     errors.New("fakeError"),
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ds := bqfake.NewDataset(nil, nil, tt.err)
+			got := ds.Create(context.Background(), &bqiface.DatasetMetadata{})
+			if (got != nil) != tt.wantErr {
+				t.Errorf("Dataset.Create() error = %v, wantErr %v", got, tt.wantErr)
+			}
+		})
+	}
+}
+
 func TestUninitializedTable(t *testing.T) {
 	ctx := context.Background()
-	c, err := bqfake.NewClient(ctx, "fakeProject")
+	c, err := bqfake.NewClient(ctx, "fakeProject", map[string]*bqfake.Dataset{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -113,7 +188,7 @@ func TestUninitializedTable(t *testing.T) {
 
 func TestTable(t *testing.T) {
 	ctx := context.Background()
-	c, err := bqfake.NewClient(ctx, "fakeProject")
+	c, err := bqfake.NewClient(ctx, "fakeProject", map[string]*bqfake.Dataset{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -149,7 +224,7 @@ func createTable(ctx context.Context, ds bqiface.Dataset, name string) error {
 
 func TestTableMetadata(t *testing.T) {
 	ctx := context.Background()
-	c, err := bqfake.NewClient(ctx, "fakeProject")
+	c, err := bqfake.NewClient(ctx, "fakeProject", map[string]*bqfake.Dataset{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -179,9 +254,31 @@ func TestTableMetadata(t *testing.T) {
 	}
 }
 
+func TestTableUpdate(t *testing.T) {
+	want := &bigquery.TableMetadata{
+		Schema: []*bigquery.FieldSchema{
+			{
+				Name: "fakeField",
+			},
+		},
+	}
+	tbl := bqfake.NewTable(bqfake.Dataset{}, "", &bigquery.TableMetadata{}, nil)
+	got, err := tbl.Update(context.Background(), bigquery.TableMetadataToUpdate{
+		Schema: want.Schema,
+	}, "")
+
+	if err != nil {
+		t.Errorf("Table.Update() error = %v, wantErr = nil", err)
+	}
+
+	if !cmp.Equal(got, want) {
+		t.Errorf("Table.Update() got = %v, want = %v", got, want)
+	}
+}
+
 func TestQuery(t *testing.T) {
 	ctx := context.Background()
-	c, err := bqfake.NewClient(ctx, "fakeProject")
+	c, err := bqfake.NewClient(ctx, "fakeProject", map[string]*bqfake.Dataset{})
 	if err != nil {
 		t.Fatal(err)
 	}
