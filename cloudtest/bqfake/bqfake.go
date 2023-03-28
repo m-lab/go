@@ -27,16 +27,27 @@ type Table struct {
 	name string
 	// NOTE: TableType is used to indicate if this is initialized
 	metadata *bigquery.TableMetadata
+	loader   bqiface.Loader
 	err      error
 }
 
+// TableOpts defines field options for Table.
+type TableOpts struct {
+	Dataset
+	Name     string
+	Metadata *bigquery.TableMetadata
+	Loader   bqiface.Loader
+	Error    error
+}
+
 // NewTable returns a new instance of Table.
-func NewTable(ds Dataset, name string, md *bigquery.TableMetadata, err error) *Table {
+func NewTable(opts TableOpts) *Table {
 	return &Table{
-		ds:       ds,
-		name:     name,
-		metadata: md,
-		err:      err,
+		ds:       opts.Dataset,
+		name:     opts.Name,
+		metadata: opts.Metadata,
+		loader:   opts.Loader,
+		err:      opts.Error,
 	}
 }
 
@@ -97,6 +108,11 @@ func (tbl Table) Update(ctx context.Context, md bigquery.TableMetadataToUpdate, 
 		tbl.metadata.Schema = md.Schema
 	}
 	return tbl.metadata, nil
+}
+
+// LoaderFrom returns a bqiface.Loader.
+func (tbl Table) LoaderFrom(src bigquery.LoadSource) bqiface.Loader {
+	return tbl.loader
 }
 
 // Dataset implements part of the bqiface.Dataset interface.
@@ -181,15 +197,45 @@ func (q Query) Read(context.Context) (bqiface.RowIterator, error) {
 	return &RowIterator{config: q.config.RowIteratorConfig}, nil
 }
 
+// Loader implements parts of bqiface.Loader to allow for testing.
+type Loader struct {
+	bqiface.Loader
+	job Job
+	err error
+}
+
+// NewLoader returns a new instance of Loader.
+func NewLoader(job Job, err error) *Loader {
+	return &Loader{
+		job: job,
+		err: err,
+	}
+}
+
+// Run returns a bqiface.Job and an error.
+func (l Loader) Run(ctx context.Context) (bqiface.Job, error) {
+	return l.job, l.err
+}
+
 // Job implements parts of bqiface.Job to allow some very basic
 // unit tests.
 type Job struct {
 	bqiface.Job
+	status *bigquery.JobStatus
+	err    error
 }
 
+// NewJob returns a new instance of Job.
+func NewJob(status *bigquery.JobStatus, err error) *Job {
+	return &Job{
+		status: status,
+		err:    err,
+	}
+}
+
+// Wait returns a *bigquery.JobStatus and an error.
 func (j Job) Wait(context.Context) (*bigquery.JobStatus, error) {
-	log.Println("Wait not implemented")
-	return nil, nil
+	return j.status, j.err
 }
 
 type RowIterator struct {

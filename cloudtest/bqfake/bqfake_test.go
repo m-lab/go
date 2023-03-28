@@ -262,7 +262,10 @@ func TestTableUpdate(t *testing.T) {
 			},
 		},
 	}
-	tbl := bqfake.NewTable(bqfake.Dataset{}, "", &bigquery.TableMetadata{}, nil)
+	tbl := bqfake.NewTable(bqfake.TableOpts{
+		Dataset:  bqfake.Dataset{},
+		Metadata: &bigquery.TableMetadata{},
+	})
 	got, err := tbl.Update(context.Background(), bigquery.TableMetadataToUpdate{
 		Schema: want.Schema,
 	}, "")
@@ -273,6 +276,18 @@ func TestTableUpdate(t *testing.T) {
 
 	if !cmp.Equal(got, want) {
 		t.Errorf("Table.Update() got = %v, want = %v", got, want)
+	}
+}
+
+func TestTableLoaderFrom(t *testing.T) {
+	ldr := bqfake.NewLoader(bqfake.Job{}, nil)
+	tbl := bqfake.NewTable(bqfake.TableOpts{
+		Loader: ldr,
+	})
+	got := tbl.LoaderFrom(nil)
+
+	if got != ldr {
+		t.Errorf("Table.LoaderFrom() got = %v, want = %v", got, ldr)
 	}
 }
 
@@ -367,5 +382,35 @@ func TestNewQueryReadClient(t *testing.T) {
 				return
 			}
 		})
+	}
+}
+
+func TestLoaderRun(t *testing.T) {
+	job := bqfake.Job{}
+	err := errors.New("loader error")
+	ldr := bqfake.NewLoader(job, err)
+	got, gotErr := ldr.Run(context.Background())
+
+	if !errors.Is(gotErr, err) {
+		t.Errorf("Loader.Run() error = %v, want = %v", gotErr, err)
+	}
+
+	if got != job {
+		t.Errorf("Loader.Run() got = %v, want = %v", got, job)
+	}
+}
+
+func TestJobWait(t *testing.T) {
+	status := &bigquery.JobStatus{State: 1}
+	err := errors.New("job error")
+	job := bqfake.NewJob(status, err)
+	got, gotErr := job.Wait(context.Background())
+
+	if !errors.Is(gotErr, err) {
+		t.Errorf("Job.Wait() error = %v, want = %v", gotErr, err)
+	}
+
+	if got != status {
+		t.Errorf("Job.Wait() got = %v, want = %v", got, job)
 	}
 }
