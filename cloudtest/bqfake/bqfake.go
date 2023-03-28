@@ -200,12 +200,12 @@ func (q Query) Read(context.Context) (bqiface.RowIterator, error) {
 // Loader implements parts of bqiface.Loader to allow for testing.
 type Loader struct {
 	bqiface.Loader
-	job Job
+	job *Job
 	err error
 }
 
 // NewLoader returns a new instance of Loader.
-func NewLoader(job Job, err error) *Loader {
+func NewLoader(job *Job, err error) *Loader {
 	return &Loader{
 		job: job,
 		err: err,

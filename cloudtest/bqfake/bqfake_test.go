@@ -280,7 +280,7 @@ func TestTableUpdate(t *testing.T) {
 }
 
 func TestTableLoaderFrom(t *testing.T) {
-	ldr := bqfake.NewLoader(bqfake.Job{}, nil)
+	ldr := bqfake.NewLoader(&bqfake.Job{}, nil)
 	tbl := bqfake.NewTable(bqfake.TableOpts{
 		Loader: ldr,
 	})
