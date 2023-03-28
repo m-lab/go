@@ -217,6 +217,9 @@ func (l Loader) Run(ctx context.Context) (bqiface.Job, error) {
 	return l.job, l.err
 }
 
+// SetLoadConfig does nothing.
+func (l Loader) SetLoadConfig(config bqiface.LoadConfig) {}
+
 // Job implements parts of bqiface.Job to allow some very basic
 // unit tests.
 type Job struct {
