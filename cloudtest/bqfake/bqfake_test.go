@@ -386,7 +386,7 @@ func TestNewQueryReadClient(t *testing.T) {
 }
 
 func TestLoaderRun(t *testing.T) {
-	job := bqfake.Job{}
+	job := &bqfake.Job{}
 	err := errors.New("loader error")
 	ldr := bqfake.NewLoader(job, err)
 	got, gotErr := ldr.Run(context.Background())
