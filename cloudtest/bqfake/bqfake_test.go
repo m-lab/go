@@ -280,7 +280,7 @@ func TestTableUpdate(t *testing.T) {
 }
 
 func TestTableLoaderFrom(t *testing.T) {
-	ldr := bqfake.NewLoader(bqfake.Job{}, nil)
+	ldr := bqfake.NewLoader(&bqfake.Job{}, nil)
 	tbl := bqfake.NewTable(bqfake.TableOpts{
 		Loader: ldr,
 	})
@@ -386,7 +386,7 @@ func TestNewQueryReadClient(t *testing.T) {
 }
 
 func TestLoaderRun(t *testing.T) {
-	job := bqfake.Job{}
+	job := &bqfake.Job{}
 	err := errors.New("loader error")
 	ldr := bqfake.NewLoader(job, err)
 	got, gotErr := ldr.Run(context.Background())
