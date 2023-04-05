@@ -203,11 +203,10 @@ func (pdt PDT) UpdateTable(ctx context.Context, client *bigquery.Client, schema 
 		Schema: schema,
 	}
 
-	md, err := t.Update(ctx, changes, meta.ETag)
+	_, err = t.Update(ctx, changes, meta.ETag)
 	if err != nil {
 		return err
 	}
-	log.Printf("%+v\n", md)
 	return nil
 }
 
