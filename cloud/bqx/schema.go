@@ -204,10 +204,7 @@ func (pdt PDT) UpdateTable(ctx context.Context, client *bigquery.Client, schema 
 	}
 
 	_, err = t.Update(ctx, changes, meta.ETag)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 // CreateTable will create a new table, or fail if the table already exists.
