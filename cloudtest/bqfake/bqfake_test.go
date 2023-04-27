@@ -255,27 +255,54 @@ func TestTableMetadata(t *testing.T) {
 }
 
 func TestTableUpdate(t *testing.T) {
-	want := &bigquery.TableMetadata{
-		Schema: []*bigquery.FieldSchema{
-			{
-				Name: "fakeField",
-			},
+	tests := []struct {
+		name    string
+		err     error
+		wantErr bool
+	}{
+		{
+			name:    "success",
+			err:     nil,
+			wantErr: false,
+		},
+		{
+			name:    "error",
+			err:     errors.New("fakeError"),
+			wantErr: true,
 		},
 	}
-	tbl := bqfake.NewTable(bqfake.TableOpts{
-		Dataset:  bqfake.Dataset{},
-		Metadata: &bigquery.TableMetadata{},
-	})
-	got, err := tbl.Update(context.Background(), bigquery.TableMetadataToUpdate{
-		Schema: want.Schema,
-	}, "")
 
-	if err != nil {
-		t.Errorf("Table.Update() error = %v, wantErr = nil", err)
-	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			want := &bigquery.TableMetadata{
+				Schema: []*bigquery.FieldSchema{
+					{
+						Name: "fakeField",
+					},
+				},
+			}
 
-	if !cmp.Equal(got, want) {
-		t.Errorf("Table.Update() got = %v, want = %v", got, want)
+			tbl := bqfake.NewTable(bqfake.TableOpts{
+				Dataset:   bqfake.Dataset{},
+				Metadata:  &bigquery.TableMetadata{},
+				UpdateErr: tt.err,
+			})
+			got, err := tbl.Update(context.Background(), bigquery.TableMetadataToUpdate{
+				Schema: want.Schema,
+			}, "")
+
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Table.Update() error = %v, wantErr = %v", err, tt.wantErr)
+			}
+
+			if tt.wantErr {
+				return
+			}
+
+			if !cmp.Equal(got, want) {
+				t.Errorf("Table.Update() got = %v, want = %v", got, want)
+			}
+		})
 	}
 }
 
