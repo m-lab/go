@@ -26,28 +26,31 @@ type Table struct {
 	ds   Dataset
 	name string
 	// NOTE: TableType is used to indicate if this is initialized
-	metadata *bigquery.TableMetadata
-	loader   bqiface.Loader
-	err      error
+	metadata  *bigquery.TableMetadata
+	loader    bqiface.Loader
+	err       error
+	updateErr error
 }
 
 // TableOpts defines field options for Table.
 type TableOpts struct {
 	Dataset
-	Name     string
-	Metadata *bigquery.TableMetadata
-	Loader   bqiface.Loader
-	Error    error
+	Name      string
+	Metadata  *bigquery.TableMetadata
+	Loader    bqiface.Loader
+	Error     error
+	UpdateErr error
 }
 
 // NewTable returns a new instance of Table.
 func NewTable(opts TableOpts) *Table {
 	return &Table{
-		ds:       opts.Dataset,
-		name:     opts.Name,
-		metadata: opts.Metadata,
-		loader:   opts.Loader,
-		err:      opts.Error,
+		ds:        opts.Dataset,
+		name:      opts.Name,
+		metadata:  opts.Metadata,
+		loader:    opts.Loader,
+		err:       opts.Error,
+		updateErr: opts.UpdateErr,
 	}
 }
 
@@ -104,6 +107,9 @@ func (tbl Table) Create(ctx context.Context, meta *bigquery.TableMetadata) error
 
 // Update updates the table's `Schema`.
 func (tbl Table) Update(ctx context.Context, md bigquery.TableMetadataToUpdate, etag string) (*bigquery.TableMetadata, error) {
+	if tbl.updateErr != nil {
+		return nil, tbl.updateErr
+	}
 	if md.Schema != nil {
 		tbl.metadata.Schema = md.Schema
 	}
