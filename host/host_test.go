@@ -95,6 +95,17 @@ func TestName(t *testing.T) {
 			},
 		},
 		{
+			name:     "valid-v2-third-party",
+			hostname: "third-party.mlab-sandbox.measurement-lab.org",
+			want: Name{
+				Machine: "third",
+				Site:    "party",
+				Project: "mlab-sandbox",
+				Domain:  "measurement-lab.org",
+				Version: "v2",
+			},
+		},
+		{
 			name:     "valid-v1-with-ndt-flat",
 			hostname: "ndt-iupui-mlab1-lol01.measurement-lab.org",
 			want: Name{
@@ -135,6 +146,12 @@ func TestName(t *testing.T) {
 		{
 			name:     "invalid-v1-too-few-parts",
 			hostname: "lol01.measurement-lab.org",
+			want:     Name{},
+			wantErr:  true,
+		},
+		{
+			name:     "invalid-v1-third-party",
+			hostname: "third.party.measurement-lab.org",
 			want:     Name{},
 			wantErr:  true,
 		},

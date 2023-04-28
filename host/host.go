@@ -26,7 +26,7 @@ func Parse(name string) (Name, error) {
 	var parts Name
 
 	reV1 := regexp.MustCompile(`(?:[a-z-.]+)?(mlab[1-4]d?)[-.]([a-z]{3}[0-9tc]{2})\.(measurement-lab.org)$`)
-	reV2 := regexp.MustCompile(`([a-z0-9]+)?-?(mlab[1-4]d?)-([a-z]{3}[0-9tc]{2})\.(.*?)\.(measurement-lab.org)(-[a-z0-9]{4})?$`)
+	reV2 := regexp.MustCompile(`([a-z0-9]+)?-?(mlab[1-4]d?|third)-([a-z]{3}[0-9tc]{2}|party)\.(.*?)\.(measurement-lab.org)(-[a-z0-9]{4})?$`)
 
 	// Example hostnames with field counts when split by '.':
 	// v1
