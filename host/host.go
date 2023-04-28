@@ -40,6 +40,15 @@ func Parse(name string) (Name, error) {
 	//   ndt-iupui-mlab1-lga01.mlab-oti.measurement-lab.org - 4
 	//   ndt-mlab1-lga01.mlab-oti.measurement-lab.org - 4
 
+	if name == "third-party" {
+		// Unconditionally return a Name for third-party origins.
+		return Name{
+			Machine: "third",
+			Site:    "party",
+			Version: "v2",
+		}, nil
+	}
+
 	fields := strings.Split(name, ".")
 	if len(fields) < 3 || len(fields) > 6 {
 		return parts, fmt.Errorf("invalid hostname: %s", name)
