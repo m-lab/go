@@ -96,12 +96,10 @@ func TestName(t *testing.T) {
 		},
 		{
 			name:     "valid-v2-third-party",
-			hostname: "third-party.mlab-sandbox.measurement-lab.org",
+			hostname: "third-party",
 			want: Name{
 				Machine: "third",
 				Site:    "party",
-				Project: "mlab-sandbox",
-				Domain:  "measurement-lab.org",
 				Version: "v2",
 			},
 		},
@@ -151,7 +149,7 @@ func TestName(t *testing.T) {
 		},
 		{
 			name:     "invalid-v1-third-party",
-			hostname: "third.party.measurement-lab.org",
+			hostname: "third-party.measurement-lab.org",
 			want:     Name{},
 			wantErr:  true,
 		},

@@ -26,7 +26,7 @@ func Parse(name string) (Name, error) {
 	var parts Name
 
 	reV1 := regexp.MustCompile(`(?:[a-z-.]+)?(mlab[1-4]d?)[-.]([a-z]{3}[0-9tc]{2})\.(measurement-lab.org)$`)
-	reV2 := regexp.MustCompile(`([a-z0-9]+)?-?(mlab[1-4]d?|third)-([a-z]{3}[0-9tc]{2}|party)\.(.*?)\.(measurement-lab.org)(-[a-z0-9]{4})?$`)
+	reV2 := regexp.MustCompile(`([a-z0-9]+)?-?(mlab[1-4]d?)-([a-z]{3}[0-9tc]{2})\.(.*?)\.(measurement-lab.org)(-[a-z0-9]{4})?$`)
 
 	// Example hostnames with field counts when split by '.':
 	// v1
@@ -39,6 +39,15 @@ func Parse(name string) (Name, error) {
 	//   ndt-mlab1-lga01.mlab-oti.measurement-lab.org-d9h6 - 4 (A MIG instance with a service and random suffix)
 	//   ndt-iupui-mlab1-lga01.mlab-oti.measurement-lab.org - 4
 	//   ndt-mlab1-lga01.mlab-oti.measurement-lab.org - 4
+
+	if name == "third-party" {
+		// Unconditionally return a Name for third-party origins.
+		return Name{
+			Machine: "third",
+			Site:    "party",
+			Version: "v2",
+		}, nil
+	}
 
 	fields := strings.Split(name, ".")
 	if len(fields) < 3 || len(fields) > 6 {
