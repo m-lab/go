@@ -192,8 +192,9 @@ func (q Query) SetQueryConfig(bqiface.QueryConfig) {
 }
 
 func (q Query) Run(context.Context) (bqiface.Job, error) {
-	log.Println("Run not implemented")
-	return Job{}, nil
+	status := &bigquery.JobStatus{State: 0}
+	job := NewJob(status, q.config, nil)
+	return job, nil
 }
 
 func (q Query) Read(context.Context) (bqiface.RowIterator, error) {
@@ -231,13 +232,15 @@ func (l Loader) SetLoadConfig(config bqiface.LoadConfig) {}
 type Job struct {
 	bqiface.Job
 	status *bigquery.JobStatus
+	config QueryConfig
 	err    error
 }
 
 // NewJob returns a new instance of Job.
-func NewJob(status *bigquery.JobStatus, err error) *Job {
+func NewJob(status *bigquery.JobStatus, config QueryConfig, err error) *Job {
 	return &Job{
 		status: status,
+		config: config,
 		err:    err,
 	}
 }
@@ -245,6 +248,18 @@ func NewJob(status *bigquery.JobStatus, err error) *Job {
 // Wait returns a *bigquery.JobStatus and an error.
 func (j Job) Wait(context.Context) (*bigquery.JobStatus, error) {
 	return j.status, j.err
+}
+
+func (j Job) LastStatus() *bigquery.JobStatus {
+	log.Println("LastStatus not implemented")
+	return nil
+}
+
+func (j Job) Read(context.Context) (bqiface.RowIterator, error) {
+	if j.config.ReadErr != nil {
+		return nil, j.config.ReadErr
+	}
+	return &RowIterator{config: j.config.RowIteratorConfig}, nil
 }
 
 type RowIterator struct {
