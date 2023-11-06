@@ -15,7 +15,7 @@ language: go
 go:
 - 1.20
 
-dist: xenial
+dist: jammy # 22.04
 
 before_install:
 # Coverage tools
