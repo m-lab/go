@@ -231,9 +231,9 @@ func (l Loader) SetLoadConfig(config bqiface.LoadConfig) {}
 // unit tests.
 type Job struct {
 	bqiface.Job
-	status *bigquery.JobStatus
-	config QueryConfig
-	err    error
+	status  *bigquery.JobStatus
+	config  QueryConfig
+	waitErr error
 }
 
 // NewJob returns a new instance of Job.
@@ -241,13 +241,13 @@ func NewJob(status *bigquery.JobStatus, config QueryConfig, err error) *Job {
 	return &Job{
 		status: status,
 		config: config,
-		err:    err,
+		waitErr:    err,
 	}
 }
 
 // Wait returns a *bigquery.JobStatus and an error.
 func (j Job) Wait(context.Context) (*bigquery.JobStatus, error) {
-	return j.status, j.err
+	return j.status, j.waitErr
 }
 
 func (j Job) LastStatus() *bigquery.JobStatus {
