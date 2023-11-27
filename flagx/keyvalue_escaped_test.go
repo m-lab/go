@@ -96,6 +96,13 @@ func TestKeyValueEscaped(t *testing.T) {
 			},
 		},
 		{
+			name: "success-single-value-separtors-escaped",
+			kvs:  `a=b\,c\=d`,
+			want: map[string]string{
+				`a`: `b\,c\=d`,
+			},
+		},
+		{
 			name: "success-multiple-value-escaped",
 			kvs:  `a\,=b\,,c\,=d\,`,
 			want: map[string]string{
