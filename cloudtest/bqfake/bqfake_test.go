@@ -430,7 +430,7 @@ func TestLoaderRun(t *testing.T) {
 func TestJobWait(t *testing.T) {
 	status := &bigquery.JobStatus{State: 1}
 	err := errors.New("job error")
-	job := bqfake.NewJob(status, err)
+	job := bqfake.NewJob(status, bqfake.QueryConfig{}, err)
 	got, gotErr := job.Wait(context.Background())
 
 	if !errors.Is(gotErr, err) {
@@ -439,5 +439,76 @@ func TestJobWait(t *testing.T) {
 
 	if got != status {
 		t.Errorf("Job.Wait() got = %v, want = %v", got, job)
+	}
+}
+
+func TestNewQueryRunClient(t *testing.T) {
+	tests := []struct {
+		name    string
+		config  bqfake.QueryConfig
+		wantErr bool
+	}{
+		{
+			name: "success",
+			config: bqfake.QueryConfig{
+				RowIteratorConfig: bqfake.RowIteratorConfig{
+					Rows: []map[string]bigquery.Value{
+						{"okay": 1.234},
+					},
+				},
+			},
+		},
+		{
+			name: "read-error",
+			config: bqfake.QueryConfig{
+				ReadErr: fmt.Errorf("Fake read error"),
+			},
+			wantErr: true,
+		},
+		{
+			name: "iter-error",
+			config: bqfake.QueryConfig{
+				RowIteratorConfig: bqfake.RowIteratorConfig{
+					IterErr: fmt.Errorf("Fake iter error"),
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var err error
+			c := bqfake.NewQueryReadClient(tt.config)
+			q := c.Query("SELECT 'fake-query-string'")
+			job, err := q.Run(context.Background())
+			if err != nil && !tt.wantErr {
+				t.Errorf("Query().Run() error = %v", err)
+			}
+			it, err := job.Read(context.Background())
+			if err != nil && !tt.wantErr {
+				t.Errorf("Query().Read() error = %v", err)
+			}
+			if it == nil {
+				return
+			}
+			var row map[string]bigquery.Value
+			i := 0
+			for err = it.Next(&row); err == nil; err = it.Next(&row) {
+				if len(tt.config.RowIteratorConfig.Rows) > 0 &&
+					!reflect.DeepEqual(row, tt.config.RowIteratorConfig.Rows[i]) {
+					t.Errorf("UpdateSchemaDescription() schema mismatch; got %#v, want %#v",
+						row, tt.config.RowIteratorConfig.Rows[i])
+				}
+				i++
+			}
+			if err == iterator.Done {
+				return
+			}
+			// err != nil.
+			if err != tt.config.RowIteratorConfig.IterErr {
+				t.Errorf("Next() error; got %v, want %v", err, tt.config.RowIteratorConfig.IterErr)
+				return
+			}
+		})
 	}
 }
