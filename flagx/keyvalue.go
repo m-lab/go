@@ -24,6 +24,10 @@ type kvsource struct {
 // key value.
 func (kv *KeyValue) Set(kvs string) error {
 	pairs := strings.Split(kvs, ",")
+	return kv.formPairs(pairs)
+}
+
+func (kv *KeyValue) formPairs(pairs []string) error {
 	for _, pair := range pairs {
 		fields := strings.SplitN(pair, "=", 2)
 		if len(fields) != 2 {
