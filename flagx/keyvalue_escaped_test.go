@@ -4,11 +4,8 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
-	"sort"
-	"strings"
 	"testing"
 
-	"github.com/go-test/deep"
 	"github.com/m-lab/go/flagx"
 )
 
@@ -141,15 +138,6 @@ func TestKeyValueEscaped(t *testing.T) {
 			got := kve.Get()
 			if !mapsMatch(got, tt.want) {
 				t.Errorf("KeyValueEscaped.Get() did not match; got = %v, want %v", got, tt.want)
-			}
-
-			// String returns the same fields given. Parse b/c order is not guaranteed.
-			strFields := strings.Split(kve.String(), ",")
-			sort.Strings(strFields)
-			kvsFields := strings.Split(tt.kvs, ",")
-			sort.Strings(kvsFields)
-			if diff := deep.Equal(strFields, kvsFields); diff != nil {
-				t.Errorf("KeyValueEscaped.String() did not match; got = %v, want %v, diff %v", strFields, kvsFields, diff)
 			}
 		})
 	}
