@@ -90,9 +90,9 @@ func TestKeyValueEscaped(t *testing.T) {
 		// Escaping tests.
 		{
 			name: "success-single-value-escaped",
-			kvs:  `a\/=b\,`,
+			kvs:  `a\,=b\,`,
 			want: map[string]string{
-				`a\/`: `b\,`,
+				`a\,`: `b\,`,
 			},
 		},
 		{
@@ -108,6 +108,13 @@ func TestKeyValueEscaped(t *testing.T) {
 			want: map[string]string{
 				`a\,`: `b\,`,
 				`c\,`: `d\,`,
+			},
+		},
+		{
+			name: "success-value-ends-in-slash",
+			kvs:  `a\=b\`,
+			want: map[string]string{
+				`a\`: `b\`,
 			},
 		},
 	}
