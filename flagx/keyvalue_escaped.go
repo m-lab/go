@@ -7,7 +7,8 @@ import (
 
 // KeyValueEscaped parses "key=value" pairs from a given argument. Unlike the KeyValue flag,
 // which is designed for repeatable arguments separated by any ',', KeyValueEscaped allows for
-// key/value with escaped commas (i.e. `\,`), separated by an unescaped comma (i.e., ',').
+// key/value with escaped commas (i.e. `\,`), with key/value pairs separated by an unescaped
+// comma (i.e., ',').
 // Each use of the flag will add another key value pair (or overwrite a previous one
 // if the same key is used).
 type KeyValueEscaped struct {
