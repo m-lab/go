@@ -1,10 +1,13 @@
 package mathx
 
-import "testing"
+import (
+	"math/rand"
+	"testing"
+)
 
 const seed = 1658340109320624211
 
-func TestRandom_GetRandomInt(t *testing.T) {
+func TestGetRandomInt(t *testing.T) {
 	tests := []struct {
 		name      string
 		max       int
@@ -32,14 +35,14 @@ func TestRandom_GetRandomInt(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := NewRandom(seed)
-			got := r.GetRandomInt(tt.max)
+			rand.Seed(seed)
+			got := GetRandomInt(tt.max)
 
 			if got != tt.expected1 {
 				t.Errorf("GetRandomInt() = %d, want %d", got, tt.expected1)
 			}
 
-			got = r.GetRandomInt(tt.max)
+			got = GetRandomInt(tt.max)
 
 			if got != tt.expected2 {
 				t.Errorf("GetRandomInt() = %d, want %d", got, tt.expected2)
@@ -48,7 +51,7 @@ func TestRandom_GetRandomInt(t *testing.T) {
 	}
 }
 
-func TestRandom_GetExpDistributedInt(t *testing.T) {
+func TestGetExpDistributedInt(t *testing.T) {
 	tests := []struct {
 		name      string
 		rate      float64
@@ -76,14 +79,14 @@ func TestRandom_GetExpDistributedInt(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := NewRandom(seed)
-			got := r.GetExpDistributedInt(tt.rate)
+			rand.Seed(seed)
+			got := GetExpDistributedInt(tt.rate)
 
 			if got != tt.expected1 {
 				t.Errorf("GetExpDistributedInt() = %d, want %d", got, tt.expected1)
 			}
 
-			got = r.GetExpDistributedInt(tt.rate)
+			got = GetExpDistributedInt(tt.rate)
 
 			if got != tt.expected2 {
 				t.Errorf("GetExpDistributedInt() = %d, want %d", got, tt.expected2)
