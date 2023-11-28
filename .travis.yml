@@ -71,4 +71,4 @@ script:
 after_script:
 # Coveralls
 - $HOME/gopath/bin/gocovmerge *.cov > __merged.cov
-- $HOME/gopath/bin/goveralls -coverprofile=__merged.cov -service=travis-ci
+- $HOME/gopath/bin/goveralls -coverprofile=__merged.cov -service=travis-pro
