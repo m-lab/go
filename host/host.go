@@ -28,7 +28,14 @@ func Parse(name string) (Name, error) {
 
 	reV1 := regexp.MustCompile(`(?:[a-z-.]+)?(mlab[1-4]d?)[-.]([a-z]{3}[0-9tc]{2})\.(measurement-lab.org)$`)
 	reV2 := regexp.MustCompile(`([a-z0-9]+)?-?(mlab[1-4]d?)-([a-z]{3}[0-9tc]{2})\.(.*?)\.(measurement-lab.org)(-[a-z0-9]{4})?$`)
-	// most ASNs are 16bit numbers, but since 2007 they can be 32bit numbers, allowing up to 10 decimal digits.
+	// The v3 naming convention is defined in:
+	// * https://docs.google.com/document/d/1XHgpX7Tbjy_c71TKsFUxb1_ax2624PB4SE9R15OoD_o/edit?#heading=h.s5vpfclyu15x
+	// The structure follows the pattern:
+	// * <service>-<IATA><ASN>-<machine>.<organization>.<project>.measurement-lab.org
+	// * the same rules apply for service, iata, and project names as earlier versions.
+	// * most ASNs are 16bit numbers, but since 2007 they can be 32bit numbers, allowing up to 10 decimal digits.
+	// * machine names are 6 byte base64 encoded IPv4 addresses.
+	// * site and machine names are reversed for readability.
 	reV3 := regexp.MustCompile(`^(?:([a-z0-9]+)-)?([a-z]{3}[0-9]{1,10})-([a-zA-Z0-9]{6})\.(.*?)\.(.*?)\.(measurement-lab.org)$`)
 
 	// Example hostnames with field counts when split by '.':
@@ -127,11 +134,8 @@ func (n Name) String() string {
 // Returns an M-lab hostname with any service name preserved
 // Example: ndt-mlab1-abc01.mlab-sandbox.measurement-lab.org
 func (n Name) StringWithService() string {
-	if n.Org != "" {
-		return fmt.Sprintf("%s-%s", n.Service, n.String())
-	}
 	if n.Service != "" {
-		return fmt.Sprintf("%s-%s-%s.%s.%s", n.Service, n.Machine, n.Site, n.Project, n.Domain)
+		return fmt.Sprintf("%s-%s", n.Service, n.String())
 	} else {
 		return n.String()
 	}
