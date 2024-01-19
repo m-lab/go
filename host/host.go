@@ -35,7 +35,7 @@ func Parse(name string) (Name, error) {
 	// * the same rules apply for service, iata, and project names as earlier versions.
 	// * most ASNs are 16bit numbers, but since 2007 they can be 32bit numbers, allowing up to 10 decimal digits.
 	// * machine names are 6 byte base64 encoded IPv4 addresses.
-	// * site and machine names are reversed for readability.
+	// * site name precedes machine name for readability.
 	reV3 := regexp.MustCompile(`^(?:([a-z0-9]+)-)?([a-z]{3}[0-9]{1,10})-([a-zA-Z0-9]{6})\.(.*?)\.(.*?)\.(measurement-lab.org)$`)
 
 	// Example hostnames with field counts when split by '.':
