@@ -165,6 +165,61 @@ func TestName(t *testing.T) {
 			want:     Name{},
 			wantErr:  true,
 		},
+		{
+			name:     "valid-v3-machine",
+			hostname: "lol12345-abcdef.mlab.sandbox.measurement-lab.org",
+			want: Name{
+				Machine: "abcdef",
+				Site:    "lol12345",
+				Org:     "mlab",
+				Project: "sandbox",
+				Domain:  "measurement-lab.org",
+				Version: "v3",
+			},
+		},
+		{
+			name:     "valid-v3-service",
+			hostname: "ndt-lol12345-abcdef.mlab.sandbox.measurement-lab.org",
+			want: Name{
+				Service: "ndt",
+				Machine: "abcdef",
+				Site:    "lol12345",
+				Org:     "mlab",
+				Project: "sandbox",
+				Domain:  "measurement-lab.org",
+				Version: "v3",
+			},
+		},
+		{
+			name:     "invalid-v3-too-long-asn-machine",
+			hostname: "lol12345678901-abcdef.mlab.sandbox.measurement-lab.org",
+			want:     Name{},
+			wantErr:  true,
+		},
+		{
+			name:     "invalid-v3-too-long-asn-service",
+			hostname: "ndt-lol12345678901-abcdef.mlab.sandbox.measurement-lab.org",
+			want:     Name{},
+			wantErr:  true,
+		},
+		{
+			name:     "invalid-v3-site-too-long",
+			hostname: "abcd12345-abcdef.mlab.sandbox.measurement-lab.org",
+			want:     Name{},
+			wantErr:  true,
+		},
+		{
+			name:     "invalid-v3-missing-service",
+			hostname: "-abc12345-abcdef.mlab.sandbox.measurement-lab.org",
+			want:     Name{},
+			wantErr:  true,
+		},
+		{
+			name:     "invalid-v3-machine-too-long",
+			hostname: "abc12345-abcdef8.mlab.sandbox.measurement-lab.org",
+			want:     Name{},
+			wantErr:  true,
+		},
 	}
 
 	for _, test := range tests {
@@ -173,6 +228,7 @@ func TestName(t *testing.T) {
 			// If we wanted an err but didn't get one, or vice versa, then fail.
 			if (err != nil) != test.wantErr {
 				t.Errorf("host.Parse() error %v, wantErr %v", err, test.wantErr)
+				t.Errorf("host.Parse() = %v", result)
 			}
 			if test.wantErr {
 				return
@@ -204,6 +260,10 @@ func TestName_String(t *testing.T) {
 		{
 			name: "ndt-mlab1-foo01.mlab-sandbox.measurement-lab.org-qf8y",
 			want: "mlab1-foo01.mlab-sandbox.measurement-lab.org",
+		},
+		{
+			name: "ndt-lol12345-abcdef.mlab.sandbox.measurement-lab.org",
+			want: "lol12345-abcdef.mlab.sandbox.measurement-lab.org",
 		},
 	}
 	for _, tt := range tests {
@@ -238,6 +298,10 @@ func TestName_StringWithService(t *testing.T) {
 			name: "ndt-mlab1-foo01.mlab-sandbox.measurement-lab.org-qf8y",
 			want: "ndt-mlab1-foo01.mlab-sandbox.measurement-lab.org",
 		},
+		{
+			name: "ndt-lol12345-abcdef.mlab.sandbox.measurement-lab.org",
+			want: "ndt-lol12345-abcdef.mlab.sandbox.measurement-lab.org",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -271,6 +335,10 @@ func TestName_StringWithSuffix(t *testing.T) {
 			name: "ndt-mlab1-foo01.mlab-sandbox.measurement-lab.org-qf8y",
 			want: "mlab1-foo01.mlab-sandbox.measurement-lab.org-qf8y",
 		},
+		{
+			name: "ndt-lol12345-abcdef.mlab.sandbox.measurement-lab.org",
+			want: "lol12345-abcdef.mlab.sandbox.measurement-lab.org",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -303,6 +371,10 @@ func TestName_StringAll(t *testing.T) {
 		{
 			name: "ndt-mlab1-foo01.mlab-sandbox.measurement-lab.org-qf8y",
 			want: "ndt-mlab1-foo01.mlab-sandbox.measurement-lab.org-qf8y",
+		},
+		{
+			name: "ndt-lol12345-abcdef.mlab.sandbox.measurement-lab.org",
+			want: "ndt-lol12345-abcdef.mlab.sandbox.measurement-lab.org",
 		},
 	}
 	for _, tt := range tests {

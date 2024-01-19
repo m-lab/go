@@ -15,6 +15,7 @@ type Name struct {
 	Machine string
 	Site    string
 	Project string
+	Org     string
 	Domain  string
 	Suffix  string
 	Version string
@@ -27,6 +28,8 @@ func Parse(name string) (Name, error) {
 
 	reV1 := regexp.MustCompile(`(?:[a-z-.]+)?(mlab[1-4]d?)[-.]([a-z]{3}[0-9tc]{2})\.(measurement-lab.org)$`)
 	reV2 := regexp.MustCompile(`([a-z0-9]+)?-?(mlab[1-4]d?)-([a-z]{3}[0-9tc]{2})\.(.*?)\.(measurement-lab.org)(-[a-z0-9]{4})?$`)
+	// most ASNs are 16bit numbers, but since 2007 they can be 32bit numbers, allowing up to 10 decimal digits.
+	reV3 := regexp.MustCompile(`^(?:([a-z0-9]+)-)?([a-z]{3}[0-9]{1,10})-([a-zA-Z0-9]{6})\.(.*?)\.(.*?)\.(measurement-lab.org)$`)
 
 	// Example hostnames with field counts when split by '.':
 	// v1
@@ -39,6 +42,10 @@ func Parse(name string) (Name, error) {
 	//   ndt-mlab1-lga01.mlab-oti.measurement-lab.org-d9h6 - 4 (A MIG instance with a service and random suffix)
 	//   ndt-iupui-mlab1-lga01.mlab-oti.measurement-lab.org - 4
 	//   ndt-mlab1-lga01.mlab-oti.measurement-lab.org - 4
+	// v3
+	//   lga3356-BA6fSw.rnp.autojoin.measurement-lab.org - 5
+	//   ndt-lga3356-BA6fSw.rnp.autojoin.measurement-lab.org - 5
+	//   ndt-lga3356-BA6fSw.mlab.sandbox.measurement-lab.org - 5
 
 	if name == "third-party" {
 		// Unconditionally return a Name for third-party origins.
@@ -54,9 +61,26 @@ func Parse(name string) (Name, error) {
 		return parts, fmt.Errorf("invalid hostname: %s", name)
 	}
 
-	// v2 names always have four fields. And the first field will always
-	// be longer than a machine name e.g. "mlab1".
-	if len(fields) == 4 && len(fields[0]) > 6 {
+	// v3 names always have 5 fields.
+	// v2 names always have 4 fields. And, the first field will always
+	// be longer than a machine name e.g. "mlab1", which distinguishes
+	// it from v1 name with four fields.
+	switch {
+	case len(fields) == 5:
+		mV3 := reV3.FindAllStringSubmatch(name, -1)
+		if len(mV3) != 1 || len(mV3[0]) != 7 {
+			return parts, fmt.Errorf("invalid v3 hostname: %s", name)
+		}
+		parts = Name{
+			Service: mV3[0][1],
+			Site:    mV3[0][2],
+			Machine: mV3[0][3],
+			Org:     mV3[0][4],
+			Project: mV3[0][5],
+			Domain:  mV3[0][6],
+			Version: "v3",
+		}
+	case len(fields) == 4 && len(fields[0]) > 6:
 		mV2 := reV2.FindAllStringSubmatch(name, -1)
 		if len(mV2) != 1 || len(mV2[0]) != 7 {
 			return parts, fmt.Errorf("invalid v2 hostname: %s", name)
@@ -70,7 +94,7 @@ func Parse(name string) (Name, error) {
 			Suffix:  mV2[0][6],
 			Version: "v2",
 		}
-	} else {
+	default:
 		mV1 := reV1.FindAllStringSubmatch(name, -1)
 		if len(mV1) != 1 || len(mV1[0]) != 4 {
 			return parts, fmt.Errorf("invalid v1 hostname: %s", name)
@@ -91,6 +115,8 @@ func Parse(name string) (Name, error) {
 // Example: mlab2-abc01.mlab-sandbox.measurement-lab.org
 func (n Name) String() string {
 	switch n.Version {
+	case "v3":
+		return fmt.Sprintf("%s-%s.%s.%s.%s", n.Site, n.Machine, n.Org, n.Project, n.Domain)
 	case "v2":
 		return fmt.Sprintf("%s-%s.%s.%s", n.Machine, n.Site, n.Project, n.Domain)
 	default:
@@ -101,6 +127,9 @@ func (n Name) String() string {
 // Returns an M-lab hostname with any service name preserved
 // Example: ndt-mlab1-abc01.mlab-sandbox.measurement-lab.org
 func (n Name) StringWithService() string {
+	if n.Org != "" {
+		return fmt.Sprintf("%s-%s", n.Service, n.String())
+	}
 	if n.Service != "" {
 		return fmt.Sprintf("%s-%s-%s.%s.%s", n.Service, n.Machine, n.Site, n.Project, n.Domain)
 	} else {
@@ -111,7 +140,7 @@ func (n Name) StringWithService() string {
 // Returns an M-lab hostname with any suffix preserved
 // Example: mlab1-abc01.mlab-sandbox.measurement-lab.org-gz77
 func (n Name) StringWithSuffix() string {
-	return fmt.Sprintf("%s-%s.%s.%s%s", n.Machine, n.Site, n.Project, n.Domain, n.Suffix)
+	return fmt.Sprintf("%s%s", n.String(), n.Suffix)
 }
 
 // Returns an M-lab hostname with any service and suffix preserved
