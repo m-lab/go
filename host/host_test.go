@@ -228,7 +228,6 @@ func TestName(t *testing.T) {
 			// If we wanted an err but didn't get one, or vice versa, then fail.
 			if (err != nil) != test.wantErr {
 				t.Errorf("host.Parse() error %v, wantErr %v", err, test.wantErr)
-				t.Errorf("host.Parse() = %v", result)
 			}
 			if test.wantErr {
 				return
