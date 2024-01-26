@@ -34,9 +34,9 @@ func Parse(name string) (Name, error) {
 	// * <service>-<IATA><ASN>-<machine>.<organization>.<project>.measurement-lab.org
 	// * the same rules apply for service, iata, and project names as earlier versions.
 	// * most ASNs are 16bit numbers, but since 2007 they can be 32bit numbers, allowing up to 10 decimal digits.
-	// * machine names are 6 byte base64 encoded IPv4 addresses.
+	// * machine names are 8 character hex encoded IPv4 addresses.
 	// * site name precedes machine name for readability.
-	reV3 := regexp.MustCompile(`^(?:([a-z0-9]+)-)?([a-z]{3}[0-9]{1,10})-([a-zA-Z0-9]{6})\.(.*?)\.(.*?)\.(measurement-lab.org)$`)
+	reV3 := regexp.MustCompile(`^(?:([a-z0-9]+)-)?([a-z]{3}[0-9]{1,10})-([a-fA-F0-9]{8})\.(.*?)\.(.*?)\.(measurement-lab.org)$`)
 
 	// Example hostnames with field counts when split by '.':
 	// v1
@@ -50,9 +50,9 @@ func Parse(name string) (Name, error) {
 	//   ndt-iupui-mlab1-lga01.mlab-oti.measurement-lab.org - 4
 	//   ndt-mlab1-lga01.mlab-oti.measurement-lab.org - 4
 	// v3
-	//   lga3356-BA6fSw.rnp.autojoin.measurement-lab.org - 5
-	//   ndt-lga3356-BA6fSw.rnp.autojoin.measurement-lab.org - 5
-	//   ndt-lga3356-BA6fSw.mlab.sandbox.measurement-lab.org - 5
+	//   lga3356-c89ffeef.rnp.autojoin.measurement-lab.org - 5
+	//   ndt-lga3356-c0a80001.rnp.autojoin.measurement-lab.org - 5
+	//   ndt-lga3356-040e9f4b.mlab.sandbox.measurement-lab.org - 5
 
 	if name == "third-party" {
 		// Unconditionally return a Name for third-party origins.
