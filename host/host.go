@@ -99,6 +99,7 @@ func parseHostV2(f []string) (Name, error) {
 	if len(f) != 4 || len(f[0]) < 7 {
 		return Name{}, fmt.Errorf("invalid v2 hostname: %#v", f)
 	}
+	// The first field is either <machine>-<site> or <service>-<machine>-<site>.
 	sms := strings.Split(f[0], "-")
 	var service string
 	var machine string
@@ -114,6 +115,7 @@ func parseHostV2(f []string) (Name, error) {
 	default:
 		return Name{}, fmt.Errorf("invalid v2 hostname: %#v", f)
 	}
+	// Verify that the machine is of the form: mlab[1-4] or mlab[1-4]d (DRACs).
 	if !((len(machine) == 5 && unicode.IsDigit(rune(machine[4]))) || (len(machine) == 6 && machine[5] == 'd')) {
 		return Name{}, fmt.Errorf("invalid v2 machine name: %#v", f)
 	}
@@ -121,12 +123,14 @@ func parseHostV2(f []string) (Name, error) {
 	if len(site) != 5 || !unicode.IsDigit(rune(site[3])) || !(unicode.IsDigit(rune(site[4])) || site[4] == 't') {
 		return Name{}, fmt.Errorf("invalid v2 machine name: %#v", f)
 	}
+	// v2 names may contain a suffix added by instance groups. Separate the suffix if found.
 	sd := strings.Split(f[3], "-")
 	var domain string
 	var suffix string
 	if len(sd) != 1 && len(sd) != 2 {
 		return Name{}, fmt.Errorf("invalid v2 hostname: %#v", f)
 	}
+	// Recombine the domain from "measurement-lab" and "org".
 	domain = f[2] + "." + sd[0]
 	if len(sd) == 2 {
 		suffix = "-" + sd[1]
@@ -164,6 +168,7 @@ func parseHostV3(f []string) (Name, error) {
 	if len(f) != 5 {
 		return Name{}, fmt.Errorf("invalid v3 hostname: %#v", f)
 	}
+	// The first field is either <site>-<machine> or <service>-<site>-<machine>.
 	ssm := strings.Split(f[0], "-")
 	var service string
 	var machine string
@@ -183,17 +188,21 @@ func parseHostV3(f []string) (Name, error) {
 	default:
 		return Name{}, fmt.Errorf("invalid v3 hostname: %#v", f)
 	}
+	// v3 machine names are always 8 hex characters.
 	if len(machine) != 8 {
 		return Name{}, fmt.Errorf("invalid v3 machine: %s", machine)
 	}
+	// v3 site names have a three letter and between a 1 and 10 digit asn.
 	if len(site) < 4 || len(site) > 13 {
 		return Name{}, fmt.Errorf("invalid v3 site: %s", site)
 	}
 	for i := range site {
 		if i < 3 && !unicode.IsLetter(rune(site[i])) {
+			// First three characters must be letters.
 			return Name{}, fmt.Errorf("invalid v3 site: %s", site)
 		}
 		if i >= 3 && !unicode.IsDigit(rune(site[i])) {
+			// All other characters must be numbers.
 			return Name{}, fmt.Errorf("invalid v3 site: %s", site)
 		}
 	}
