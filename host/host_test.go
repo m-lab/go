@@ -74,6 +74,11 @@ func TestName(t *testing.T) {
 			},
 		},
 		{
+			name:     "invalid-v2-with-extra-suffix",
+			hostname: "ndt-mlab1-lol01.mlab-sandbox.measurement-lab.org-a9b8-abcd",
+			wantErr:  true,
+		},
+		{
 			name:     "valid-v1-bmc",
 			hostname: "mlab1d.lol01.measurement-lab.org",
 			want: Name{
@@ -93,6 +98,16 @@ func TestName(t *testing.T) {
 				Domain:  "measurement-lab.org",
 				Version: "v2",
 			},
+		},
+		{
+			name:     "invalid-v2-no-service-site-fields",
+			hostname: "ndtmlab1lol01.mlab-sandbox.measurement-lab.org",
+			wantErr:  true,
+		},
+		{
+			name:     "invalid-v2-bad-machine-name",
+			hostname: "ndt-mlab12-lol01.mlab-sandbox.measurement-lab.org",
+			wantErr:  true,
 		},
 		{
 			name:     "valid-v2-third-party",
@@ -209,8 +224,26 @@ func TestName(t *testing.T) {
 			wantErr:  true,
 		},
 		{
+			name:     "invalid-v3-site-too-short",
+			hostname: "ab12345-abcdef01.mlab.sandbox.measurement-lab.org",
+			want:     Name{},
+			wantErr:  true,
+		},
+		{
 			name:     "invalid-v3-missing-service",
 			hostname: "-abc12345-abcdef01.mlab.sandbox.measurement-lab.org",
+			want:     Name{},
+			wantErr:  true,
+		},
+		{
+			name:     "invalid-v3-missing-site",
+			hostname: "ndt--abcdef01.mlab.sandbox.measurement-lab.org",
+			want:     Name{},
+			wantErr:  true,
+		},
+		{
+			name:     "invalid-v3-missing-machine",
+			hostname: "ndt-abc1234-.mlab.sandbox.measurement-lab.org",
 			want:     Name{},
 			wantErr:  true,
 		},
@@ -382,6 +415,24 @@ func TestName_StringAll(t *testing.T) {
 			rtx.Must(err, "Failed to parse: %s", tt.name)
 			if got := n.StringAll(); got != tt.want {
 				t.Errorf("Name.StringAll() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func BenchmarkParse(b *testing.B) {
+	// run Parse on all service names b.N times.
+	names := []string{
+		"ndt-mlab1-foo01.mlab-sandbox.measurement-lab.org",
+		"ndt-lol12345-abcdef01.mlab.sandbox.measurement-lab.org",
+	}
+	for i := range names {
+		b.Run(names[i], func(b *testing.B) {
+			for n := 0; n < b.N; n++ {
+				_, err := Parse(names[i])
+				if err != nil {
+					panic(err)
+				}
 			}
 		})
 	}

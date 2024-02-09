@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+	"unicode"
 )
 
 // Name represents an M-Lab hostname and all of its constituent parts.
@@ -25,34 +26,7 @@ type Name struct {
 // Parse also accepts service names and discards the service portion of the name.
 func Parse(name string) (Name, error) {
 	var parts Name
-
-	reV1 := regexp.MustCompile(`(?:[a-z-.]+)?(mlab[1-4]d?)[-.]([a-z]{3}[0-9tc]{2})\.(measurement-lab.org)$`)
-	reV2 := regexp.MustCompile(`([a-z0-9]+)?-?(mlab[1-4]d?)-([a-z]{3}[0-9tc]{2})\.(.*?)\.(measurement-lab.org)(-[a-z0-9]{4})?$`)
-	// The v3 naming convention is defined in:
-	// * https://docs.google.com/document/d/1XHgpX7Tbjy_c71TKsFUxb1_ax2624PB4SE9R15OoD_o/edit?#heading=h.s5vpfclyu15x
-	// The structure follows the pattern:
-	// * <service>-<IATA><ASN>-<machine>.<organization>.<project>.measurement-lab.org
-	// * the same rules apply for service, iata, and project names as earlier versions.
-	// * most ASNs are 16bit numbers, but since 2007 they can be 32bit numbers, allowing up to 10 decimal digits.
-	// * machine names are 8 character hex encoded IPv4 addresses.
-	// * site name precedes machine name for readability.
-	reV3 := regexp.MustCompile(`^(?:([a-z0-9]+)-)?([a-z]{3}[0-9]{1,10})-([a-fA-F0-9]{8})\.(.*?)\.(.*?)\.(measurement-lab.org)$`)
-
-	// Example hostnames with field counts when split by '.':
-	// v1
-	//   mlab1.lga01.measurement-lab.org - 4
-	//   ndt-iupui-mlab1-lga01.measurement-lab.org  - 3
-	//   ndt.iupui.mlab1.lga01.measurement-lab.org  - 6
-	// v2
-	//   mlab1-lga01.mlab-oti.measurement-lab.org - 4
-	//   mlab1-lga01.mlab-oti.measurement-lab.org-d9h6 - 4 (A MIG instance with a random suffix)
-	//   ndt-mlab1-lga01.mlab-oti.measurement-lab.org-d9h6 - 4 (A MIG instance with a service and random suffix)
-	//   ndt-iupui-mlab1-lga01.mlab-oti.measurement-lab.org - 4
-	//   ndt-mlab1-lga01.mlab-oti.measurement-lab.org - 4
-	// v3
-	//   lga3356-c89ffeef.rnp.autojoin.measurement-lab.org - 5
-	//   ndt-lga3356-c0a80001.rnp.autojoin.measurement-lab.org - 5
-	//   ndt-lga3356-040e9f4b.mlab.sandbox.measurement-lab.org - 5
+	var err error
 
 	if name == "third-party" {
 		// Unconditionally return a Name for third-party origins.
@@ -71,48 +45,175 @@ func Parse(name string) (Name, error) {
 	// v3 names always have 5 fields.
 	// v2 names always have 4 fields. And, the first field will always
 	// be longer than a machine name e.g. "mlab1", which distinguishes
-	// it from v1 name with four fields.
+	// it from v1 names with four fields.
 	switch {
 	case len(fields) == 5:
-		mV3 := reV3.FindAllStringSubmatch(name, -1)
-		if len(mV3) != 1 || len(mV3[0]) != 7 {
-			return parts, fmt.Errorf("invalid v3 hostname: %s", name)
-		}
-		parts = Name{
-			Service: mV3[0][1],
-			Site:    mV3[0][2],
-			Machine: mV3[0][3],
-			Org:     mV3[0][4],
-			Project: mV3[0][5],
-			Domain:  mV3[0][6],
-			Version: "v3",
+		parts, err = parseHostV3(fields)
+		if err != nil {
+			return parts, err
 		}
 	case len(fields) == 4 && len(fields[0]) > 6:
-		mV2 := reV2.FindAllStringSubmatch(name, -1)
-		if len(mV2) != 1 || len(mV2[0]) != 7 {
-			return parts, fmt.Errorf("invalid v2 hostname: %s", name)
-		}
-		parts = Name{
-			Service: mV2[0][1],
-			Machine: mV2[0][2],
-			Site:    mV2[0][3],
-			Project: mV2[0][4],
-			Domain:  mV2[0][5],
-			Suffix:  mV2[0][6],
-			Version: "v2",
+		parts, err = parseHostV2(fields)
+		if err != nil {
+			return parts, err
 		}
 	default:
-		mV1 := reV1.FindAllStringSubmatch(name, -1)
-		if len(mV1) != 1 || len(mV1[0]) != 4 {
-			return parts, fmt.Errorf("invalid v1 hostname: %s", name)
+		parts, err = parseHostV1(name)
+		if err != nil {
+			return parts, err
 		}
-		parts = Name{
-			Machine: mV1[0][1],
-			Site:    mV1[0][2],
-			Project: "",
-			Domain:  mV1[0][3],
-			Version: "v1",
+	}
+
+	return parts, nil
+}
+
+// v1 - Example hostnames with field counts when split by '.':
+//
+//	mlab1.lga01.measurement-lab.org - 4
+//	ndt-iupui-mlab1-lga01.measurement-lab.org  - 3
+//	ndt.iupui.mlab1.lga01.measurement-lab.org  - 6
+func parseHostV1(h string) (Name, error) {
+	reV1 := regexp.MustCompile(`(?:[a-z-.]+)?(mlab[1-4]d?)[-.]([a-z]{3}[0-9tc]{2})\.(measurement-lab.org)$`)
+	mV1 := reV1.FindAllStringSubmatch(h, -1)
+	if len(mV1) != 1 || len(mV1[0]) != 4 {
+		return Name{}, fmt.Errorf("invalid v1 hostname: %s", h)
+	}
+	parts := Name{
+		Machine: mV1[0][1],
+		Site:    mV1[0][2],
+		Project: "",
+		Domain:  mV1[0][3],
+		Version: "v1",
+	}
+	return parts, nil
+}
+
+// v2 - Example hostnames with field counts when split by '.':
+//
+//	mlab1-lga01.mlab-oti.measurement-lab.org - 4
+//	mlab1-lga01.mlab-oti.measurement-lab.org-d9h6 - 4 (A MIG instance with a random suffix)
+//	ndt-mlab1-lga01.mlab-oti.measurement-lab.org-d9h6 - 4 (A MIG instance with a service and random suffix)
+//	ndt-iupui-mlab1-lga01.mlab-oti.measurement-lab.org - 4
+//	ndt-mlab1-lga01.mlab-oti.measurement-lab.org - 4
+func parseHostV2(f []string) (Name, error) {
+	if len(f) != 4 || len(f[0]) < 7 {
+		return Name{}, fmt.Errorf("invalid v2 hostname: %#v", f)
+	}
+	// The first field is either <machine>-<site> or <service>-<machine>-<site>.
+	sms := strings.Split(f[0], "-")
+	var service string
+	var machine string
+	var site string
+	switch len(sms) {
+	case 2:
+		machine = sms[0]
+		site = sms[1]
+	case 3:
+		service = sms[0]
+		machine = sms[1]
+		site = sms[2]
+	default:
+		return Name{}, fmt.Errorf("invalid v2 hostname: %#v", f)
+	}
+	// Verify that the machine is of the form: mlab[1-4] or mlab[1-4]d (DRACs).
+	if !((len(machine) == 5 && unicode.IsDigit(rune(machine[4]))) || (len(machine) == 6 && machine[5] == 'd')) {
+		return Name{}, fmt.Errorf("invalid v2 machine name: %#v", f)
+	}
+	// Fourth site character is always a digit, the fifth is either digit or 't'.
+	if len(site) != 5 || !unicode.IsDigit(rune(site[3])) || !(unicode.IsDigit(rune(site[4])) || site[4] == 't') {
+		return Name{}, fmt.Errorf("invalid v2 machine name: %#v", f)
+	}
+	// v2 names may contain a suffix added by instance groups. Separate the suffix if found.
+	sd := strings.Split(f[3], "-")
+	var domain string
+	var suffix string
+	if len(sd) != 1 && len(sd) != 2 {
+		return Name{}, fmt.Errorf("invalid v2 hostname: %#v", f)
+	}
+	// Recombine the domain from "measurement-lab" and "org".
+	domain = f[2] + "." + sd[0]
+	if len(sd) == 2 {
+		suffix = "-" + sd[1]
+	}
+	if domain != "measurement-lab.org" {
+		return Name{}, fmt.Errorf("invalid domain: %#v", f)
+	}
+	parts := Name{
+		Service: service,
+		Machine: machine,
+		Site:    site,
+		Project: f[1],
+		Domain:  domain,
+		Suffix:  suffix,
+		Version: "v2",
+	}
+	return parts, nil
+}
+
+// The v3 naming convention is defined in:
+// * https://docs.google.com/document/d/1XHgpX7Tbjy_c71TKsFUxb1_ax2624PB4SE9R15OoD_o/edit?#heading=h.s5vpfclyu15x
+// The structure follows the pattern:
+// * <service>-<IATA><ASN>-<machine>.<organization>.<project>.measurement-lab.org
+// * the same rules apply for service, iata, and project names as earlier versions.
+// * most ASNs are 16bit numbers, but since 2007 they can be 32bit numbers, allowing up to 10 decimal digits.
+// * machine names are 8 character hex encoded IPv4 addresses.
+// * site name precedes machine name for readability.
+//
+// v3 - Example hostnames with field counts when split by '.':
+//
+//	lga3356-c89ffeef.rnp.autojoin.measurement-lab.org - 5
+//	ndt-lga3356-c0a80001.rnp.autojoin.measurement-lab.org - 5
+//	ndt-lga3356-040e9f4b.mlab.sandbox.measurement-lab.org - 5
+func parseHostV3(f []string) (Name, error) {
+	if len(f) != 5 {
+		return Name{}, fmt.Errorf("invalid v3 hostname: %#v", f)
+	}
+	// The first field is either <site>-<machine> or <service>-<site>-<machine>.
+	ssm := strings.Split(f[0], "-")
+	var service string
+	var machine string
+	var site string
+	switch len(ssm) {
+	case 2:
+		site = ssm[0]
+		machine = ssm[1]
+	case 3:
+		service = ssm[0]
+		site = ssm[1]
+		machine = ssm[2]
+		if service == "" {
+			// There were three fields, but the service field was empty.
+			return Name{}, fmt.Errorf("invalid v3 service: %#v", f)
 		}
+	default:
+		return Name{}, fmt.Errorf("invalid v3 hostname: %#v", f)
+	}
+	// v3 machine names are always 8 hex characters.
+	if len(machine) != 8 {
+		return Name{}, fmt.Errorf("invalid v3 machine: %s", machine)
+	}
+	// v3 site names have a three letter and between a 1 and 10 digit asn.
+	if len(site) < 4 || len(site) > 13 {
+		return Name{}, fmt.Errorf("invalid v3 site: %s", site)
+	}
+	for i := range site {
+		if i < 3 && !unicode.IsLetter(rune(site[i])) {
+			// First three characters must be letters.
+			return Name{}, fmt.Errorf("invalid v3 site: %s", site)
+		}
+		if i >= 3 && !unicode.IsDigit(rune(site[i])) {
+			// All other characters must be numbers.
+			return Name{}, fmt.Errorf("invalid v3 site: %s", site)
+		}
+	}
+	parts := Name{
+		Service: service,
+		Site:    site,
+		Machine: machine,
+		Org:     f[1],
+		Project: f[2],
+		Domain:  f[3] + "." + f[4],
+		Version: "v3",
 	}
 
 	return parts, nil
