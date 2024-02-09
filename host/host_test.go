@@ -426,12 +426,14 @@ func BenchmarkParse(b *testing.B) {
 		"ndt-mlab1-foo01.mlab-sandbox.measurement-lab.org",
 		"ndt-lol12345-abcdef01.mlab.sandbox.measurement-lab.org",
 	}
-	for n := 0; n < b.N; n++ {
-		for i := range names {
-			_, err := Parse(names[i])
-			if err != nil {
-				panic(err)
+	for i := range names {
+		b.Run(names[i], func(b *testing.B) {
+			for n := 0; n < b.N; n++ {
+				_, err := Parse(names[i])
+				if err != nil {
+					panic(err)
+				}
 			}
-		}
+		})
 	}
 }
