@@ -421,7 +421,7 @@ func TestName_StringAll(t *testing.T) {
 }
 
 func BenchmarkParse(b *testing.B) {
-	// run the Fib function b.N times
+	// run Parse on all service names b.N times.
 	names := []string{
 		"ndt-mlab1-foo01.mlab-sandbox.measurement-lab.org",
 		"ndt-lol12345-abcdef01.mlab.sandbox.measurement-lab.org",
