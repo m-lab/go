@@ -210,12 +210,6 @@ func parseHostV3(f []string) (Name, error) {
 	return parts, nil
 }
 
-/*
-	reV1 := regexp.MustCompile(`(?:[a-z-.]+)?(mlab[1-4]d?)[-.]([a-z]{3}[0-9tc]{2})\.(measurement-lab.org)$`)
-	reV2 := regexp.MustCompile(`([a-z0-9]+)?-?(mlab[1-4]d?)-([a-z]{3}[0-9tc]{2})\.(.*?)\.(measurement-lab.org)(-[a-z0-9]{4})?$`)
-	reV3 := regexp.MustCompile(`^(?:([a-z0-9]+)-)?([a-z]{3}[0-9]{1,10})-([a-fA-F0-9]{8})\.(.*?)\.(.*?)\.(measurement-lab.org)$`)
-*/
-
 // Returns a typical M-Lab machine hostname
 // Example: mlab2-abc01.mlab-sandbox.measurement-lab.org
 func (n Name) String() string {
