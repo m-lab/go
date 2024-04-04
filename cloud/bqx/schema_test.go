@@ -236,6 +236,8 @@ func TestCreateAndUpdate(t *testing.T) {
 		log.Fatal(err)
 	}
 
+	partition := &bigquery.TimePartitioning{Field: "Timestamp"}
+
 	name := "mlab-testing." + randName("ds") + randName(".tbl")
 	t.Log("Using:", name)
 	pdt, err := bqx.ParsePDT(name)
@@ -268,7 +270,7 @@ func TestCreateAndUpdate(t *testing.T) {
 	t.Log("Created dataset for", name)
 
 	// Update non-existing table
-	err = pdt.UpdateTable(ctx, client, schema)
+	err = pdt.UpdateTable(ctx, client, schema, nil)
 	if err == nil {
 		t.Error("Update non-existing table should have failed")
 	}
@@ -282,13 +284,13 @@ func TestCreateAndUpdate(t *testing.T) {
 
 	// Create should succeed now.
 	err = pdt.CreateTable(ctx, client, schema, "description",
-		&bigquery.TimePartitioning{Field: "Timestamp"}, nil)
+		partition, nil)
 	if err != nil {
 		t.Error(err)
 	}
 
 	// Update
-	err = pdt.UpdateTable(ctx, client, schema)
+	err = pdt.UpdateTable(ctx, client, schema, partition)
 	if err != nil {
 		t.Error(err)
 	}

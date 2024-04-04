@@ -180,7 +180,8 @@ func ParsePDT(fq string) (PDT, error) {
 
 // UpdateTable will update an existing table.  Returns error if the table
 // doesn't already exist, or if the schema changes are incompatible.
-func (pdt PDT) UpdateTable(ctx context.Context, client *bigquery.Client, schema bigquery.Schema) error {
+func (pdt PDT) UpdateTable(ctx context.Context, client *bigquery.Client, schema bigquery.Schema,
+	partitioning *bigquery.TimePartitioning) error {
 	// See if dataset exists, or create it.
 	ds := client.Dataset(pdt.Dataset)
 	_, err := ds.Metadata(ctx)
@@ -198,9 +199,14 @@ func (pdt PDT) UpdateTable(ctx context.Context, client *bigquery.Client, schema 
 		return err
 	}
 
+	// If a partition field is set, enforce partition filtering.
+	// This prevents unintentional full data scans on large tables.
+	requirePartition := partitioning != nil && partitioning.Field != ""
+
 	// If table already exists, attempt to update the schema.
 	changes := bigquery.TableMetadataToUpdate{
-		Schema: schema,
+		Schema:                 schema,
+		RequirePartitionFilter: requirePartition,
 	}
 
 	_, err = t.Update(ctx, changes, meta.ETag)
@@ -225,11 +231,16 @@ func (pdt PDT) CreateTable(ctx context.Context, client *bigquery.Client, schema 
 
 	t := ds.Table(pdt.Table)
 
+	// If a partition field is set, enforce partition filtering.
+	// This prevents unintentional full data scans on large tables.
+	requirePartition := partitioning != nil && partitioning.Field != ""
+
 	meta := &bigquery.TableMetadata{
-		Schema:           schema,
-		TimePartitioning: partitioning,
-		Clustering:       clustering,
-		Description:      description,
+		Schema:                 schema,
+		TimePartitioning:       partitioning,
+		RequirePartitionFilter: requirePartition,
+		Clustering:             clustering,
+		Description:            description,
 	}
 
 	err := t.Create(ctx, meta)
