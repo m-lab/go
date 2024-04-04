@@ -270,7 +270,7 @@ func TestCreateAndUpdate(t *testing.T) {
 	t.Log("Created dataset for", name)
 
 	// Update non-existing table
-	err = pdt.UpdateTable(ctx, client, schema, nil)
+	err = pdt.UpdateTable(ctx, client, schema, partition)
 	if err == nil {
 		t.Error("Update non-existing table should have failed")
 	}
