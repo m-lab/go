@@ -12,10 +12,10 @@ import (
 type KeyValue struct {
 	pairs map[string]kvsource
 
-	// AllowMissingFile permits a file value without error even if the file is
-	// missing. If the file is missing and AllowMissingFile is true, then the
+	// IgnoreFileError permits a file value without error even if the file is
+	// missing. If the file is missing and IgnoreFileError is true, then the
 	// value is empty.
-	AllowMissingFile bool
+	IgnoreFileError bool
 }
 
 type kvsource struct {
@@ -44,7 +44,7 @@ func (kv *KeyValue) formPairs(pairs []string) error {
 		if len(fields[1]) > 0 && fields[1][0] == '@' {
 			fname := fields[1][1:]
 			b, err := os.ReadFile(fname)
-			if err != nil && !kv.AllowMissingFile {
+			if err != nil && !kv.IgnoreFileError {
 				return err
 			}
 			value := ""

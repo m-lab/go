@@ -32,12 +32,12 @@ func TestKeyValue(t *testing.T) {
 	d := t.TempDir()
 	f := path.Join(d, "args.txt")
 	tests := []struct {
-		name         string
-		kvs          string
-		file         string
-		want         map[string]string
-		allowMissing bool
-		wantErr      bool
+		name        string
+		kvs         string
+		file        string
+		want        map[string]string
+		ignoreError bool
+		wantErr     bool
 	}{
 		{
 			name: "success-single-keyvalue",
@@ -89,9 +89,9 @@ func TestKeyValue(t *testing.T) {
 			},
 		},
 		{
-			name:         "success-missing-file",
-			kvs:          "a=@this-file-does-not-exist",
-			allowMissing: true,
+			name:        "success-missing-file",
+			kvs:         "a=@this-file-does-not-exist",
+			ignoreError: true,
 			want: map[string]string{
 				"a": "",
 			},
@@ -123,7 +123,7 @@ func TestKeyValue(t *testing.T) {
 			}
 
 			// Create kv flag.
-			kv := &flagx.KeyValue{AllowMissingFile: tt.allowMissing}
+			kv := &flagx.KeyValue{IgnoreFileError: tt.ignoreError}
 			if err := kv.Set(tt.kvs); (err != nil) != tt.wantErr {
 				t.Errorf("KeyValue.Set() error = %v, wantErr %v", err, tt.wantErr)
 			}
