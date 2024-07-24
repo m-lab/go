@@ -2,7 +2,7 @@ package flagx
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 	"strings"
 )
 
@@ -11,6 +11,11 @@ import (
 // another key value pair (or overwrite a previous one if the same key is used).
 type KeyValue struct {
 	pairs map[string]kvsource
+
+	// AllowMissingFile permits a file value without error even if the file is
+	// missing. If the file is missing and AllowMissingFile is true, then the
+	// value is empty.
+	AllowMissingFile bool
 }
 
 type kvsource struct {
@@ -38,12 +43,16 @@ func (kv *KeyValue) formPairs(pairs []string) error {
 		}
 		if len(fields[1]) > 0 && fields[1][0] == '@' {
 			fname := fields[1][1:]
-			b, err := ioutil.ReadFile(fname)
-			if err != nil {
+			b, err := os.ReadFile(fname)
+			if err != nil && !kv.AllowMissingFile {
 				return err
 			}
+			value := ""
+			if b != nil {
+				value = string(b)
+			}
 			kv.pairs[fields[0]] = kvsource{
-				value: strings.TrimSpace(string(b)),
+				value: strings.TrimSpace(value),
 				fname: fname,
 			}
 		} else {

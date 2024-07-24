@@ -2,7 +2,6 @@ package flagx_test
 
 import (
 	"flag"
-	"io/ioutil"
 	"log"
 	"os"
 	"path"
@@ -33,11 +32,12 @@ func TestKeyValue(t *testing.T) {
 	d := t.TempDir()
 	f := path.Join(d, "args.txt")
 	tests := []struct {
-		name    string
-		kvs     string
-		file    string
-		want    map[string]string
-		wantErr bool
+		name         string
+		kvs          string
+		file         string
+		want         map[string]string
+		allowMissing bool
+		wantErr      bool
 	}{
 		{
 			name: "success-single-keyvalue",
@@ -89,6 +89,14 @@ func TestKeyValue(t *testing.T) {
 			},
 		},
 		{
+			name:         "success-missing-file",
+			kvs:          "a=@this-file-does-not-exist",
+			allowMissing: true,
+			want: map[string]string{
+				"a": "",
+			},
+		},
+		{
 			name:    "error-bad-key-value",
 			kvs:     "a=b,c",
 			wantErr: true,
@@ -108,14 +116,14 @@ func TestKeyValue(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.file != "" {
 				// write an args file to a tempdir.
-				err := ioutil.WriteFile(f, []byte(tt.file), os.ModePerm)
+				err := os.WriteFile(f, []byte(tt.file), os.ModePerm)
 				if err != nil {
 					t.Fatalf("FlagsFromFile write file failed: %v", err)
 				}
 			}
 
 			// Create kv flag.
-			kv := &flagx.KeyValue{}
+			kv := &flagx.KeyValue{AllowMissingFile: tt.allowMissing}
 			if err := kv.Set(tt.kvs); (err != nil) != tt.wantErr {
 				t.Errorf("KeyValue.Set() error = %v, wantErr %v", err, tt.wantErr)
 			}
