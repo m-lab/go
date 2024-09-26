@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/m-lab/go/rtx"
+	"github.com/m-lab/go/testingx"
 )
 
 func TestName(t *testing.T) {
@@ -295,17 +295,21 @@ func TestName_String(t *testing.T) {
 		},
 		{
 			name: "ndt-lol12345-abcdef01.mlab.sandbox.measurement-lab.org",
-			want: "lol12345-abcdef01.mlab.sandbox.measurement-lab.org",
+			want: "ndt-lol12345-abcdef01.mlab.sandbox.measurement-lab.org",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			n, err := Parse(tt.name)
-			rtx.Must(err, "Failed to parse: %s", tt.name)
+			testingx.Must(t, err, "Failed to parse: %s", tt.name)
 			if got := n.String(); got != tt.want {
 				t.Errorf("Name.String() = %v, want %v", got, tt.want)
 			}
 		})
+	}
+	// Verify an empty Name returns an empty string.
+	if (Name{}).String() != "" {
+		t.Errorf("Name.String() = %v, want ''", (Name{}).String())
 	}
 }
 
@@ -338,7 +342,7 @@ func TestName_StringWithService(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			n, err := Parse(tt.name)
-			rtx.Must(err, "Failed to parse: %s", tt.name)
+			testingx.Must(t, err, "Failed to parse: %s", tt.name)
 			if got := n.StringWithService(); got != tt.want {
 				t.Errorf("Name.StringWithService() = %v, want %v", got, tt.want)
 			}
@@ -369,13 +373,13 @@ func TestName_StringWithSuffix(t *testing.T) {
 		},
 		{
 			name: "ndt-lol12345-abcdef01.mlab.sandbox.measurement-lab.org",
-			want: "lol12345-abcdef01.mlab.sandbox.measurement-lab.org",
+			want: "ndt-lol12345-abcdef01.mlab.sandbox.measurement-lab.org",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			n, err := Parse(tt.name)
-			rtx.Must(err, "Failed to parse: %s", tt.name)
+			testingx.Must(t, err, "Failed to parse: %s", tt.name)
 			if got := n.StringWithSuffix(); got != tt.want {
 				t.Errorf("Name.StringWithSuffix() = %v, want %v", got, tt.want)
 			}
@@ -412,7 +416,7 @@ func TestName_StringAll(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			n, err := Parse(tt.name)
-			rtx.Must(err, "Failed to parse: %s", tt.name)
+			testingx.Must(t, err, "Failed to parse: %s", tt.name)
 			if got := n.StringAll(); got != tt.want {
 				t.Errorf("Name.StringAll() = %v, want %v", got, tt.want)
 			}
