@@ -222,9 +222,13 @@ func parseHostV3(f []string) (Name, error) {
 // Returns a typical M-Lab machine hostname
 // Example: mlab2-abc01.mlab-sandbox.measurement-lab.org
 func (n Name) String() string {
+	if (n == Name{}) {
+		return ""
+	}
 	switch n.Version {
 	case "v3":
-		return fmt.Sprintf("%s-%s.%s.%s.%s", n.Site, n.Machine, n.Org, n.Project, n.Domain)
+		// NOTE: v3 names include the service and are equivalent to the machine name.
+		return fmt.Sprintf("%s-%s-%s.%s.%s.%s", n.Service, n.Site, n.Machine, n.Org, n.Project, n.Domain)
 	case "v2":
 		return fmt.Sprintf("%s-%s.%s.%s", n.Machine, n.Site, n.Project, n.Domain)
 	default:
@@ -235,11 +239,11 @@ func (n Name) String() string {
 // Returns an M-lab hostname with any service name preserved
 // Example: ndt-mlab1-abc01.mlab-sandbox.measurement-lab.org
 func (n Name) StringWithService() string {
-	if n.Service != "" {
-		return fmt.Sprintf("%s-%s", n.Service, n.String())
-	} else {
+	if n.Version == "v3" || n.Service == "" {
+		// v3 names are equivalent to the machine name.
 		return n.String()
 	}
+	return fmt.Sprintf("%s-%s", n.Service, n.String())
 }
 
 // Returns an M-lab hostname with any suffix preserved
