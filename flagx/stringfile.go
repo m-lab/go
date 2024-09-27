@@ -34,9 +34,8 @@ func (fs *StringFile) Set(v string) error {
 func (fs *StringFile) String() string {
 	if fs.file != "" {
 		return fmt.Sprintf("@%s", fs.file)
-	} else {
-		return fs.Value
 	}
+	return fs.Value
 }
 
 // Get returns the flag value.
