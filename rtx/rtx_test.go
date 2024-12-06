@@ -5,6 +5,7 @@ package rtx
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -87,8 +88,8 @@ func TestValueOrDieFailure(t *testing.T) {
 
 	log.SetOutput(os.Stdout)
 
-	if !strings.HasSuffix(out, "Fails (error: A failure for testing)\n") {
-		t.Errorf("%q does not end with \"Fails (error: A failure for testing)\"", out)
+	if !strings.HasSuffix(out, "A failure for testing\n") {
+		t.Errorf("%q does not end with \"A failure for testing\"", out)
 	}
 
 	if e.count != 1 {
@@ -151,8 +152,8 @@ func TestValueOrPanicPanicsOnError(t *testing.T) {
 		if r == nil {
 			t.Error("We should have recovered from a panic")
 		}
-		if r != "Expect an error (error: Error for testing)" {
-			t.Error(r, "was not the expected string")
+		if fmt.Sprintf("%v", r) != "A failure for testing" {
+			t.Error(fmt.Sprintf("%v", r), "was not the expected string")
 		}
 	}()
 	ValueOrPanic(failValue(8))
