@@ -16,12 +16,15 @@ var osExit = os.Exit
 // prefix will be treated as a format string.
 //
 // The main purpose of this function is to turn the common pattern of:
-//    err := Func()
-//    if err != nil {
-//        log.Fatalf("Helpful message (error: %v)", err)
-//    }
+//
+//	err := Func()
+//	if err != nil {
+//	    log.Fatalf("Helpful message (error: %v)", err)
+//	}
+//
 // into a simplified pattern of:
-//    Must(Func(), "Helpful message")
+//
+//	Must(Func(), "Helpful message")
 //
 // This has the benefit of using fewer lines, a common error path that has test
 // coverage, and enabling code which switches to this package to have 100%
@@ -35,6 +38,32 @@ func Must(err error, prefix string, args ...interface{}) {
 		log.Output(2, prefix+suffix)
 		osExit(1)
 	}
+}
+
+// ValueOrDie is like Must, but it returns a value instead of having no output.
+//
+// It is expected this will be used like Must, but for functions that return a
+// value, error tuple. Code like:
+//
+//	value, err := Func()
+//	if err != nil {
+//	    log.Fatalf(err)
+//	}
+//
+// can be simplified to:
+//
+//	value := ValueOrDie(Func())
+//
+// When Must was originally added, Go didn't have generics. Now that it does,
+// ValueOrDie is the generic version of Must. Unfortunately, because of how tuples
+// are unpacked and passed to other functions, we can't supply a prefix or any
+// other arguments.
+func ValueOrDie[T any](value T, err error) T {
+	if err != nil {
+		log.Output(2, err.Error())
+		osExit(1)
+	}
+	return value
 }
 
 // PanicOnError will call panic if passed a non-nil error. The message to panic
@@ -60,4 +89,13 @@ func PanicOnError(err error, prefix string, args ...interface{}) {
 		log.Output(2, prefix+suffix)
 		panic(prefix + suffix)
 	}
+}
+
+// ValueOrPanic is like ValueOrDie, but it panics instead of exiting.
+func ValueOrPanic[T any](value T, err error) T {
+	if err != nil {
+		log.Output(2, err.Error())
+		panic(err)
+	}
+	return value
 }
