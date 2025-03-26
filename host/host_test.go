@@ -29,6 +29,7 @@ func TestName(t *testing.T) {
 			name:     "valid-v2",
 			hostname: "mlab1-lol01.mlab-sandbox.measurement-lab.org",
 			want: Name{
+				Org:     "mlab",
 				Machine: "mlab1",
 				Site:    "lol01",
 				Project: "mlab-sandbox",
@@ -40,6 +41,7 @@ func TestName(t *testing.T) {
 			name:     "valid-v2-with-suffix",
 			hostname: "mlab1-lol01.mlab-sandbox.measurement-lab.org-a9b8",
 			want: Name{
+				Org:     "mlab",
 				Machine: "mlab1",
 				Site:    "lol01",
 				Project: "mlab-sandbox",
@@ -52,6 +54,7 @@ func TestName(t *testing.T) {
 			name:     "valid-v2-with-service",
 			hostname: "ndt-mlab1-lol01.mlab-sandbox.measurement-lab.org",
 			want: Name{
+				Org:     "mlab",
 				Service: "ndt",
 				Machine: "mlab1",
 				Site:    "lol01",
@@ -64,6 +67,7 @@ func TestName(t *testing.T) {
 			name:     "valid-v2-with-service-and-suffix",
 			hostname: "ndt-mlab1-lol01.mlab-sandbox.measurement-lab.org-a9b8",
 			want: Name{
+				Org:     "mlab",
 				Service: "ndt",
 				Machine: "mlab1",
 				Site:    "lol01",
@@ -92,6 +96,7 @@ func TestName(t *testing.T) {
 			name:     "valid-v2-bmc",
 			hostname: "mlab1d-lol01.mlab-sandbox.measurement-lab.org",
 			want: Name{
+				Org:     "mlab",
 				Machine: "mlab1d",
 				Site:    "lol01",
 				Project: "mlab-sandbox",
