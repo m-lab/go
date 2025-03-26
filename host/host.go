@@ -139,6 +139,7 @@ func parseHostV2(f []string) (Name, error) {
 		return Name{}, fmt.Errorf("invalid domain: %#v", f)
 	}
 	parts := Name{
+		Org:     "mlab",
 		Service: service,
 		Machine: machine,
 		Site:    site,
