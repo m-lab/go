@@ -138,6 +138,9 @@ func parseHostV2(f []string) (Name, error) {
 	if domain != "measurement-lab.org" {
 		return Name{}, fmt.Errorf("invalid domain: %#v", f)
 	}
+	// All V2 names represent machines that are managed by M-Lab, and join the
+	// M-Lab platform cluster. Unconditionally set Org to "mlab" rather than
+	// leaving it blank.
 	parts := Name{
 		Org:     "mlab",
 		Service: service,
