@@ -19,15 +19,14 @@ require (
 	github.com/m-lab/uuid-annotator v0.4.1
 	github.com/prometheus/client_golang v1.7.1
 	golang.org/x/net v0.38.0
-	golang.org/x/oauth2 v0.7.0
+	golang.org/x/oauth2 v0.27.0
 	google.golang.org/api v0.114.0
 	gopkg.in/yaml.v2 v2.2.8
 )
 
 require (
 	cloud.google.com/go v0.110.0 // indirect
-	cloud.google.com/go/compute v1.19.1 // indirect
-	cloud.google.com/go/compute/metadata v0.2.3 // indirect
+	cloud.google.com/go/compute/metadata v0.3.0 // indirect
 	cloud.google.com/go/iam v0.13.0 // indirect
 	github.com/andybalholm/brotli v1.0.4 // indirect
 	github.com/apache/arrow/go/v11 v11.0.0 // indirect
