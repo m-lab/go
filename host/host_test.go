@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/m-lab/go/rtx"
+	"github.com/m-lab/go/testingx"
 )
 
 func TestName(t *testing.T) {
@@ -29,6 +29,7 @@ func TestName(t *testing.T) {
 			name:     "valid-v2",
 			hostname: "mlab1-lol01.mlab-sandbox.measurement-lab.org",
 			want: Name{
+				Org:     "mlab",
 				Machine: "mlab1",
 				Site:    "lol01",
 				Project: "mlab-sandbox",
@@ -40,6 +41,7 @@ func TestName(t *testing.T) {
 			name:     "valid-v2-with-suffix",
 			hostname: "mlab1-lol01.mlab-sandbox.measurement-lab.org-a9b8",
 			want: Name{
+				Org:     "mlab",
 				Machine: "mlab1",
 				Site:    "lol01",
 				Project: "mlab-sandbox",
@@ -52,6 +54,7 @@ func TestName(t *testing.T) {
 			name:     "valid-v2-with-service",
 			hostname: "ndt-mlab1-lol01.mlab-sandbox.measurement-lab.org",
 			want: Name{
+				Org:     "mlab",
 				Service: "ndt",
 				Machine: "mlab1",
 				Site:    "lol01",
@@ -64,6 +67,7 @@ func TestName(t *testing.T) {
 			name:     "valid-v2-with-service-and-suffix",
 			hostname: "ndt-mlab1-lol01.mlab-sandbox.measurement-lab.org-a9b8",
 			want: Name{
+				Org:     "mlab",
 				Service: "ndt",
 				Machine: "mlab1",
 				Site:    "lol01",
@@ -92,6 +96,7 @@ func TestName(t *testing.T) {
 			name:     "valid-v2-bmc",
 			hostname: "mlab1d-lol01.mlab-sandbox.measurement-lab.org",
 			want: Name{
+				Org:     "mlab",
 				Machine: "mlab1d",
 				Site:    "lol01",
 				Project: "mlab-sandbox",
@@ -295,17 +300,21 @@ func TestName_String(t *testing.T) {
 		},
 		{
 			name: "ndt-lol12345-abcdef01.mlab.sandbox.measurement-lab.org",
-			want: "lol12345-abcdef01.mlab.sandbox.measurement-lab.org",
+			want: "ndt-lol12345-abcdef01.mlab.sandbox.measurement-lab.org",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			n, err := Parse(tt.name)
-			rtx.Must(err, "Failed to parse: %s", tt.name)
+			testingx.Must(t, err, "Failed to parse: %s", tt.name)
 			if got := n.String(); got != tt.want {
 				t.Errorf("Name.String() = %v, want %v", got, tt.want)
 			}
 		})
+	}
+	// Verify an empty Name returns an empty string.
+	if (Name{}).String() != "" {
+		t.Errorf("Name.String() = %v, want ''", (Name{}).String())
 	}
 }
 
@@ -338,7 +347,7 @@ func TestName_StringWithService(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			n, err := Parse(tt.name)
-			rtx.Must(err, "Failed to parse: %s", tt.name)
+			testingx.Must(t, err, "Failed to parse: %s", tt.name)
 			if got := n.StringWithService(); got != tt.want {
 				t.Errorf("Name.StringWithService() = %v, want %v", got, tt.want)
 			}
@@ -369,13 +378,13 @@ func TestName_StringWithSuffix(t *testing.T) {
 		},
 		{
 			name: "ndt-lol12345-abcdef01.mlab.sandbox.measurement-lab.org",
-			want: "lol12345-abcdef01.mlab.sandbox.measurement-lab.org",
+			want: "ndt-lol12345-abcdef01.mlab.sandbox.measurement-lab.org",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			n, err := Parse(tt.name)
-			rtx.Must(err, "Failed to parse: %s", tt.name)
+			testingx.Must(t, err, "Failed to parse: %s", tt.name)
 			if got := n.StringWithSuffix(); got != tt.want {
 				t.Errorf("Name.StringWithSuffix() = %v, want %v", got, tt.want)
 			}
@@ -412,7 +421,7 @@ func TestName_StringAll(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			n, err := Parse(tt.name)
-			rtx.Must(err, "Failed to parse: %s", tt.name)
+			testingx.Must(t, err, "Failed to parse: %s", tt.name)
 			if got := n.StringAll(); got != tt.want {
 				t.Errorf("Name.StringAll() = %v, want %v", got, tt.want)
 			}
