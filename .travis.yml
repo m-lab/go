@@ -13,9 +13,9 @@
 #
 language: go
 go:
-- 1.20
+- 1.23
 
-dist: jammy # 22.04
+dist: noble # 24.04
 
 before_install:
 # Coverage tools
