@@ -11,7 +11,7 @@ require (
 	cloud.google.com/go/datastore v1.21.0
 	cloud.google.com/go/storage v1.59.1
 	github.com/araddon/dateparse v0.0.0-20210429162001-6b43995a97de
-	github.com/go-test/deep v1.0.6
+	github.com/go-test/deep v1.1.1
 	github.com/google/go-cmp v0.7.0
 	github.com/googleapis/google-cloud-go-testing v0.0.0-20210719221736-1c9a4c676720
 	github.com/kabukky/httpscerts v0.0.0-20150320125433-617593d7dcb3
