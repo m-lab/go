@@ -17,14 +17,17 @@ var logPrintf = log.Printf
 // explicitly.
 //
 // Its allows to turn ugly error-logging code such as:
-//    defer func() {
-//        err := resource.Close()
-//        if err != nil {
-//            log.Printf("Warning: ignoring error (%v)", err)
-//        }
-//    }()
+//
+//	defer func() {
+//	    err := resource.Close()
+//	    if err != nil {
+//	        log.Printf("Warning: ignoring error (%v)", err)
+//	    }
+//	}()
+//
 // into a simplified pattern of:
-//    defer warnonerror.Close(resource, "Warning: ignoring error")
+//
+//	defer warnonerror.Close(resource, "Warning: ignoring error")
 func Close(c io.Closer, msg string) error {
 	err := c.Close()
 	if err != nil {

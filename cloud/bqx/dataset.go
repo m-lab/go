@@ -44,7 +44,8 @@ type Dataset struct {
 // httpClient is used to inject mocks for the bigquery client.
 // if httpClient is nil, a suitable default client is used.
 // Additional bigquery ClientOptions may be optionally passed as final
-//   clientOpts argument.  This is useful for testing credentials.
+//
+//	clientOpts argument.  This is useful for testing credentials.
 func NewDataset(project, dataset string, clientOpts ...option.ClientOption) (Dataset, error) {
 	ctx := context.Background()
 	var bqClient *bigquery.Client

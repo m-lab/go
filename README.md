@@ -1,7 +1,6 @@
 # go
-| branch | travis-ci | coveralls | docs | report card |
-|--------|-----------|-----------|------|-------------|
-| master | [![Travis Build Status](https://travis-ci.org/m-lab/go.svg?branch=master)](https://travis-ci.org/m-lab/go) | [![Coverage Status](https://coveralls.io/repos/m-lab/go/badge.svg?branch=master)](https://coveralls.io/github/m-lab/go?branch=master) | [![GoDoc](https://godoc.org/github.com/m-lab/go?status.svg)](https://godoc.org/github.com/m-lab/go) | [![Go Report Card](https://goreportcard.com/badge/github.com/m-lab/go)](https://goreportcard.com/report/github.com/m-lab/go)
+
+[![Version](https://img.shields.io/github/tag/m-lab/go.svg)](https://github.com/m-lab/go/releases) [![Build Status](https://github.com/m-lab/go/actions/workflows/ci.yml/badge.svg)](https://github.com/m-lab/go/actions) [![Coverage Status](https://coveralls.io/repos/github/m-lab/go/badge.svg?branch=main)](https://coveralls.io/github/m-lab/go?branch=main) [![GoDoc](https://godoc.org/github.com/m-lab/go?status.svg)](https://godoc.org/github.com/m-lab/go) [![Go Report Card](https://goreportcard.com/badge/github.com/m-lab/go)](https://goreportcard.com/report/github.com/m-lab/go)
 
 General purpose libraries / APIs for use in mlab code.
 

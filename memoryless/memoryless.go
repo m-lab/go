@@ -12,7 +12,9 @@ import (
 // Config represents the time we should wait between runs of the function.
 //
 // A valid config will have:
-//  0 <= Min <= Expected <= Max (or 0 <= Min <= Expected and Max is 0)
+//
+//	0 <= Min <= Expected <= Max (or 0 <= Min <= Expected and Max is 0)
+//
 // If Max is zero or unset, it will be ignored. If Min is zero or unset, it will
 // be ignored.
 type Config struct {
