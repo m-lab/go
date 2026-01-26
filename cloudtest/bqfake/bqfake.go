@@ -239,9 +239,9 @@ type Job struct {
 // NewJob returns a new instance of Job.
 func NewJob(status *bigquery.JobStatus, config QueryConfig, err error) *Job {
 	return &Job{
-		status: status,
-		config: config,
-		waitErr:    err,
+		status:  status,
+		config:  config,
+		waitErr: err,
 	}
 }
 

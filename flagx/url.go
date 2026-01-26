@@ -14,7 +14,8 @@ type URL struct {
 
 // MustNewURL creates a new flagx.URL initialized with the given value. Failure
 // to parse is fatal. For example:
-//   f := flagx.MustNewURL("http://example.com")
+//
+//	f := flagx.MustNewURL("http://example.com")
 func MustNewURL(s string) URL {
 	u := URL{}
 	rtx.Must(u.Set(s), "Failed to parse and set given URL %q", s)

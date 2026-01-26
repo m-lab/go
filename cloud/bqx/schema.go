@@ -30,19 +30,24 @@ func PrettyPrint(schema bigquery.Schema, simplify bool) (string, error) {
 	before := ""
 	output := &bytes.Buffer{}
 
+	// Fields to skip when simplifying (zero-valued fields added in newer BigQuery versions).
+	skipIfSimplify := map[string]bool{
+		`"Schema": null`:               true,
+		`"Repeated": false`:            true,
+		`"Required": false`:            true,
+		`"MaxLength": 0`:               true,
+		`"Precision": 0`:               true,
+		`"Scale": 0`:                   true,
+		`"DefaultValueExpression": ""`: true,
+		`"Collation": ""`:              true,
+		`"RangeElementType": null`:     true,
+		`"RoundingMode": ""`:           true,
+	}
+
 	for _, line := range lines {
 		// Remove Required from all fields.
 		trim := strings.Trim(strings.TrimSpace(line), ",")
 		switch trim {
-		case `"Schema": null`:
-			fallthrough
-		case `"Repeated": false`:
-			fallthrough
-		case `"Required": false`:
-			if !simplify {
-				fmt.Fprint(output, before, trim)
-				before = ", "
-			}
 		case `"Required": true`:
 			fmt.Fprint(output, before, trim)
 			before = ", "
@@ -57,9 +62,13 @@ func PrettyPrint(schema bigquery.Schema, simplify bool) (string, error) {
 		case `}`:
 			fmt.Fprintln(output, strings.TrimSpace(line))
 		case `]`:
-			fmt.Fprint(output, line)
+			// Strip trailing comma - it will be provided by the next element if needed.
+			fmt.Fprint(output, strings.TrimRight(line, ","))
 			before = ""
 		default:
+			if simplify && skipIfSimplify[trim] {
+				continue
+			}
 			fmt.Fprint(output, before, trim)
 			before = ", "
 		}

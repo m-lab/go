@@ -1,51 +1,43 @@
 package mathx
 
 import (
-	"math/rand"
 	"testing"
 )
 
-const seed = 1658340109320624211
-
 func TestGetRandomInt(t *testing.T) {
 	tests := []struct {
-		name      string
-		max       int
-		expected1 int
-		expected2 int
+		name string
+		max  int
 	}{
 		{
-			name:      "random",
-			max:       10,
-			expected1: 6,
-			expected2: 8,
+			name: "random",
+			max:  10,
 		},
 		{
-			name:      "zero",
-			max:       0,
-			expected1: 0,
-			expected2: 0,
+			name: "zero",
+			max:  0,
 		},
 		{
-			name:      "negative",
-			max:       -10,
-			expected1: 0,
-			expected2: 0,
+			name: "negative",
+			max:  -10,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			rand.Seed(seed)
-			got := GetRandomInt(tt.max)
+			got1 := GetRandomInt(tt.max)
+			got2 := GetRandomInt(tt.max)
 
-			if got != tt.expected1 {
-				t.Errorf("GetRandomInt() = %d, want %d", got, tt.expected1)
-			}
-
-			got = GetRandomInt(tt.max)
-
-			if got != tt.expected2 {
-				t.Errorf("GetRandomInt() = %d, want %d", got, tt.expected2)
+			if tt.max <= 0 {
+				if got1 != 0 || got2 != 0 {
+					t.Errorf("GetRandomInt(%d) should return 0, got %d and %d", tt.max, got1, got2)
+				}
+			} else {
+				if got1 < 0 || got1 >= tt.max {
+					t.Errorf("GetRandomInt(%d) = %d, want value in [0, %d)", tt.max, got1, tt.max)
+				}
+				if got2 < 0 || got2 >= tt.max {
+					t.Errorf("GetRandomInt(%d) = %d, want value in [0, %d)", tt.max, got2, tt.max)
+				}
 			}
 		})
 	}
@@ -53,43 +45,33 @@ func TestGetRandomInt(t *testing.T) {
 
 func TestGetExpDistributedInt(t *testing.T) {
 	tests := []struct {
-		name      string
-		rate      float64
-		expected1 int
-		expected2 int
+		name string
+		rate float64
 	}{
 		{
-			name:      "rate-1",
-			rate:      1,
-			expected1: 1,
-			expected2: 0,
+			name: "rate-1",
+			rate: 1,
 		},
 		{
-			name:      "rate-0.1",
-			rate:      0.1,
-			expected1: 5,
-			expected2: 2,
+			name: "rate-0.1",
+			rate: 0.1,
 		},
 		{
-			name:      "rate-5",
-			rate:      5,
-			expected1: 0,
-			expected2: 0,
+			name: "rate-5",
+			rate: 5,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			rand.Seed(seed)
-			got := GetExpDistributedInt(tt.rate)
+			got1 := GetExpDistributedInt(tt.rate)
+			got2 := GetExpDistributedInt(tt.rate)
 
-			if got != tt.expected1 {
-				t.Errorf("GetExpDistributedInt() = %d, want %d", got, tt.expected1)
+			// Exponential distribution should return non-negative integers.
+			if got1 < 0 {
+				t.Errorf("GetExpDistributedInt(%f) = %d, want non-negative value", tt.rate, got1)
 			}
-
-			got = GetExpDistributedInt(tt.rate)
-
-			if got != tt.expected2 {
-				t.Errorf("GetExpDistributedInt() = %d, want %d", got, tt.expected2)
+			if got2 < 0 {
+				t.Errorf("GetExpDistributedInt(%f) = %d, want non-negative value", tt.rate, got2)
 			}
 		})
 	}

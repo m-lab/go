@@ -28,7 +28,9 @@ func (fb *FileBytes) Set(s string) error {
 //
 // FileBytes are awkward to represent in help text, and such help text is the
 // main use of the Stringer interface for this flag. Help text like:
-//   "Sets the file containing the prefix string. The default file contents are: " + fb.String()
+//
+//	"Sets the file containing the prefix string. The default file contents are: " + fb.String()
+//
 // is recommended.
 func (fb FileBytes) String() string {
 	return string([]byte(fb))
