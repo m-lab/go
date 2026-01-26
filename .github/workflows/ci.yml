@@ -43,6 +43,9 @@ jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - uses: actions/checkout@v6
 
@@ -51,6 +54,12 @@ jobs:
         with:
           go-version-file: go.mod
           cache: true
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          project_id: mlab-testing
+          workload_identity_provider: projects/808951263862/locations/global/workloadIdentityPools/github/providers/m-lab-repos
 
       - name: Run tests
         run: go test -timeout 5m -race -coverprofile=coverage.out ./...
