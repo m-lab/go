@@ -9,9 +9,9 @@ retract [v1.0.0, v1.4.1]
 require (
 	cloud.google.com/go/bigquery v1.72.0
 	cloud.google.com/go/datastore v1.21.0
-	cloud.google.com/go/storage v1.59.1
+	cloud.google.com/go/storage v1.59.2
 	github.com/araddon/dateparse v0.0.0-20210429162001-6b43995a97de
-	github.com/go-test/deep v1.0.6
+	github.com/go-test/deep v1.1.1
 	github.com/google/go-cmp v0.7.0
 	github.com/googleapis/google-cloud-go-testing v0.0.0-20210719221736-1c9a4c676720
 	github.com/kabukky/httpscerts v0.0.0-20150320125433-617593d7dcb3
@@ -20,7 +20,7 @@ require (
 	github.com/prometheus/client_golang v1.23.2
 	golang.org/x/net v0.49.0
 	golang.org/x/oauth2 v0.34.0
-	google.golang.org/api v0.262.0
+	google.golang.org/api v0.264.0
 	gopkg.in/yaml.v2 v2.4.0
 )
 
