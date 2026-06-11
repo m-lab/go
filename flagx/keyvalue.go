@@ -21,7 +21,8 @@ type kvsource struct {
 // Set parses key=value argument. Multiple pairs may be separated with a comma,
 // i.e. "key1=value1,key2=value2". When the first character of the value is
 // prefixed by with "@", i.e. "key1=@file1", Set reads the file content for the
-// key value.
+// key value. Empty pairs are ignored, so an empty argument ("") or stray
+// commas (e.g. "key1=value1,") are a no-op rather than an error.
 func (kv *KeyValue) Set(kvs string) error {
 	pairs := strings.Split(kvs, ",")
 	return kv.formPairs(pairs)
@@ -29,6 +30,12 @@ func (kv *KeyValue) Set(kvs string) error {
 
 func (kv *KeyValue) formPairs(pairs []string) error {
 	for _, pair := range pairs {
+		// Ignore empty pairs. This makes an empty argument ("") or a stray
+		// comma a no-op instead of a "bad key/value" error, which is handy
+		// when the flag is fed from an optional environment variable.
+		if pair == "" {
+			continue
+		}
 		fields := strings.SplitN(pair, "=", 2)
 		if len(fields) != 2 {
 			return fmt.Errorf("bad key/value: %q split on '=' into %d pieces (should have been 2)", pair, len(fields))

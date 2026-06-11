@@ -89,6 +89,11 @@ func TestKeyValue(t *testing.T) {
 			},
 		},
 		{
+			name: "success-empty-string-is-noop",
+			kvs:  "",
+			want: map[string]string{},
+		},
+		{
 			name:    "error-bad-key-value",
 			kvs:     "a=b,c",
 			wantErr: true,
@@ -136,6 +141,32 @@ func TestKeyValue(t *testing.T) {
 			sort.Strings(kvsFields)
 			if diff := deep.Equal(strFields, kvsFields); diff != nil {
 				t.Errorf("KeyValue.String() did not match; got = %v, want %v, diff %v", strFields, kvsFields, diff)
+			}
+		})
+	}
+}
+
+// TestKeyValueSkipsEmptyPairs verifies that empty pairs (from an empty
+// argument or stray commas) are ignored instead of producing an error.
+func TestKeyValueSkipsEmptyPairs(t *testing.T) {
+	tests := []struct {
+		name string
+		kvs  string
+		want map[string]string
+	}{
+		{name: "empty-string", kvs: "", want: map[string]string{}},
+		{name: "leading-comma", kvs: ",a=b", want: map[string]string{"a": "b"}},
+		{name: "trailing-comma", kvs: "a=b,", want: map[string]string{"a": "b"}},
+		{name: "double-comma", kvs: "a=b,,c=d", want: map[string]string{"a": "b", "c": "d"}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			kv := &flagx.KeyValue{}
+			if err := kv.Set(tt.kvs); err != nil {
+				t.Fatalf("KeyValue.Set(%q) unexpected error: %v", tt.kvs, err)
+			}
+			if got := kv.Get(); !mapsMatch(got, tt.want) {
+				t.Errorf("KeyValue.Get() = %v, want %v", got, tt.want)
 			}
 		})
 	}
